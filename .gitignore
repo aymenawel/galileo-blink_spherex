@@ -1,0 +1,21 @@
+# Python
+__pycache__/
+*.py[cod]
+.pytest_cache/
+.venv/
+*.egg-info/
+
+# Node
+node_modules/
+web/dist/
+
+# Local data: downloaded photos and built views are re-creatable
+/cache/
+*.tmp
+
+# Local-only notes and editor state
+CLAUDE.local.md
+.claude/
+.vscode/
+.idea/
+.env
