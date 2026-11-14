@@ -93,12 +93,26 @@ def catwise_cone(ra: float, dec: float, radius_deg: float) -> list[Mover]:
     return merged
 
 
+ECHO_ARCSEC = 150.0
+ECHO_PM_FRACTION = 0.35
+
+
+def _same_motion(a: Mover, b: Mover) -> bool:
+    return math.hypot(a.pmra - b.pmra, a.pmdec - b.pmdec) <= ECHO_PM_FRACTION * max(a.pm_total, b.pm_total)
+
+
 def fast_movers(gaia: list[Mover], catwise: list[Mover]) -> list[Mover]:
     """Objects worth marking: Gaia stars above the marking speed, plus CatWISE movers that are
-    not simply the same Gaia star again. Fastest first."""
+    not echoes of an object already listed. Fastest first.
+
+    CatWISE breaks the image of a bright fast star into many entries (its core, its
+    diffraction spikes), each "moving" with the star: Barnard's Star alone yields more than
+    fifty. An entry within ECHO_ARCSEC of a listed mover and sharing its motion is an echo."""
     out = [g for g in gaia if g.pm_total >= C.MIN_PM_MARK_ARCSEC_YR]
-    for c in catwise:
-        if not any(separation_arcsec(*predict(g, C.CATWISE_EPOCH_MJD), c.ra, c.dec)
-                   <= FRAGMENT_ARCSEC for g in out):
+    for c in sorted(catwise, key=lambda m: -m.pm_total):
+        echo = any(_same_motion(c, m)
+                   and separation_arcsec(*predict(m, C.CATWISE_EPOCH_MJD), c.ra, c.dec) <= ECHO_ARCSEC
+                   for m in out)
+        if not echo:
             out.append(c)
     return sorted(out, key=lambda m: -m.pm_total)

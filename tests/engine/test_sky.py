@@ -112,3 +112,18 @@ def test_an_ordinary_place_is_left_where_it_was_typed(monkeypatch):
         raise RuntimeError("catalogue down")
     monkeypatch.setattr(coords.catalogues, "gaia_cone", down)
     assert coords.resolve("180.0 0.0").follows is None            # the lookup is optional
+
+
+def test_catwise_echoes_of_a_bright_fast_star_are_not_marked():
+    from galileo_blink.engine.sky.catalogues import fast_movers
+    from .synth import offset_sky
+    barnard = Mover("Gaia DR3 B", "Gaia DR3", "g", 269.4485, 4.7394, 57388.5, pmra=-0.80, pmdec=10.36)
+    at_catwise_epoch = predict(barnard, 57170.0)
+    echoes = [Mover(f"CatWISE2020 e{i}", "CatWISE2020", "c", *offset_sky(*at_catwise_epoch, 20.0 * i, -30.0),
+                    57170.0, pmra=-0.6, pmdec=9.0 + 0.1 * i) for i in range(1, 6)]
+    brown_dwarf = Mover("CatWISE2020 bd", "CatWISE2020", "c", *offset_sky(*at_catwise_epoch, 200.0, 100.0),
+                        57170.0, pmra=-8.0, pmdec=0.7)          # a real, different mover
+    unrelated = Mover("CatWISE2020 u", "CatWISE2020", "c", *offset_sky(*at_catwise_epoch, 40.0, 40.0),
+                      57170.0, pmra=3.0, pmdec=-2.0)            # near, but moving differently
+    marked = fast_movers([barnard], echoes + [brown_dwarf, unrelated])
+    assert [m.name for m in marked] == ["Gaia DR3 B", "CatWISE2020 bd", "CatWISE2020 u"]
