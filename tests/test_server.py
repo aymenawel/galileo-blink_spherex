@@ -145,3 +145,14 @@ def test_the_asteroid_view_opens_by_place_or_by_name(client, monkeypatch):
         raise UserError("No asteroid called that is known.")
     monkeypatch.setattr(asteroids, "find_asteroid", unknown)
     assert client.get("/api/asteroid", params=dict(name="zzz")).status_code == 400
+
+
+def test_a_stale_local_copy_does_not_hide_the_shipped_view(client, tmp_path):
+    from galileo_blink.server import jobs
+    shipped = jobs.PREBUILT_DIR / "target-barnard"
+    shipped.mkdir(parents=True)
+    write_json(shipped / "view.json", dict(kind="looks", engine=C.ENGINE_VERSION, key="target-barnard", degraded=[]))
+    stale = view_dir("target-barnard")
+    stale.mkdir(parents=True)
+    write_json(stale / "view.json", dict(kind="looks", engine="older", key="target-barnard", degraded=[]))
+    assert client.get("/api/view", params=dict(target="barnard")).json() == dict(key="target-barnard", state="ready")

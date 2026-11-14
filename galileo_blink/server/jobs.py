@@ -59,26 +59,33 @@ class Builder:
 
     # ---------------------------------------------------------------- finished views on disk
     @staticmethod
-    def view_path(key: str) -> Path | None:
-        """Folder holding a finished view: shipped with the site (prebuilt) or built here."""
+    def find(key: str) -> tuple[Path, dict] | None:
+        """(folder, view) of the first usable finished view: built here, or shipped with the
+        site. A copy from an older engine, or one built during an outage long enough ago to
+        retry, is passed over, so a stale copy in one place never hides a good one in the other."""
         for root in (cache_dir() / "views", PREBUILT_DIR):
-            if (root / key / "view.json").is_file():
-                return root / key
+            folder = root / key
+            if not (folder / "view.json").is_file():
+                continue
+            view = read_json(folder / "view.json")
+            if view is None or view.get("engine") != C.ENGINE_VERSION:
+                continue
+            retryable = [d for d in view.get("degraded", []) if d != "photo_list"]
+            if retryable and root != PREBUILT_DIR:
+                if time.time() - (folder / "view.json").stat().st_mtime > C.DEGRADED_RETRY_S:
+                    continue
+            return folder, view
         return None
 
+    def view_path(self, key: str) -> Path | None:
+        """Folder holding a finished view's pictures."""
+        found = self.find(key)
+        return found[0] if found else None
+
     def load(self, key: str) -> dict | None:
-        """A finished view, unless it was built during an outage long enough ago to retry."""
-        path = self.view_path(key)
-        if path is None:
-            return None
-        view = read_json(path / "view.json")
-        if view is None or view.get("engine") != C.ENGINE_VERSION:
-            return None
-        retryable = [d for d in view.get("degraded", []) if d != "photo_list"]
-        if retryable and path.parent != PREBUILT_DIR:
-            if time.time() - (path / "view.json").stat().st_mtime > C.DEGRADED_RETRY_S:
-                return None
-        return view
+        """A finished view's description."""
+        found = self.find(key)
+        return found[1] if found else None
 
     # ---------------------------------------------------------------- building
     def ensure(self, req: ViewRequest | VisitRequest) -> dict:

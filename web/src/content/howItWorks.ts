@@ -95,6 +95,23 @@ export const SECTIONS: Section[] = [
     ],
   },
   {
+    id: "asteroids",
+    title: "Finding asteroids within one visit",
+    paragraphs: [
+      "Stars take months to shift. An asteroid crosses the picture in hours. So the asteroid search works inside a single visit: one camera, a few days, each short burst of photos kept apart as one moment.",
+      "For every pixel, the middle value across the moments is taken. That is the sky that stays put: stars and galaxies. It is subtracted from each moment, which leaves only what was different then. An asteroid is left as a dot in a different place each time; a faint asteroid passing in front of a star, invisible as a slightly brighter star, becomes obvious once the star is gone.",
+      "Leftover dots are joined when they fall on one straight path at a steady speed, in at least three moments. A path seen in four or more moments, in most of those where it could have been seen, is marked as found. The asteroid catalogue (IMCCE's SkyBoT) is then asked what should be in the field, and a path that lies on a catalogued asteroid's predicted positions gets its name. NASA's moving-object search tells the tool where SPHEREx caught any asteroid you name.",
+    ],
+  },
+  {
+    id: "spectra",
+    title: "Where the spectra come from",
+    paragraphs: [
+      "The dots in the brightness plot are measured in the view's own photos: one dot per photo, at the colour that photo happened to catch the object in. Because every dot has a date, dots from different seasons at the same colour show whether the object changed.",
+      "The quick spectrum comes from somewhere else: NASA's map of the whole sky in all 102 colours. The tool reads the few pixels around your place in every colour, in about two seconds. That map adds every date together and its pixels are twice as coarse, so it shows the shape of a spectrum but cannot show change.",
+    ],
+  },
+  {
     id: "flags",
     title: "NASA's quality flags",
     paragraphs: [
@@ -119,6 +136,18 @@ export const LIMITS = {
     {
       title: "Brightness changes need care",
       body: "Each photo is taken at a different wavelength. A star can look brighter on one date only because that photo caught it in a brighter colour. Compare dots at the same wavelength, never two pictures. Change maps leave faint rings on stars for the same reason.",
+    },
+    {
+      title: "Its error bars include what averaging cannot remove",
+      body: "Stars that do not move still appear to shift 0.2″ to 0.4″ between looks, and the six cameras share the same pointing errors. For stars with well-known motions the result differed from the catalogue by up to 0.6″, so 0.3″ is added to every motion's error.",
+    },
+    {
+      title: "It cannot find every asteroid",
+      body: "An asteroid in view for fewer than three moments cannot be found, however bright. Single SPHEREx photos are not deep, so asteroids fainter than about magnitude 18.5 are not expected to be found. Three faint leftovers can line up by chance (cosmic-ray hits do), so such paths are only ever marked \"possible\".",
+    },
+    {
+      title: "CatWISE's fast movers are mostly false alarms",
+      body: "They are hidden until you switch them on, and those within 4 arcminutes of a bright star are never marked. A real faint mover that close to a bright star would be missed.",
     },
     {
       title: "A marker is not proof",
