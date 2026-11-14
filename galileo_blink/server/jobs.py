@@ -12,7 +12,7 @@ from dataclasses import dataclass, field
 from pathlib import Path
 
 from ..engine import constants as C
-from ..engine.archive.cache import cache_dir, read_json
+from ..engine.archive.cache import cache_dir, read_json, trim
 from ..engine.errors import ServiceDown, UserError
 from ..engine.looks.build import ViewRequest, build_view
 from ..engine.visit.build import VisitRequest, build_visit
@@ -118,6 +118,8 @@ class Builder:
         try:
             self._build(req, progress)
             job.state, job.fraction = "ready", 1.0
+            trim(cache_dir() / "photos", C.CACHE_PHOTOS_MAX_BYTES)
+            trim(cache_dir() / "views", C.CACHE_VIEWS_MAX_BYTES)
         except UserError as e:
             job.state, job.error, job.error_kind = "failed", str(e), "request"
         except ServiceDown as e:

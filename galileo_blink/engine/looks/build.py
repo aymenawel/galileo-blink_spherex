@@ -293,7 +293,10 @@ def build_view(req: ViewRequest, progress: Progress = lambda stage, fraction: No
                     key=lambda g: g.gmag)[:STAR_OVERLAY_MAX]:
         x, y = grid.sky_to_pixel(*predict(g, mid_mjd))
         if -0.5 < x < grid.n - 0.5 and -0.5 < y < grid.n - 0.5:
-            star_dots.append([round(x, 1), round(y, 1), round(g.gmag, 1)])
+            # [x, y, Gaia G magnitude, proper motion arcsec/yr, ra, dec] at the middle date
+            ra_now, dec_now = predict(g, mid_mjd)
+            star_dots.append([round(x, 1), round(y, 1), round(g.gmag, 1), round(g.pm_total, 3),
+                              round(ra_now, 5), round(dec_now, 5)])
 
     target = targets.by_id(req.target_id) if req.target_id else None
     view = dict(

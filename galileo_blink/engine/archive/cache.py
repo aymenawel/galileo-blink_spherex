@@ -64,3 +64,38 @@ def read_json(path: Path):
         return None
     except OSError:
         return None
+
+
+def folder_bytes(path: Path) -> int:
+    return sum(f.stat().st_size for f in path.rglob("*") if f.is_file())
+
+
+def trim(folder: Path, max_bytes: int) -> int:
+    """Delete the least recently written entries of `folder` (files or sub-folders) until it
+    fits in `max_bytes`. Everything in the cache can be fetched or built again. Returns the
+    number of entries removed."""
+    if not folder.is_dir():
+        return 0
+    entries = []
+    for entry in folder.iterdir():
+        try:
+            size = folder_bytes(entry) if entry.is_dir() else entry.stat().st_size
+            entries.append((entry.stat().st_mtime, size, entry))
+        except OSError:
+            continue
+    total = sum(size for _, size, _ in entries)
+    removed = 0
+    for _, size, entry in sorted(entries, key=lambda e: e[0]):
+        if total <= max_bytes:
+            break
+        try:
+            if entry.is_dir():
+                import shutil
+                shutil.rmtree(entry, ignore_errors=True)
+            else:
+                entry.unlink(missing_ok=True)
+        except OSError:
+            continue
+        total -= size
+        removed += 1
+    return removed

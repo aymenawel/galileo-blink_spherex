@@ -214,5 +214,8 @@ ASTEROID_FAINT_VMAG = 18.5
 ENGINE_VERSION = "gb1"
 """Part of every cache key. Bump it whenever the engine's output changes, or old views are
 served forever."""
+CACHE_PHOTOS_MAX_BYTES = 600 * 1024 * 1024
+CACHE_VIEWS_MAX_BYTES = 600 * 1024 * 1024
+"""The cache is trimmed, oldest first, after every build: on the host it lives in memory."""
 DEGRADED_RETRY_S = 1800.0
 """A view built while a service was failing says so, and is rebuilt after this long."""
