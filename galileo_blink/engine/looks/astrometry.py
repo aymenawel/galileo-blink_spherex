@@ -274,7 +274,11 @@ def combine_cameras(motions: dict[int, Motion]) -> dict | None:
     pred_n = float(np.sum(w * [m.predicted_north for m in ms]) / w.sum())
     error = float(1.0 / math.sqrt(w.sum()))
     residual = math.hypot(res_e, res_n)
+    floors = [m.floor for m in ms if m.floor is not None]
     return dict(cameras=sorted(motions), n_cameras=len(ms),
+                first_season=ms[0].first_season, last_season=ms[0].last_season,
+                floor=round(float(np.median(floors)), 3) if floors else None,
+                n_reference_stars=max(m.n_reference_stars for m in ms),
                 measured=round(math.hypot(pred_e + res_e, pred_n + res_n), 3),
                 measured_east=round(pred_e + res_e, 3), measured_north=round(pred_n + res_n, 3),
                 predicted=round(math.hypot(pred_e, pred_n), 3),

@@ -127,3 +127,13 @@ def test_catwise_echoes_of_a_bright_fast_star_are_not_marked():
                       57170.0, pmra=3.0, pmdec=-2.0)            # near, but moving differently
     marked = fast_movers([barnard], echoes + [brown_dwarf, unrelated])
     assert [m.name for m in marked] == ["Gaia DR3 B", "CatWISE2020 bd", "CatWISE2020 u"]
+
+
+def test_catwise_motions_in_a_bright_stars_glare_are_not_marked():
+    from galileo_blink.engine.sky.catalogues import fast_movers
+    from .synth import offset_sky
+    bright = Mover("Gaia DR3 bright", "Gaia DR3", "g", 100.0, 20.0, 57388.5, pmra=0.01, pmdec=0.0, gmag=8.0)
+    faint = Mover("Gaia DR3 faint", "Gaia DR3", "g", 100.2, 20.0, 57388.5, pmra=0.01, pmdec=0.0, gmag=15.0)
+    glare = Mover("CatWISE2020 glare", "CatWISE2020", "c", *offset_sky(100.0, 20.0, 90.0, 60.0), 57170.0, pmra=6.0, pmdec=-4.0)
+    real = Mover("CatWISE2020 real", "CatWISE2020", "c", *offset_sky(100.2, 20.0, 30.0, 0.0), 57170.0, pmra=-3.0, pmdec=1.0)
+    assert [m.name for m in fast_movers([bright, faint], [glare, real])] == ["CatWISE2020 real"]

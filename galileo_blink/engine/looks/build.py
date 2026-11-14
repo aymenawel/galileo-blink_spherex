@@ -37,6 +37,7 @@ PIXEL_TO_MJY = (C.PIXEL_ARCSEC / 206264.806) ** 2 * 1e9
 """A fitted flux is in MJy/sr summed over pixels; times one pixel's solid angle gives mJy."""
 TARGET_RADIUS_ARCSEC = 60.0       # a lone fast mover this close to the centre is the subject
 CENTRAL_STAR_ARCSEC = 12.0        # otherwise the catalogued star this close to the centre is
+SAME_OBJECT_ARCSEC = 8.0           # a catalogue entry this close to the subject is the subject
 STAR_OVERLAY_MAX = 250
 STAR_OVERLAY_GMAG = 18.5
 
@@ -93,6 +94,16 @@ def _choose_subject(req: ViewRequest, gaia: list[Mover], movers: list[Mover], mj
     spot = Mover(name="This spot", catalog="none", source="the position you asked for",
                  ra=req.ra, dec=req.dec, epoch_mjd=mjd, pmra=0.0, pmdec=0.0)
     return spot, "spot"
+
+
+def _predicted_by(m: Mover) -> str | None:
+    """Whose numbers the prediction rests on, for the sentence "X predicted ..."."""
+    if m.catalog == "none":
+        return None
+    for name in ("Gaia DR3", "CatWISE2020"):
+        if name in m.source or name == m.catalog:
+            return name
+    return "Luhman & Esplin 2016" if "Luhman" in m.source else m.catalog
 
 
 def _marker(m: Mover, seasons: list[Season], grid: ViewGrid, is_subject: bool) -> dict:
@@ -286,7 +297,11 @@ def build_view(req: ViewRequest, progress: Progress = lambda stage, fraction: No
             e, n = offset_arcsec(*origin, *predict(subject, float(mjd)))
             path.append(dict(mjd=round(float(mjd), 2), east=round(e, 3), north=round(n, 3)))
 
-    shown = ([subject] if subject and subject_kind != "spot" else []) + [m for m in movers if m is not subject]
+    # the subject is listed once: its own catalogue entries (Gaia, CatWISE) are the same object
+    subject_now = predict(subject, mid_mjd)
+    others = [m for m in movers if m is not subject
+              and separation_arcsec(*predict(m, mid_mjd), *subject_now) > SAME_OBJECT_ARCSEC]
+    shown = ([subject] if subject_kind != "spot" else []) + others
     n_ref = [reg.n_stars for _, reg, _, _ in analysed]
     star_dots = []
     for g in sorted((g for g in gaia if g.gmag is not None and g.gmag <= STAR_OVERLAY_GMAG),
@@ -309,6 +324,7 @@ def build_view(req: ViewRequest, progress: Progress = lambda stage, fraction: No
         seasons=[dict(index=s.index, label=s.label, date=s.date, mjd=round(s.mjd, 3)) for s in seasons],
         seasons_left_out=seasons_left_out, cameras=cameras,
         subject=dict(kind=subject_kind, name=subject.name, catalog=subject.catalog,
+                     predicted_by=_predicted_by(subject),
                      source=subject.source, pm=round(subject.pm_total, 4),
                      pmra=round(subject.pmra, 4), pmdec=round(subject.pmdec, 4),
                      parallax_mas=subject.parallax_mas, gmag=subject.gmag),
