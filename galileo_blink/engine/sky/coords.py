@@ -16,7 +16,8 @@ from astropy.coordinates import SkyCoord
 
 from ..archive import http
 from ..errors import ServiceDown, UserError
-from . import targets
+from . import catalogues, targets
+from .motion import predict, separation_arcsec
 
 SESAME_MIRRORS = ("https://vizier.cfa.harvard.edu/viz-bin/nph-sesame/-oI/SNV?",
                   "https://cds.unistra.fr/cgi-bin/nph-sesame/-oI/SNV?")
@@ -36,7 +37,8 @@ class Place:
     label: str                    # what to call it on screen
     kind: str                     # "coordinates" or "name"
     target_id: str | None = None  # set when this is one of NASA's five test targets
-    moved_arcmin: float | None = None   # how far that target has moved from the typed position
+    moved_arcmin: float | None = None   # how far the object has moved from the typed position
+    follows: str | None = None    # catalogue name of the moving star the view was re-centred on
 
 
 def normalise(text: str) -> str:
@@ -108,9 +110,43 @@ def lookup_name(name: str) -> tuple[float, float]:
     raise UserError(f"No object called “{name}” was found. " + EXAMPLE)
 
 
-def resolve(text: str) -> Place:
-    """The place a typed query means. One of NASA's test targets, typed by name or by any of
-    its catalogue positions, opens that target where it is today."""
+FOLLOW_RADIUS_DEG = 0.06          # 3.6 arcmin: 26 years at 8 arcsec/yr
+FOLLOW_MATCH_ARCSEC = 10.0
+FOLLOW_MIN_MOVE_ARCSEC = 20.0
+
+
+def follow_mover(ra: float, dec: float):
+    """If (ra, dec) is an old catalogue position of a fast-moving star, where that star is
+    now: (mover, ra_now, dec_now, arcminutes moved), else None.
+
+    Name services and most catalogues give positions for the year 2000. A star moving
+    4 arcsec/yr is by now 100 arcsec from there. This asks Gaia for fast stars nearby and
+    checks whether one of them passed through the typed position between 1990 and today."""
+    try:
+        nearby = catalogues.gaia_cone(ra, dec, FOLLOW_RADIUS_DEG)
+    except Exception:                           # noqa: BLE001 - optional: keep the typed place
+        return None
+    best = None
+    for star in nearby:
+        if star.pm_total < catalogues.C.MIN_PM_MARK_ARCSEC_YR:
+            continue
+        closest = min(separation_arcsec(ra, dec, *predict(star, 47892.5 + 365.25 * year))
+                      for year in range(0, 38))                 # 1990 .. 2027
+        if closest <= FOLLOW_MATCH_ARCSEC and (best is None or closest < best[0]):
+            best = (closest, star)
+    if best is None:
+        return None
+    star = best[1]
+    now = predict(star, targets.VIEW_CENTRE_MJD)
+    moved = separation_arcsec(ra, dec, *now)
+    if moved < FOLLOW_MIN_MOVE_ARCSEC:
+        return None                             # already centred well enough
+    return star, round(now[0], 4), round(now[1], 4), moved / 60.0
+
+
+def resolve(text: str, follow: bool = True) -> Place:
+    """The place a typed query means. A fast-moving object typed by name, or by an old
+    catalogue position, opens where it is today (NASA's test targets without any lookup)."""
     text = " ".join(str(text).split())
     if not text:
         raise UserError("Type a place in the sky. " + EXAMPLE)
@@ -131,4 +167,9 @@ def resolve(text: str) -> Place:
         t, moved = near
         return Place(*t.centre(), label=t.name, kind=kind, target_id=t.id,
                      moved_arcmin=round(moved, 1))
+    followed = follow_mover(ra, dec) if follow else None
+    if followed:
+        star, ra_now, dec_now, moved = followed
+        return Place(ra_now, dec_now, label=label, kind=kind, moved_arcmin=round(moved, 1),
+                     follows=star.name)
     return Place(round(ra, 5), round(dec, 5), label=label, kind=kind)

@@ -63,7 +63,7 @@ def create_app(builder: Builder | None = None) -> FastAPI:
         """Coordinates or a name -> a place in the sky."""
         p = coords.resolve(q)
         return dict(ra=p.ra, dec=p.dec, label=p.label, kind=p.kind, target_id=p.target_id,
-                    moved_arcmin=p.moved_arcmin)
+                    moved_arcmin=p.moved_arcmin, follows=p.follows)
 
     def _request(ra, dec, size, target) -> ViewRequest:
         if target:

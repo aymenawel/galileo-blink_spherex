@@ -89,3 +89,26 @@ def test_a_mover_without_parallax_moves_in_a_straight_line():
 def test_ipac_tables_parse():
     text = "\\fixlen = T\n|  ra_pm| dec_pm|  source_name|\n| double| double|   char|\n 133.79  -7.24  J0855\n"
     assert parse_ipac_table(text) == [{"ra_pm": "133.79", "dec_pm": "-7.24", "source_name": "J0855"}]
+
+
+def test_a_fast_star_typed_at_its_year_2000_position_opens_where_it_is_now(monkeypatch):
+    # Proxima-like: 3.85"/yr; Gaia's position is for 2016.0
+    star = Mover("Gaia DR3 1", "Gaia DR3", "Gaia DR3 1", 217.39, -62.676, 57388.5, pmra=-3.78, pmdec=0.77)
+    slow = Mover("Gaia DR3 2", "Gaia DR3", "Gaia DR3 2", 217.40, -62.68, 57388.5, pmra=0.004, pmdec=0.002)
+    monkeypatch.setattr(coords.catalogues, "gaia_cone", lambda ra, dec, r: [slow, star])
+    j2000 = predict(star, 51544.5)
+    place = coords.resolve(f"{j2000[0]:.5f} {j2000[1]:.5f}")
+    assert place.follows == "Gaia DR3 1" and 1.4 < place.moved_arcmin < 2.0
+    assert separation_arcsec(place.ra, place.dec, *predict(star, 61100.0)) < 1.0
+
+
+def test_an_ordinary_place_is_left_where_it_was_typed(monkeypatch):
+    slow = Mover("Gaia DR3 2", "Gaia DR3", "Gaia DR3 2", 180.0, 0.0, 57388.5, pmra=0.004, pmdec=0.002)
+    monkeypatch.setattr(coords.catalogues, "gaia_cone", lambda ra, dec, r: [slow])
+    place = coords.resolve("180.0 0.0")
+    assert (place.ra, place.dec, place.follows, place.moved_arcmin) == (180.0, 0.0, None, None)
+
+    def down(ra, dec, r):
+        raise RuntimeError("catalogue down")
+    monkeypatch.setattr(coords.catalogues, "gaia_cone", down)
+    assert coords.resolve("180.0 0.0").follows is None            # the lookup is optional

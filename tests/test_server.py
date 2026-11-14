@@ -35,6 +35,8 @@ def fake_build(req, progress):
 @pytest.fixture
 def client(tmp_path, monkeypatch):
     monkeypatch.setenv("GALILEO_BLINK_CACHE", str(tmp_path))
+    from galileo_blink.engine.sky import coords
+    monkeypatch.setattr(coords.catalogues, "gaia_cone", lambda ra, dec, r: [])
     return TestClient(create_app(Builder(build=fake_build)))
 
 
