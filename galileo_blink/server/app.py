@@ -214,6 +214,8 @@ def create_app(builder: Builder | None = None) -> FastAPI:
         @app.get("/{path:path}", include_in_schema=False)
         def spa(path: str):
             """The interface: a real file if one exists, otherwise the single-page app."""
+            if path.startswith(("api/", "files/")):
+                raise HTTPException(404)        # a wrong data address is not a page
             candidate = (WEB_DIST / path).resolve()
             if path and candidate.is_file() and WEB_DIST.resolve() in candidate.parents:
                 return FileResponse(candidate)

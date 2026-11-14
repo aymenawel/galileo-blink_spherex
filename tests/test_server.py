@@ -36,6 +36,8 @@ def fake_build(req, progress):
 def client(tmp_path, monkeypatch):
     monkeypatch.setenv("GALILEO_BLINK_CACHE", str(tmp_path))
     from galileo_blink.engine.sky import coords
+    from galileo_blink.server import jobs
+    monkeypatch.setattr(jobs, "PREBUILT_DIR", tmp_path / "prebuilt")    # ignore shipped views
     monkeypatch.setattr(coords.catalogues, "gaia_cone", lambda ra, dec, r: [])
     return TestClient(create_app(Builder(build=fake_build)))
 

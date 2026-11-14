@@ -299,7 +299,7 @@ def build_view(req: ViewRequest, progress: Progress = lambda stage, fraction: No
     view = dict(
         kind="looks", engine=C.ENGINE_VERSION, key=req.key,
         ra=req.ra, dec=req.dec, size_deg=req.size_deg, n=grid.n, pixel_arcsec=C.PIXEL_ARCSEC,
-        upscale=C.DISPLAY_UPSCALE, label=req.label,
+        upscale=render.upscale_for(grid.n), label=req.label,
         target=dict(id=target.id, name=target.name, kind=target.kind, blurb=target.blurb) if target else None,
         built_at=time.strftime("%Y-%m-%dT%H:%M:%SZ", time.gmtime()),
         data_through=listing.data_through, photos_in_archive=len(listing.photos),

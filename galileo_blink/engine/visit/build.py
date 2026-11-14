@@ -257,7 +257,7 @@ def build_visit(req: VisitRequest, progress: Progress = lambda stage, fraction: 
     span_h = (mjds[-1] - mjds[0]) * 24.0
     view = dict(
         kind="visit", engine=C.ENGINE_VERSION, key=req.key, ra=req.ra, dec=req.dec,
-        size_deg=req.size_deg, n=grid.n, pixel_arcsec=C.PIXEL_ARCSEC, upscale=C.DISPLAY_UPSCALE,
+        size_deg=req.size_deg, n=grid.n, pixel_arcsec=C.PIXEL_ARCSEC, upscale=render.upscale_for(grid.n),
         label=req.label, target=None, camera=camera,
         built_at=time.strftime("%Y-%m-%dT%H:%M:%SZ", time.gmtime()),
         data_through=listing.data_through, photos_in_archive=len(listing.photos),

@@ -113,7 +113,12 @@ def test_empty_sky_renders_black_and_no_data_renders_transparent():
     s = render.stretch(a, lo, hi)
     assert float(np.nanmedian(s)) == 0.0                   # sky at black
     im = Image.open(io.BytesIO(render.gray_png(s)))
-    assert im.mode == "LA" and im.size == (30 * C.DISPLAY_UPSCALE,) * 2
+    assert im.mode == "LA" and im.size == (30 * render.upscale_for(30),) * 2
     alpha = np.array(im)[..., 1]
     assert alpha[-1, 0] == 0 and alpha[0, 0] == 255        # array row 0 is the bottom of the picture
     assert render.display_limits(np.full((4, 4), np.nan)) is None
+
+
+def test_wide_views_are_enlarged_less():
+    assert render.upscale_for(89) == 4 and render.upscale_for(147) == 4
+    assert render.upscale_for(235) == 2 and render.upscale_for(293) == 2

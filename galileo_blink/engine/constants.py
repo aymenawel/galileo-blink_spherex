@@ -88,7 +88,9 @@ north-up view needs their corners (below ~1.42 a rotated frame leaves an empty w
 FIELD_MIN_DEG, FIELD_MAX_DEG, FIELD_DEFAULT_DEG = 0.05, 0.5, 0.15
 
 DISPLAY_UPSCALE = 4
-"""Display only: each SPHEREx pixel is drawn as 4x4 screen pixels (Lanczos)."""
+"""Display only: each SPHEREx pixel is drawn as up to 4x4 screen pixels (Lanczos)."""
+DISPLAY_TARGET_PX = 520
+"""Wide views are enlarged less, so every picture is roughly this many screen pixels across."""
 
 MIN_COVERAGE = 0.6
 """A photo must cover this fraction of the view to be used."""

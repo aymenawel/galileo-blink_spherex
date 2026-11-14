@@ -35,10 +35,17 @@ def stretch(a: np.ndarray, lo: float, hi: float) -> np.ndarray:
     return np.clip(np.arcsinh(x * C.STRETCH_SOFTENING) / np.arcsinh(C.STRETCH_SOFTENING), 0, 1)
 
 
+def upscale_for(n: int) -> int:
+    """How much to enlarge a view of n pixels for display: 4x for the usual narrow views,
+    less for wide ones, so pictures stay around 350-600 screen pixels."""
+    return max(1, min(C.DISPLAY_UPSCALE, round(C.DISPLAY_TARGET_PX / n)))
+
+
 def _upscaled(channel: np.ndarray, smooth: bool) -> Image.Image:
     """Array [y up] -> image [y down], enlarged for display."""
     im = Image.fromarray(np.flipud(channel).astype(np.uint8), "L")
-    size = (channel.shape[1] * C.DISPLAY_UPSCALE, channel.shape[0] * C.DISPLAY_UPSCALE)
+    k = upscale_for(channel.shape[1])
+    size = (channel.shape[1] * k, channel.shape[0] * k)
     return im.resize(size, Image.LANCZOS if smooth else Image.NEAREST)
 
 
