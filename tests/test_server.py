@@ -112,3 +112,16 @@ def test_any_two_seasons_can_be_subtracted_or_added(client):
 
 def test_an_unknown_view_is_a_404(client):
     assert client.get("/api/view/doesnotexist").status_code == 404
+
+
+def test_a_spectrum_can_be_asked_for_anywhere(client, monkeypatch):
+    from galileo_blink.engine.spectrum import cube
+    monkeypatch.setattr(cube, "quick_spectrum", lambda ra, dec: dict(ra=ra, dec=dec, points=[], unit="mJy"))
+    assert client.get("/api/spectrum", params=dict(ra=10, dec=20)).json()["unit"] == "mJy"
+    assert client.get("/api/spectrum", params=dict(ra=10, dec=120)).status_code == 422
+
+    def down(ra, dec):
+        raise ServiceDown(cube.SERVICE, "HTTP 503")
+    monkeypatch.setattr(cube, "quick_spectrum", down)
+    r = client.get("/api/spectrum", params=dict(ra=10, dec=20))
+    assert r.status_code == 502 and r.json()["error_kind"] == "service"

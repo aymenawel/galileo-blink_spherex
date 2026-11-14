@@ -21,6 +21,7 @@ from ..engine.image import render
 from ..engine.image.stack import change_map, combine
 from ..engine.looks.build import ViewRequest, target_request
 from ..engine.sky import coords, targets
+from ..engine.spectrum import cube
 from .jobs import Builder, Busy
 
 WEB_DIST = Path(__file__).resolve().parents[2] / "web" / "dist"
@@ -139,6 +140,16 @@ def create_app(builder: Builder | None = None) -> FastAPI:
                 raise UserError("There is no data to add for that camera.")
             png = render.gray_png(render.stretch(total, *limits))
         return Response(png, media_type="image/png", headers={"Cache-Control": "no-cache"})
+
+    @app.get("/api/spectrum")
+    def spectrum(ra: float = Query(..., ge=0, le=360), dec: float = Query(..., ge=-90, le=90)):
+        """A quick 102-colour spectrum of any place, from NASA's all-sky SPHEREx cube."""
+        try:
+            return cube.quick_spectrum(ra, dec)
+        except ServiceDown:
+            raise
+        except Exception as e:                  # noqa: BLE001 - an unexpected tile layout
+            raise ServiceDown(cube.SERVICE, type(e).__name__) from e
 
     @app.get("/api/about")
     def about():
