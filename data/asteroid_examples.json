@@ -9,8 +9,7 @@
     "size_deg": 0.44,
     "camera": 4,
     "mjd_start": 60926.3374,
-    "mjd_end": 60927.5027,
-    "key": "ve71a035e8d73ec9"
+    "mjd_end": 60927.5027
   },
   {
     "id": "bamberga",
@@ -22,8 +21,7 @@
     "size_deg": 0.47,
     "camera": 3,
     "mjd_start": 61158.5545,
-    "mjd_end": 61159.587,
-    "key": "v1cbc598f5175675"
+    "mjd_end": 61159.587
   },
   {
     "id": "steins",
@@ -35,8 +33,7 @@
     "size_deg": 0.32,
     "camera": 3,
     "mjd_start": 61179.9031,
-    "mjd_end": 61181.6144,
-    "key": "v81ab2420d527aae"
+    "mjd_end": 61181.6144
   },
   {
     "id": "hygiea",
@@ -48,8 +45,7 @@
     "size_deg": 0.49,
     "camera": 3,
     "mjd_start": 60947.3955,
-    "mjd_end": 60949.5749,
-    "key": "vd1e1136018c7592"
+    "mjd_end": 60949.5749
   },
   {
     "id": "iris",
@@ -61,7 +57,6 @@
     "size_deg": 0.5,
     "camera": 3,
     "mjd_start": 61170.0668,
-    "mjd_end": 61172.0401,
-    "key": "v6e2849f031355ac"
+    "mjd_end": 61172.0401
   }
 ]

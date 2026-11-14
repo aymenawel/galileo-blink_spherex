@@ -206,7 +206,7 @@ def camera_motion(target: Mover, looks: dict[int, LookPosition],
     re, rn = B.east - A.east, B.north - A.north             # measured minus predicted
     floor, n_ref = static_floor(reference_looks, a, b)
     floor_used = floor if floor is not None else C.ASTROMETRY_FLOOR_ARCSEC
-    error = math.sqrt(A.error ** 2 + B.error ** 2 + floor_used ** 2)
+    error = math.sqrt(A.error ** 2 + B.error ** 2 + floor_used ** 2 + C.SYSTEMATIC_FLOOR_ARCSEC ** 2)
     residual = math.hypot(re, rn)
     return Motion(camera=A.camera, first_season=a, last_season=b,
                   years=(B.mjd - A.mjd) / 365.25, same_time_of_year=same,
@@ -272,7 +272,8 @@ def combine_cameras(motions: dict[int, Motion]) -> dict | None:
     res_n = float(np.sum(w * [m.measured_north - m.predicted_north for m in ms]) / w.sum())
     pred_e = float(np.sum(w * [m.predicted_east for m in ms]) / w.sum())
     pred_n = float(np.sum(w * [m.predicted_north for m in ms]) / w.sum())
-    error = float(1.0 / math.sqrt(w.sum()))
+    # averaging beats down each camera's own noise, but not what the cameras share
+    error = math.hypot(float(1.0 / math.sqrt(w.sum())), C.SYSTEMATIC_FLOOR_ARCSEC)
     residual = math.hypot(res_e, res_n)
     floors = [m.floor for m in ms if m.floor is not None]
     return dict(cameras=sorted(motions), n_cameras=len(ms),

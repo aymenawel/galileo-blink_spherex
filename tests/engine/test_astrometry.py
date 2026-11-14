@@ -71,7 +71,7 @@ def test_a_fast_star_is_measured_despite_arcsecond_errors_in_every_photo():
     assert reason is None and best.agrees and best.same_time_of_year
     assert abs(best.predicted - 10.39) < 0.02
     assert abs(best.measured - best.predicted) < 0.4
-    assert best.error < 0.5                                 # far tighter than the 1" raw floor
+    assert best.error < 0.6                                 # far tighter than the 1" raw floor
     assert best.n_reference_stars >= 6 and best.floor < 0.4
 
 
@@ -129,5 +129,6 @@ def test_cameras_combine_into_one_tighter_measurement():
                         n_reference_stars=8)
     both = A.combine_cameras({5: m(5, 0.4, 10.6, 0.6), 6: m(6, -0.4, 9.4, 0.6)})
     assert both["n_cameras"] == 2 and abs(both["measured"] - 10.0) < 1e-6
-    assert abs(both["error"] - 0.6 / math.sqrt(2)) < 1e-3 and both["agrees"]
+    # two cameras halve the variance of their own noise; the shared 0.3" floor remains
+    assert abs(both["error"] - math.hypot(0.6 / math.sqrt(2), 0.3)) < 1e-3 and both["agrees"]
     assert A.combine_cameras({6: m(6, 0, 10, 0.5)}) is None

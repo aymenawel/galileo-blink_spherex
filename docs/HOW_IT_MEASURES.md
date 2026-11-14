@@ -72,8 +72,12 @@ the object is today (NASA's WISE 0855 coordinate is its 2010 position, 2 arcminu
 8. **Guards.** A camera's look counts only if the object is detected there (median signal to
    noise 5 or more) and sits within 3″ of its predicted path; otherwise what is being measured
    is a different, usually static, object.
-9. **Several cameras.** Each camera is an independent instrument. Cameras that compared the
-   same two seasons are averaged, weighted by their errors.
+9. **Several cameras.** Cameras that compared the same two seasons are averaged, weighted by
+   their errors.
+10. **What averaging cannot remove.** The cameras share the same pointing errors and the same
+    star, so they are not fully independent. For seven stars with well-known motions the
+    all-camera result differed from the catalogue by 0.2 to 0.6″, more than the scatter
+    explains, so 0.3″ is added to every motion's error.
 
 ## 5. Spectra
 

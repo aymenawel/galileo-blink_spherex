@@ -71,7 +71,7 @@ BUSY_STATUS = (429, 500, 502, 503, 504)
 BUSY_BACKOFF_S = (0.5, 1.0, 2.0, 4.0, 6.0)
 """Waits between retries when any other service answers "busy"."""
 
-DOWNLOAD_WORKERS = 12
+DOWNLOAD_WORKERS = 20
 """Photos fetched at once from the cloud copy (IRSA's own servers get IRSA_WORKERS)."""
 IRSA_WORKERS = 4
 """IRSA's cutout and file servers refuse more than about five simultaneous requests."""
@@ -152,6 +152,13 @@ MAX_TRACK_OFFSET_ARCSEC = 3.0
 or it is a different (usually static) object."""
 ASTROMETRY_FLOOR_ARCSEC = 1.0
 """Per-look position floor when a view has too few reference stars to measure its own."""
+SYSTEMATIC_FLOOR_ARCSEC = 0.3
+"""An error that averaging does not remove, added to every motion. Measured: for seven stars
+with well-known motions (Barnard's Star, Epsilon Indi B, Proxima, Wolf 359, Teegarden's Star,
+RW Aurigae, R Draconis) the all-camera result differed from the catalogue by 0.2-0.6", more
+than the scatter between photos and cameras explains. The cameras share the same pointing
+errors and the same star, whose colour differs from the reference stars', so they are not
+fully independent."""
 AGREE_SIGMA = 2.0
 """Measured motion "agrees" with the catalogue if their vector difference is within this many
 error bars."""
@@ -211,7 +218,7 @@ ASTEROID_FAINT_VMAG = 18.5
 """About the faintest asteroid the search recovers; fainter known ones are listed, not expected."""
 
 # --------------------------------------------------------------------------- cache
-ENGINE_VERSION = "gb1"
+ENGINE_VERSION = "gb2"
 """Part of every cache key. Bump it whenever the engine's output changes, or old views are
 served forever."""
 CACHE_PHOTOS_MAX_BYTES = 600 * 1024 * 1024

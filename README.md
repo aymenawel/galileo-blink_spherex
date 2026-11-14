@@ -42,12 +42,11 @@ Luhman & Esplin 2016) predicts for the same dates. Errors are one sigma.
 
 | Target | Measured | Catalogue predicts | Cameras | Verdict |
 |---|---|---|---|---|
-| Barnard's Star | 10.25 ± 0.31″ | 10.29″ | 6 | agrees |
-| Epsilon Indi B | 4.28 ± 0.20″ | 4.61″ | 6 | agrees |
-| WISE 0855 | 9.03 ± 1.39″ | 8.07″ | 1 (camera 5 only: it is invisible at shorter wavelengths) | agrees |
-| RW Aurigae | 0.48 ± 0.23″ | 0.03″ | 6 | does not move, as expected |
-| R Draconis | 1.29 ± 0.58″ | 0.02″ | saturated in every photo; measured from its wings | does not move, as expected |
-| Proxima Centauri (typed, built live) | 3.66 ± 0.35″ | 3.84″ | 6 | agrees |
+| Barnard's Star | 10.27 ± 0.46″ | 10.29″ | 6 | agrees |
+| Epsilon Indi B | 4.25 ± 0.39″ | 4.61″ | 6 | agrees |
+| WISE 0855 | 9.02 ± 1.43″ | 8.07″ | 1 (camera 5 only: it is invisible at shorter wavelengths) | agrees |
+| RW Aurigae | 0.47 ± 0.40″ | 0.03″ | 6 | does not move, as expected |
+| R Draconis | 1.30 ± 0.69″ | 0.02″ | saturated in every photo; measured from its wings | does not move, as expected |
 
 Reproduce them with `python scripts/prebuild_targets.py`.
 
