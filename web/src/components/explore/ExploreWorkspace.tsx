@@ -2,7 +2,7 @@
  * The Explore page once a view is ready: the main picture with its controls, and the
  * panels that explain what it shows. Keeps the address bar in step with what is on screen.
  */
-import { useEffect } from "react";
+import { useEffect, useMemo } from "react";
 import type { ViewRequest } from "../../api/client";
 import type { View } from "../../api/types";
 import { useAbout } from "../../api/useResource";
@@ -81,7 +81,10 @@ function useAddressSync(ws: Workspace, request: ViewRequest, name: string | null
   useEffect(() => navigate(address, { replace: true }), [address]);
 }
 
-export function ExploreWorkspace({ view, request, name, initial }: ExploreWorkspaceProps) {
+export function ExploreWorkspace({ view: built, request, name, initial }: ExploreWorkspaceProps) {
+  // A view is shared by everyone who opens that place, so it carries no searched name;
+  // the name this visitor typed is put on their copy, for titles and sentences.
+  const view = useMemo(() => (name && !built.target && !built.label ? { ...built, label: name } : built), [built, name]);
   const ws = useWorkspace(view, initial);
   const about = useAbout();
   useBlinkKeys(ws);

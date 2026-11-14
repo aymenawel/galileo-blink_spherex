@@ -22,9 +22,16 @@ export interface SearchArrival {
   note: string;
 }
 
+/** What to call the object that moved: its name if one was typed or it is a test target. */
+function movedName(place: ResolvedPlace): string {
+  return place.kind === "name" || place.target_id ? place.label : (place.follows ?? "");
+}
+
 function openPlace(place: ResolvedPlace): void {
   const arrival: SearchArrival | null =
-    place.moved_arcmin !== null && place.moved_arcmin > 0 ? { note: movedNote(place.label, place.moved_arcmin) } : null;
+    place.moved_arcmin !== null && place.moved_arcmin > 0
+      ? { note: movedNote(movedName(place), place.moved_arcmin, place.kind === "name") }
+      : null;
   const address = place.target_id
     ? exploreAddress({ kind: "target", id: place.target_id })
     : exploreAddress(

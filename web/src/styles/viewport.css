@@ -422,6 +422,7 @@
 }
 
 .segmented__item {
+  white-space: nowrap;
   min-height: 34px;
   padding: 0 15px;
   border: 0;

@@ -14,6 +14,7 @@ Every external resource Galileo Blink uses: data, services, software and fonts.
 | NASA Mikulski Archive for Space Telescopes (MAST): Gaia DR3 cone search | Star positions, proper motions, parallaxes | https://archive.stsci.edu/missions-and-data/gaia |
 | NASA/IPAC Extragalactic Database (NED) object lookup | Object names (fallback) | https://ned.ipac.caltech.edu |
 | SPHEREx Explanatory Supplement and IRSA SPHEREx tutorial notebooks | File formats, flags, the wavelength lookup table | https://caltech-ipac.github.io/irsa-tutorials/spherex/ |
+| NASA/IPAC Moving Object Search Tool (MOST) | Which SPHEREx photos contain a named asteroid | https://irsa.ipac.caltech.edu/applications/MOST/ |
 | WiseView (Backyard Worlds) | The model: a blink tool for an earlier NASA mission | http://byw.tools/wiseview |
 
 ## Other data and services
@@ -24,6 +25,7 @@ Every external resource Galileo Blink uses: data, services, software and fonts.
 | CatWISE2020 (Marocco et al. 2021, ApJS 253, 8) | Catalogue predictions | https://catwise.github.io |
 | AllWISE Source Catalog (Cutri et al. 2013) | WISE 0855 reference position | https://wise2.ipac.caltech.edu/docs/release/allwise/ |
 | Luhman & Esplin 2016, AJ 152, 78 | WISE 0855 proper motion and parallax | https://doi.org/10.3847/0004-6256/152/3/78 |
+| IMCCE SkyBoT cone search (Berthier et al. 2006, ASPC 351, 367) | Known asteroids in a field at a moment | https://ssp.imcce.fr/webservices/skybot/ |
 | CDS Sesame name resolver (SIMBAD; Wenger et al. 2000), via the CDS and CfA mirrors | Object names | https://cds.unistra.fr/cgi-bin/Sesame |
 
 ## Software

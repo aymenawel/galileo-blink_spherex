@@ -489,8 +489,11 @@ export function brightnessLeftOutSentence(count: number): string {
 }
 
 /** The note shown after searching for an old catalogue position of a test target. */
-export function movedNote(label: string, arcminutes: number): string {
-  return `You entered a catalogue position for ${label}. It has moved about ${arcminutes.toFixed(1)} arcminutes since; this view is centred where it is now.`;
+export function movedNote(label: string, arcminutes: number, typedName: boolean): string {
+  const since = `It has moved about ${arcminutes.toFixed(1)} arcminutes since; this view is centred where it is now.`;
+  return typedName
+    ? `Catalogues list ${label} where it was years ago. ${since}`
+    : `You entered an old catalogue position of ${label === "" ? "a fast-moving star" : label}. ${since}`;
 }
 
 // ---------------------------------------------------------------------------- describing pictures

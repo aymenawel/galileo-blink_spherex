@@ -21,12 +21,14 @@ Built by **Team Galileo** for the 2026 NASA Space Apps Challenge, *Planet X and 
 | Know where things *should* be | Markers from Gaia DR3 and CatWISE2020, carried to each date with proper motion and parallax |
 | Measure it | The motion of the central object versus its catalogue prediction, per camera, with error bars measured from the stars that do not move |
 | Compare dates | Swipe between two dates, subtract one from another, or add everything together |
+| Find asteroids | One visit, moment by moment: the sky that stays put is subtracted and what is left moving is tracked, then named from the asteroid catalogue. Type an asteroid's name to watch it cross |
 | See its colours | A spectrum from the photos themselves, and a 102-colour quick look anywhere from NASA's all-sky cube |
 | Trust it | NASA's quality flags shown on the image; every limit stated in plain words |
 | Share it | Everything is in the URL |
 
 NASA's five test targets (Barnard's Star, Epsilon Indi B, WISE 0855, RW Aurigae, R Draconis)
-are prebuilt and open instantly. Any other place is built live.
+and five asteroid examples are prebuilt and open instantly. Any other place is built live, in
+well under a minute.
 
 **What it is not.** Galileo Blink does not claim discoveries. A distant planet beyond Neptune
 would be too faint for a single SPHEREx photo and would jump 10 to 25 arcminutes between
@@ -48,6 +50,9 @@ Luhman & Esplin 2016) predicts for the same dates. Errors are one sigma.
 | Proxima Centauri (typed, built live) | 3.66 ± 0.35″ | 3.84″ | 6 | agrees |
 
 Reproduce them with `python scripts/prebuild_targets.py`.
+
+The asteroid search, run blind on real visits, finds and names Eugenia, Bamberga, Hygiea, Iris
+and the faint Steins (magnitude 17.5), each as the single strong track in its field.
 
 ## How it fits together
 
@@ -74,16 +79,20 @@ galileo_blink/
     sky/                Working with the sky.
       coords.py           What a person typed -> a place (and follows fast stars to today).
       catalogues.py       Gaia DR3 (NASA MAST) and CatWISE2020 (NASA/IPAC IRSA).
+      asteroids.py        Known asteroids in a field (IMCCE SkyBoT); a named one's photos (IRSA MOST).
       motion.py           Where a catalogued object is on a given date.
       targets.py          NASA's five test targets.
     looks/              The six-month view.
       seasons.py          Groups photos into looks and seasons.
       astrometry.py       Registration on field stars; measured vs predicted motion.
       build.py            The whole job: one place -> pictures + view.json.
+    visit/              The asteroid view (one visit, moment by moment).
+      detect.py           Image subtraction, then linking leftovers into straight paths.
+      build.py            The whole job: one visit -> pictures, tracks, named asteroids.
     spectrum/
       cube.py             A 102-colour quick-look spectrum from the DR1 all-sky cube.
-data/targets.json       Catalogue values for the five test targets.
-prebuilt/               The five targets' views, shipped with the site so they open instantly.
+data/                   Catalogue values for the five test targets; the asteroid examples.
+prebuilt/               Ready-made views, shipped with the site so they open instantly.
 scripts/                prebuild_targets.py
 tests/                  Offline tests (synthetic photos with known truth) and live checks.
 ```
@@ -155,8 +164,8 @@ docker build -t galileo-blink .
 docker run -p 8080:8080 galileo-blink
 ```
 
-It runs anywhere containers do (it is deployed on Google Cloud Run, in a US-East region next
-to NASA's cloud copy of the archive). Set `GALILEO_BLINK_CACHE` to a persistent folder to keep
+It runs anywhere containers do. A US-East region is the natural home: NASA's cloud copy of
+the archive lives there, so photos arrive fastest. Set `GALILEO_BLINK_CACHE` to a persistent folder to keep
 built views between restarts.
 
 ## New data releases
@@ -174,8 +183,11 @@ Then rerun `python scripts/prebuild_targets.py --ship`.
 - **CatWISE2020** (Marocco et al. 2021): served by IRSA.
 - WISE 0855 proper motion and parallax: Luhman & Esplin 2016, AJ 152, 78.
 - Object names: CDS Sesame (SIMBAD) and the NASA/IPAC Extragalactic Database.
+- Asteroids: IMCCE SkyBoT (Berthier et al. 2006) and the NASA/IPAC Moving Object Search Tool.
 
 Every library, dataset and font used is listed in [docs/REFERENCES.md](docs/REFERENCES.md).
+How each number is measured, and what the tool cannot do, is in
+[docs/HOW_IT_MEASURES.md](docs/HOW_IT_MEASURES.md).
 
 ## Licence
 
