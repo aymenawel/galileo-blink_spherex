@@ -10,7 +10,7 @@ takes real expertise to use.
 Galileo Blink opens it to everyone. Type a place in the sky, watch it blink across the dates
 like a short video, and see what moved. No code, no downloads, no astronomy degree.
 
-**Try it: https://galileo-blink-802043035343.us-east4.run.app**
+**Try it: https://galileoblink.earth** (also at https://galileo-blink-802043035343.us-east4.run.app)
 
 Built by **Team Galileo** for the 2026 NASA Space Apps Challenge, *Planet X and SPHEREx*.
 
