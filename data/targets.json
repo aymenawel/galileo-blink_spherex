@@ -1,0 +1,72 @@
+[
+  {
+    "id": "barnard",
+    "name": "Barnard's Star",
+    "aliases": ["barnard's star", "barnards star", "barnard star", "gj 699", "v2500 oph"],
+    "kind": "The fastest-moving star in the sky",
+    "blurb": "A small red star just 6 light-years away. It crosses the sky faster than any other star: about 10 arcseconds every year.",
+    "ra": 269.44850252544,
+    "dec": 4.73942005111,
+    "epoch_mjd": 57388.5,
+    "pmra": -0.801551,
+    "pmdec": 10.362394,
+    "parallax_mas": 546.9759,
+    "source": "Gaia DR3 4472832130942575872"
+  },
+  {
+    "id": "epsindib",
+    "name": "Epsilon Indi B",
+    "aliases": ["epsilon indi b", "eps ind b", "eps indi b", "epsilon indi ba"],
+    "kind": "A pair of brown dwarfs orbiting a star",
+    "blurb": "Two brown dwarfs, too small to shine like stars, circling the star Epsilon Indi 12 light-years away. SPHEREx sees the pair as one dot.",
+    "ra": 331.07645259656,
+    "dec": -56.79381206688,
+    "epoch_mjd": 57388.5,
+    "pmra": 3.981977,
+    "pmdec": -2.466832,
+    "parallax_mas": 270.658,
+    "source": "Gaia DR3 6412596012146801152 (the pair is unresolved by SPHEREx)"
+  },
+  {
+    "id": "wise0855",
+    "name": "WISE 0855",
+    "aliases": ["wise 0855", "wise 0855-0714", "wise j085510.83-071442.5", "wise0855"],
+    "kind": "The coldest known brown dwarf",
+    "blurb": "Colder than ice and only 7 light-years away. It is invisible in SPHEREx's shorter wavelengths and appears only near 4 microns.",
+    "ra": 133.7947597,
+    "dec": -7.2451456,
+    "epoch_mjd": 55412.32635051,
+    "pmra": -8.118,
+    "pmdec": 0.68,
+    "parallax_mas": 449.0,
+    "source": "AllWISE J085510.74-071442.5 position (mean epoch 2010.6); proper motion and parallax from Luhman & Esplin 2016, AJ 152, 78, Table 4"
+  },
+  {
+    "id": "rwaur",
+    "name": "RW Aurigae",
+    "aliases": ["rw aurigae", "rw aur"],
+    "kind": "A young star that changes brightness",
+    "blurb": "A young star still gathering material from a surrounding disk. It does not move measurably, but its brightness changes.",
+    "ra": 76.95608119553,
+    "dec": 30.4012045891,
+    "epoch_mjd": 57388.5,
+    "pmra": 0.002641,
+    "pmdec": -0.027398,
+    "parallax_mas": 6.4062,
+    "source": "Gaia DR3 156430822114424576"
+  },
+  {
+    "id": "rdra",
+    "name": "R Draconis",
+    "aliases": ["r draconis", "r dra"],
+    "kind": "A pulsating red giant",
+    "blurb": "A giant star that swells and shrinks over about 8 months, changing brightness as it does. It is so bright that it saturates SPHEREx.",
+    "ra": 248.16737836729,
+    "dec": 66.75500674547,
+    "epoch_mjd": 57388.5,
+    "pmra": -0.020643,
+    "pmdec": 0.006149,
+    "parallax_mas": 1.2509,
+    "source": "Gaia DR3 1648328016354496384"
+  }
+]

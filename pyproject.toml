@@ -29,3 +29,4 @@ markers = [
     "live: talks to NASA's live services (deselected by default; run with -m live)",
 ]
 addopts = "-m 'not live' -q"
+filterwarnings = ["ignore::erfa.ErfaWarning", "ignore::astropy.wcs.FITSFixedWarning"]
