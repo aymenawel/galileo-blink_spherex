@@ -79,6 +79,8 @@ def change_map(look: np.ndarray, baseline: np.ndarray, reference: np.ndarray) ->
         if np.isfinite(ratio) and 0.2 < ratio < 5.0:
             scale = ratio
     diff = look - scale * baseline
-    sigma = robust_stats(diff)[1]
+    # Pixels where the look IS the baseline (a median of few frames picks one of them) are
+    # exactly zero and would make the noise look smaller than it is.
+    sigma = robust_stats(np.where(diff == 0, np.nan, diff))[1]
     star = C.CHANGE_STAR_FRACTION * np.clip(np.nan_to_num(reference), 0, None)
     return (diff / np.sqrt(sigma ** 2 + star ** 2)).astype(np.float32)

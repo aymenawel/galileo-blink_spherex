@@ -174,6 +174,37 @@ MAX_MARKERS = 12
 REFERENCE_STAR_MAX_PM = 0.05
 """Gaia stars slower than this (arcsec/yr) serve as fixed reference points."""
 
+# --------------------------------------------------------------------------- one visit (asteroids)
+MOMENT_GAP_DAYS = 0.02
+"""Photos closer than this (29 minutes) are one moment: SPHEREx takes a short burst, in which
+even a fast asteroid moves a tenth of a pixel. Burst photos are not independent sightings."""
+VISIT_GAP_DAYS = 3.0
+VISIT_MAX_DAYS = 10.0
+"""A visit is searched over at most 10 days: a main-belt asteroid crosses the view in under a
+day, so photos further apart can never show it three times."""
+VISIT_MAX_PHOTOS = 36
+VISIT_MIN_MOMENTS = 3
+"""A path needs sightings in three separate moments. This is a hard floor on what the search
+can find: an object in view for fewer than three moments is not findable at any brightness."""
+VISIT_STRONG_MOMENTS = 4
+VISIT_MIN_COMPLETENESS = 0.7
+"""A "strong" track was seen in 4+ moments and in 70% of the moments where it could have been.
+Three aligned leftovers alone happen by chance, so they stay "possible"."""
+VISIT_DETECT_SIGMA = 5.0
+VISIT_EDGE_PX = 2
+VISIT_MAX_PEAKS_PER_MOMENT = 60
+VISIT_MIN_SHIFT_PX = 1.5
+"""Two sightings must be this far apart to define a path: nearer, they are a star's residue."""
+VISIT_MAX_SPEED_ARCSEC_H = 400.0
+VISIT_LINK_TOLERANCE_PX = 1.5
+VISIT_MAX_RMS_PX = 0.8
+VISIT_MAX_TRACKS = 12
+ASTEROID_MATCH_ARCSEC = 25.0
+"""A track is named after a catalogued asteroid predicted within this distance of it (the
+prediction is for Earth's centre; SPHEREx's orbit shifts main-belt objects by a few arcsec)."""
+ASTEROID_FAINT_VMAG = 18.5
+"""About the faintest asteroid the search recovers; fainter known ones are listed, not expected."""
+
 # --------------------------------------------------------------------------- cache
 ENGINE_VERSION = "gb1"
 """Part of every cache key. Bump it whenever the engine's output changes, or old views are
