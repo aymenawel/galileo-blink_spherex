@@ -62,13 +62,14 @@ HTTP_TIMEOUT_S = 30.0
 """Deadline for one ordinary request. Every network call in the engine has a deadline."""
 
 PHOTO_LIST_TIMEOUT_S = 45.0
-PHOTO_LIST_BACKOFF_S = (0.3, 0.3, 0.3, 0.5, 0.5, 0.5, 1.0, 1.0, 1.0, 2.0, 2.0, 2.0)
+PHOTO_LIST_BACKOFF_S = (0.3,) * 3 + (0.5,) * 3 + (1.0,) * 4 + (2.0,) * 5 + (3.0,) * 5
 """The photo list is the one step with no second source, and IRSA's refusals are instant
-(0.2 s), so it is retried many times, quickly: 12 tries turn a 65% failure rate into <1%."""
+(0.2 s), so it is retried many times: on 2026-11-14 IRSA refused about two requests in three,
+in bursts lasting several seconds, while identical retries succeeded."""
+
 BUSY_STATUS = (429, 500, 502, 503, 504)
 BUSY_BACKOFF_S = (0.5, 1.0, 2.0, 4.0, 6.0)
-"""Waits between retries when a service answers "busy". IRSA does this in bursts: on
-2026-11-14 about half of all requests got an instant 502 while identical retries succeeded."""
+"""Waits between retries when any other service answers "busy"."""
 
 DOWNLOAD_WORKERS = 12
 """Photos fetched at once from the cloud copy (IRSA's own servers get IRSA_WORKERS)."""
@@ -127,8 +128,21 @@ FIT_RADIUS_PX = 3.5
 PARTIAL_RADIUS_PX = 1.5
 """A masked pixel this close to a star spoils its brightness but not its position."""
 SATURATED_CORE_PIXELS = 3
-"""This many masked pixels inside FIT_RADIUS_PX means the star is saturated: its position is
-taken from the centre of the masked core and its brightness is not measured."""
+"""This many masked pixels inside FIT_RADIUS_PX means the star is saturated: its brightness is
+not measured, and its position comes from fitting its unsaturated wings."""
+WING_FIT_RADIUS_PX = 6.5
+WING_PROFILE_WIDEN = 2.0
+"""Wing fit for saturated stars: the profile fit run on the unmasked pixels out to 6.5 px with
+a profile twice as wide (far from the core a star's light falls off more slowly than its
+core's Gaussian). Measured on Barnard's Star, 110 saturated photos in six cameras: unbiased
+(median within 0.1-0.4" of Gaia's prediction) with 0.5-1.3" scatter per photo, where the
+centre of the masked hole was off by up to 7"."""
+WING_MIN_SNR = 10.0
+"""Below this the wings are too faint to fit and the centre of the masked core is used."""
+PHOTO_POSITION_FLOOR_ARCSEC = {"ok": 0.3, "partial": 0.6, "saturated": 1.0}
+"""Per-axis position error of ONE photo that no amount of signal removes (pixel sampling,
+masked pixels, saturation). Measured: clean field stars shift ~0.2-0.3" between looks;
+Barnard's Star's partly masked photos scatter 0.3-0.5", its saturated ones 0.5-1.3"."""
 MIN_MEASURE_SNR = 5.0
 """A season's median signal-to-noise must reach this for a motion measurement."""
 MAX_TRACK_OFFSET_ARCSEC = 3.0

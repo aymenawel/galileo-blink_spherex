@@ -5,7 +5,7 @@ import numpy as np
 
 from galileo_blink.engine.image.measure import measure
 
-from .synth import make_photo, offset_sky
+from .synth import make_photo, offset_sky, star_image
 
 HERE = (180.0, 0.0)
 
@@ -45,16 +45,34 @@ def test_a_masked_peak_pixel_spoils_the_brightness_but_not_the_position():
     assert _offset_error(m, *truth) < 0.6
 
 
-def test_a_saturated_star_is_tracked_by_the_centre_of_its_masked_core():
+def test_a_saturated_star_is_tracked_by_its_wings():
+    # a real star image has faint wings well beyond its core; the core is masked (saturated)
     truth = (4.0, 6.0)
     star = offset_sky(*HERE, *truth)
     clean = make_photo(stars=[(*star, 5000.0)])
     fx, fy = (float(v) for v in clean.wcs.world_to_pixel_values(*star))
     hole = [(x, y) for x in range(int(fx) - 4, int(fx) + 6) for y in range(int(fy) - 4, int(fy) + 6)
-            if math.hypot(x - fx, y - fy) <= 3.0]
+            if math.hypot(x - fx, y - fy) <= 2.2]
+    errors = []
+    for seed in range(8):
+        photo = make_photo(stars=[(*star, 5000.0)], masked=hole, seed=seed)
+        photo.image += star_image(photo.image.shape, fx, fy, 800.0, fwhm_px=5.5).astype("float32")
+        m = measure(photo, *HERE)
+        assert m.status == "saturated" and m.flux is None and not m.has_brightness
+        errors.append(_offset_error(m, *truth))
+    assert np.median(errors) < 1.0                         # within the stated 1" floor for saturated photos
+
+
+def test_a_saturated_star_with_no_usable_wings_falls_back_to_its_masked_core():
+    truth = (4.0, 6.0)
+    star = offset_sky(*HERE, *truth)
+    clean = make_photo(stars=[(*star, 5000.0)])
+    fx, fy = (float(v) for v in clean.wcs.world_to_pixel_values(*star))
+    hole = [(x, y) for x in range(int(fx) - 5, int(fx) + 7) for y in range(int(fy) - 5, int(fy) + 7)
+            if math.hypot(x - fx, y - fy) <= 3.5]
     m = measure(make_photo(stars=[(*star, 5000.0)], masked=hole), *HERE)
-    assert m.status == "saturated" and m.flux is None
-    assert _offset_error(m, *truth) < 2.0                  # within a third of a pixel
+    assert m.status == "saturated"
+    assert _offset_error(m, *truth) < 2.5                  # within ~a third of a pixel
 
 
 def test_a_place_at_the_edge_is_reported_unmeasurable():

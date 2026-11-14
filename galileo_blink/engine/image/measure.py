@@ -59,15 +59,15 @@ def _profile(xx, yy, x0, y0, s):
     return px * py
 
 
-def fit_star(image, good, x_guess, y_guess, sigma_px, sky):
+def fit_star(image, good, x_guess, y_guess, sigma_px, sky, radius=C.FIT_RADIUS_PX):
     """(x, y, flux) of the best-fitting star near the guess, using only `good` pixels within
-    FIT_RADIUS_PX, or None when too few pixels remain. Flux and sky are solved exactly for
-    each trial position, so only the position is searched."""
+    `radius`, or None when too few pixels remain. The flux is solved exactly for each trial
+    position, so only the position is searched."""
     ny, nx = image.shape
     yy, xx = np.mgrid[:ny, :nx]
     cx, cy, best = x_guess, y_guess, None
     for _ in range(2):                                  # second pass re-centres the window
-        win = good & (np.hypot(xx - cx, yy - cy) <= C.FIT_RADIUS_PX)
+        win = good & (np.hypot(xx - cx, yy - cy) <= radius)
         if win.sum() < 8:
             return best
         X, Y, Z = xx[win].astype(float), yy[win].astype(float), image[win].astype(float) - sky
@@ -116,13 +116,21 @@ def measure(photo: Photo, ra: float, dec: float) -> Measurement:
     noise = float(MAD_TO_SIGMA * np.median(np.abs(sky_pixels - sky))) or 1e-9
     out.masked_nearby = int((bad & (r < C.FIT_RADIUS_PX)).sum())
 
+    sigma_px = photo.psf_fwhm_arcsec / C.PIXEL_ARCSEC / FWHM_TO_SIGMA
     if out.masked_nearby >= C.SATURATED_CORE_PIXELS:
-        # Saturated: the core is masked. The centre of the masked hole still tracks the star
-        # (to ~0.1-0.3 pixel); its brightness is not measurable.
-        hole = bad & (r < SKY_INNER_PX)
-        out.status, fx, fy = "saturated", float(xx[hole].mean()), float(yy[hole].mean())
+        # Saturated: the core is masked, so the brightness cannot be measured. The position
+        # comes from the star's unsaturated wings; if those are too faint, from the centre of
+        # the masked core.
+        out.status = "saturated"
+        wide = sigma_px * C.WING_PROFILE_WIDEN
+        fit = fit_star(image, ~bad, lx, ly, wide, sky, radius=C.WING_FIT_RADIUS_PX)
+        wing_snr = fit[2] / (noise * math.sqrt(4.0 * math.pi * wide ** 2)) if fit else 0.0
+        if fit and wing_snr >= C.WING_MIN_SNR:
+            fx, fy = fit[0], fit[1]
+        else:
+            hole = bad & (r < SKY_INNER_PX)
+            fx, fy = float(xx[hole].mean()), float(yy[hole].mean())
     else:
-        sigma_px = photo.psf_fwhm_arcsec / C.PIXEL_ARCSEC / FWHM_TO_SIGMA
         fit = fit_star(image, ~bad, lx, ly, sigma_px, sky)
         if fit is None:
             return out

@@ -13,6 +13,7 @@ from .motion import Mover, predict, separation_arcsec
 
 DATA = Path(__file__).resolve().parents[3] / "data" / "targets.json"
 MATCH_ARCMIN = 3.0
+VIEW_CENTRE_MJD = 61100.0          # 2026-03-01
 """A typed position this close to a target's path across the sky (2000-2030) opens the target.
 Catalogue coordinates are old: NASA's WISE 0855 coordinate is its 2010 position, 2 arcminutes
 from where it is now."""
@@ -27,10 +28,11 @@ class Target:
     blurb: str
     mover: Mover
 
-    def centre(self, mjd: float | None = None) -> tuple[float, float]:
-        """Where it is now (or at `mjd`), rounded so every visitor shares one view."""
-        ra, dec = predict(self.mover, mjd if mjd is not None else Time.now().mjd)
-        return round(ra, 3), round(dec, 3)
+    def centre(self) -> tuple[float, float]:
+        """Where its view is centred: its catalogue position in mid-2026, inside the span of
+        SPHEREx's data (a fixed date, so the view does not drift from day to day)."""
+        ra, dec = predict(self.mover, VIEW_CENTRE_MJD)
+        return round(ra, 4), round(dec, 4)
 
 
 @lru_cache(maxsize=1)

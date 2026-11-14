@@ -20,7 +20,8 @@ BARNARD = (269.4520, 4.7600)
 @pytest.fixture(scope="module")
 def barnard_photos():
     t = time.time()
-    photos = query_archive(*BARNARD)
+    photos, complete = query_archive(*BARNARD)
+    assert complete
     print(f"\nphoto list: {len(photos)} photos in {time.time() - t:.1f} s")
     return photos
 

@@ -89,8 +89,9 @@ def _ask(ra: float, dec: float, collection: str | None) -> list[PhotoRef]:
     return parse_sia_csv(r.text)
 
 
-def query_archive(ra: float, dec: float) -> list[PhotoRef]:
-    """Every SPHEREx exposure containing (ra, dec), all six cameras, oldest first."""
+def query_archive(ra: float, dec: float) -> tuple[list[PhotoRef], bool]:
+    """Every SPHEREx exposure containing (ra, dec), all six cameras, oldest first, and whether
+    the list is complete (False if some collection never answered)."""
     photos: dict[str, PhotoRef] = {}
     failures = 0
     with ThreadPoolExecutor(len(C.SPHEREX_COLLECTIONS)) as pool:
@@ -101,33 +102,38 @@ def query_archive(ra: float, dec: float) -> list[PhotoRef]:
                     photos[p.file] = p
             except ServiceDown:
                 failures += 1
-    if failures == len(C.SPHEREX_COLLECTIONS) or (failures and not photos):
+    if failures and not photos:
         # collection names change with data releases: ask for everything and keep SPHEREx
         for p in _ask(ra, dec, None):
             photos[p.file] = p
-    elif failures:
-        raise ServiceDown(SERVICE, "part of the photo list did not arrive")
-    return sorted(photos.values(), key=lambda p: (p.mjd, p.camera))
+        failures = 0
+    return sorted(photos.values(), key=lambda p: (p.mjd, p.camera)), failures == 0
 
 
 def list_photos(ra: float, dec: float, *, max_age_s: float = C.PHOTO_LIST_TTL_S) -> PhotoList:
-    """The photo list for a place, from the cache when it is fresh enough."""
+    """The photo list for a place, from the cache when it is fresh enough. A list that is
+    older than that, or incomplete because part of IRSA did not answer, is marked `stale`."""
     ra, dec = float(ra) % 360.0, float(dec) + 0.0
     path = cache_dir() / "lists" / f"{ra:.4f}_{dec:+.4f}.json"
     cached = read_json(path)
     if cached and time.time() - cached.get("fetched_at", 0) < max_age_s:
         return _from_json(cached)
     try:
-        photos = query_archive(ra, dec)
+        photos, complete = query_archive(ra, dec)
     except ServiceDown:
         if cached:
             stale = _from_json(cached)
             stale.stale = True
             return stale
         raise
-    result = PhotoList(ra=ra, dec=dec, photos=photos, fetched_at=time.time())
-    write_json(path, dict(ra=ra, dec=dec, fetched_at=result.fetched_at,
-                          photos=[asdict(p) for p in photos]))
+    if not complete and cached and len(cached["photos"]) >= len(photos):
+        stale = _from_json(cached)
+        stale.stale = True
+        return stale
+    result = PhotoList(ra=ra, dec=dec, photos=photos, fetched_at=time.time(), stale=not complete)
+    if complete:                                # an incomplete list is used once, never kept
+        write_json(path, dict(ra=ra, dec=dec, fetched_at=result.fetched_at,
+                              photos=[asdict(p) for p in photos]))
     return result
 
 
