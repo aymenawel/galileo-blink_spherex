@@ -13,9 +13,7 @@ web/dist/
 /cache/
 *.tmp
 
-# Local-only notes and editor state
-CLAUDE.local.md
-.claude/
+# Editor state
 .vscode/
 .idea/
 .env
