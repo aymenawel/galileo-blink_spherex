@@ -199,6 +199,31 @@ def create_app(builder: Builder | None = None) -> FastAPI:
         except Exception as e:                  # noqa: BLE001 - an unexpected tile layout
             raise ServiceDown(cube.SERVICE, type(e).__name__) from e
 
+    @app.get("/api/view/{key}/blink.gif")
+    def blink_gif(key: str, camera: int = Query(..., ge=1, le=6), layer: str = Query("photo", pattern="^(photo|change)$"),
+                  ms: int = Query(700, ge=150, le=3000)):
+        """The blink of one camera as an animated GIF, to save or share."""
+        found = builder.find(key)
+        if found is None:
+            raise HTTPException(404)
+        folder, view = found
+        looks = (view.get("cameras", {}).get(str(camera)) or {}).get("looks") or []
+        labels = {s["index"]: s["label"] for s in view.get("seasons", [])}
+        pictures, captions = [], []
+        for look in looks:
+            name = look.get("change") if layer == "change" and look.get("change") else look.get("png")
+            if name and (folder / name).is_file():
+                pictures.append((folder / name).read_bytes())
+                captions.append(f"{labels.get(look['season'], '')}  ·  camera {camera}")
+        if not pictures:
+            raise UserError("That camera has no pictures to animate.")
+        name = (view.get("target") or {}).get("name") or view.get("label") or "sky"
+        slug = "".join(c if c.isalnum() else "-" for c in name.lower()).strip("-") or "sky"
+        gif = render.blink_gif(pictures, captions, "NASA SPHEREx · Galileo Blink", ms)
+        return Response(gif, media_type="image/gif", headers={
+            "Content-Disposition": f'attachment; filename="galileo-blink-{slug}-camera{camera}.gif"',
+            "Cache-Control": "no-cache"})
+
     @app.get("/api/about")
     def about():
         """The numbers and limits the interface states out loud."""

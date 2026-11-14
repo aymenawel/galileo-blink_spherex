@@ -860,3 +860,18 @@
   border-color: var(--hairline);
   box-shadow: none;
 }
+
+/* A download link that sits beside the overlay switches and looks like one of them. */
+.toggle--link {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  text-decoration: none;
+  background: rgba(19, 21, 24, 0.9);
+  border: 1px solid var(--hairline-strong);
+  border-radius: var(--r-pill);
+  box-shadow: var(--shadow-float);
+  padding: 0 14px;
+  min-height: 42px;
+  color: var(--text);
+}

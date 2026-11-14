@@ -9,7 +9,7 @@ from __future__ import annotations
 import io
 
 import numpy as np
-from PIL import Image
+from PIL import Image, ImageDraw
 
 from .. import constants as C
 from .stack import robust_stats
@@ -85,3 +85,33 @@ def flags_png(flagged: np.ndarray) -> bytes:
     alpha = _upscaled(np.where(flagged, 255, 0), False)
     white = Image.new("L", alpha.size, 255)
     return _png(Image.merge("LA", (white, alpha)))
+
+
+GIF_SIZE = 560                    # pixels across: large enough to read, small enough to share
+_GIF_BACKGROUND = (10, 11, 13)
+_GIF_NO_DATA = (38, 41, 46)
+_GIF_TEXT = (236, 238, 241)
+_GIF_ACCENT = (255, 178, 74)
+
+
+def blink_gif(pictures: list[bytes], captions: list[str], credit: str, frame_ms: int = 700) -> bytes:
+    """An animated GIF that steps through `pictures` (the PNGs of one camera's dates), each
+    with its caption, looping forever. Pixels with no data are drawn mid-grey, never black."""
+    if not pictures:
+        raise ValueError("nothing to animate")
+    frames = []
+    for png, caption in zip(pictures, captions):
+        picture = Image.open(io.BytesIO(png)).convert("RGBA").resize((GIF_SIZE, GIF_SIZE), Image.LANCZOS)
+        frame = Image.new("RGB", (GIF_SIZE, GIF_SIZE + 34), _GIF_BACKGROUND)
+        sky = Image.new("RGB", (GIF_SIZE, GIF_SIZE), _GIF_NO_DATA)
+        sky.paste(picture, (0, 0), picture)
+        frame.paste(sky, (0, 0))
+        draw = ImageDraw.Draw(frame)
+        draw.text((10, GIF_SIZE + 6), caption, fill=_GIF_ACCENT, font_size=18)
+        width = draw.textlength(credit, font_size=13)
+        draw.text((GIF_SIZE - width - 10, GIF_SIZE + 10), credit, fill=_GIF_TEXT, font_size=13)
+        frames.append(frame)
+    buf = io.BytesIO()
+    frames[0].save(buf, "GIF", save_all=True, append_images=frames[1:], duration=frame_ms, loop=0,
+                   optimize=True)
+    return buf.getvalue()

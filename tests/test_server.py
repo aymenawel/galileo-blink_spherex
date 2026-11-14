@@ -156,3 +156,23 @@ def test_a_stale_local_copy_does_not_hide_the_shipped_view(client, tmp_path):
     stale.mkdir(parents=True)
     write_json(stale / "view.json", dict(kind="looks", engine="older", key="target-barnard", degraded=[]))
     assert client.get("/api/view", params=dict(target="barnard")).json() == dict(key="target-barnard", state="ready")
+
+
+def test_a_blink_can_be_saved_as_an_animated_gif(client):
+    import io
+    from PIL import Image
+    key = client.get("/api/view", params=dict(ra=180, dec=0)).json()["key"]
+    wait(client, key)
+    out = view_dir(key)
+    rng = np.random.default_rng(1)
+    (out / "c6_s1.png").write_bytes(render.gray_png(np.clip(rng.normal(0.3, 0.2, (9, 9)), 0, 1)))
+    view = dict(kind="looks", engine=C.ENGINE_VERSION, key=key, degraded=[], label="Test place",
+                seasons=[dict(index=0, label="Aug 2025"), dict(index=1, label="Feb 2026")],
+                cameras={"6": dict(looks=[dict(season=0, png="c6_s0.png"), dict(season=1, png="c6_s1.png")])})
+    write_json(out / "view.json", view)
+    r = client.get(f"/api/view/{key}/blink.gif", params=dict(camera=6))
+    assert r.status_code == 200 and r.headers["content-type"] == "image/gif"
+    assert "galileo-blink-test-place-camera6.gif" in r.headers["content-disposition"]
+    gif = Image.open(io.BytesIO(r.content))
+    assert gif.n_frames == 2 and gif.info["loop"] == 0
+    assert client.get(f"/api/view/{key}/blink.gif", params=dict(camera=2)).status_code == 400

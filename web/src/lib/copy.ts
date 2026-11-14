@@ -130,6 +130,8 @@ export const COPY = {
     overlays: "Overlays",
     markers: "Markers",
     stars: "Gaia stars",
+    saveGif: "Save GIF",
+    saveGifHint: "Download this camera's blink as an animated picture you can share.",
     catwise: "CatWISE",
     catwiseHint:
       "Objects the CatWISE catalogue lists as moving fast. Many are false alarms near bright stars, so they are hidden until you ask.",

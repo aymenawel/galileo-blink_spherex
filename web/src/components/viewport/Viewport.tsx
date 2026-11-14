@@ -3,12 +3,13 @@
  * the controls floating over it.
  */
 import { useMemo, useRef, useState } from "react";
-import { fileUrl } from "../../api/client";
+import { Download } from "lucide-react";
+import { blinkGifUrl, fileUrl } from "../../api/client";
 import { bandOf, lookAt, looksOf } from "../../lib/cameras";
 import { COPY, VISIT_COPY, lookSummary } from "../../lib/copy";
 import { formatDate } from "../../lib/format";
 import { markersToDraw, visitMarkers } from "../../lib/markers";
-import type { Workspace } from "../explore/useWorkspace";
+import { SPEED_MS, type Workspace } from "../explore/useWorkspace";
 import { ChangeMap } from "./ChangeMap";
 import { Compass } from "./Compass";
 import { Crosshair } from "./Crosshair";
@@ -142,6 +143,17 @@ export function Viewport({ ws }: ViewportProps) {
           <span className="viewport__hint">
             {ws.visit && mode !== "compare" ? VISIT_COPY.modes[mode].hint : COPY.viewport.modes[mode].hint}
           </span>
+        )}
+        {ws.stepping && ws.cameraSeasons.length > 1 && (
+          <a
+            className="toggle toggle--link"
+            href={blinkGifUrl(view, Number(camera), mode === "change" ? "change" : "photo", SPEED_MS[ws.speed])}
+            download
+            title={COPY.viewport.saveGifHint}
+          >
+            <Download size={15} aria-hidden="true" />
+            {COPY.viewport.saveGif}
+          </a>
         )}
         <OverlayToggles
           overlays={overlays}

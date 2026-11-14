@@ -129,6 +129,11 @@ export function fileUrl(view: Pick<View, "key">, name: string): string {
   return `/files/${encodeURIComponent(view.key)}/${encodeURIComponent(name)}`;
 }
 
+/** Address of one camera's blink as an animated GIF, to save or share. */
+export function blinkGifUrl(view: Pick<View, "key">, camera: number, layer: "photo" | "change", frameMs: number): string {
+  return `/api/view/${encodeURIComponent(view.key)}/blink.gif?camera=${camera}&layer=${layer}&ms=${frameMs}`;
+}
+
 /** Address of a change map (season `a` minus season `b`) made on request. */
 export function changeMapUrl(view: Pick<View, "key">, camera: number, a: number, b: number): string {
   return `/api/view/${encodeURIComponent(view.key)}/compare?camera=${camera}&a=${a}&b=${b}&op=subtract`;
