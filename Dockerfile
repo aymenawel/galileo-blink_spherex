@@ -13,7 +13,8 @@ ENV PYTHONUNBUFFERED=1 \
 WORKDIR /app
 COPY pyproject.toml README.md ./
 COPY galileo_blink/ galileo_blink/
-RUN pip install --no-cache-dir .
+# Installed in place: the code finds data/, prebuilt/ and web/dist beside itself.
+RUN pip install --no-cache-dir -e .
 COPY data/ data/
 COPY prebuilt/ prebuilt/
 COPY --from=web /web/dist web/dist

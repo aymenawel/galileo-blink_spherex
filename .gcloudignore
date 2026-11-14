@@ -1,0 +1,17 @@
+# What is not sent to Google when deploying (the container is built from the rest).
+.git
+.gitignore
+.pytest_cache
+.venv
+**/__pycache__
+**/node_modules
+web/dist
+cache
+tests
+docs
+*.tmp
+*.local.md
+.claude
+.vscode
+.idea
+.env
