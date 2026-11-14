@@ -15,7 +15,7 @@ import numpy as np
 
 from .. import constants as C
 from ..archive.store import Photo
-from ..image.measure import Measurement, measure
+from ..image.measure import Measurement, measure_many
 from ..image.stack import MAD_TO_SIGMA
 from ..sky.motion import Mover, predict, predicted_displacement, separation_arcsec
 
@@ -75,8 +75,8 @@ def register(photo: Photo, references: list[Mover]) -> tuple[Registration, dict[
     """The photo's offset from its reference stars, and each star's own measurement
     (keyed by its index in `references`)."""
     good: dict[int, Measurement] = {}
-    for i, star in enumerate(references):
-        m = measure(photo, *predict(star, photo.mjd))
+    measured = measure_many(photo, [predict(star, photo.mjd) for star in references])
+    for i, m in enumerate(measured):
         if (m.status == "ok" and m.snr and m.snr >= REF_MIN_SNR
                 and math.hypot(m.east, m.north) <= REF_MAX_OFFSET_ARCSEC):
             good[i] = m

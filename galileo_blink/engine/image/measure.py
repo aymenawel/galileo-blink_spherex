@@ -11,7 +11,6 @@ import math
 from dataclasses import dataclass
 
 import numpy as np
-from scipy.optimize import least_squares
 from scipy.special import erf
 
 from .. import constants as C
@@ -59,12 +58,44 @@ def _profile(xx, yy, x0, y0, s):
     return px * py
 
 
+def _search(residual, start, lo, hi):
+    """Minimise |residual(p)|^2 over a 2-parameter position inside [lo, hi] with a damped
+    Gauss-Newton search (a few dozen evaluations; a general optimiser costs 10x more here)."""
+    p = np.asarray(start, dtype=float)
+    r = residual(p)
+    cost, damping, step_size = float(r @ r), 1e-3, 1e-3
+    for _ in range(15):
+        jac = np.empty((r.size, 2))
+        for k in range(2):
+            dp = np.zeros(2)
+            dp[k] = step_size
+            jac[:, k] = (residual(p + dp) - r) / step_size
+        a, g = jac.T @ jac, jac.T @ r
+        moved = False
+        for _ in range(8):
+            try:
+                step = np.linalg.solve(a + damping * (np.diag(np.diag(a)) + 1e-12 * np.eye(2)), -g)
+            except np.linalg.LinAlgError:
+                return p
+            q = np.clip(p + step, lo, hi)
+            rq = residual(q)
+            if float(rq @ rq) < cost:
+                p, r, cost, damping, moved = q, rq, float(rq @ rq), damping * 0.3, True
+                break
+            damping *= 10.0
+        if not moved or float(np.abs(step).max()) < 1e-4:
+            break
+    return p
+
+
 def fit_star(image, good, x_guess, y_guess, sigma_px, sky, radius=C.FIT_RADIUS_PX):
     """(x, y, flux) of the best-fitting star near the guess, using only `good` pixels within
     `radius`, or None when too few pixels remain. The flux is solved exactly for each trial
     position, so only the position is searched."""
     ny, nx = image.shape
     yy, xx = np.mgrid[:ny, :nx]
+    lo = np.array([x_guess - SEARCH_PX, y_guess - SEARCH_PX])
+    hi = np.array([x_guess + SEARCH_PX, y_guess + SEARCH_PX])
     cx, cy, best = x_guess, y_guess, None
     for _ in range(2):                                  # second pass re-centres the window
         win = good & (np.hypot(xx - cx, yy - cy) <= radius)
@@ -81,22 +112,36 @@ def fit_star(image, good, x_guess, y_guess, sigma_px, sky, radius=C.FIT_RADIUS_P
             f, prof = flux_at(p)
             return f * prof - Z
 
-        lo = [x_guess - SEARCH_PX, y_guess - SEARCH_PX]
-        hi = [x_guess + SEARCH_PX, y_guess + SEARCH_PX]
-        start = [min(max(cx, lo[0] + 1e-3), hi[0] - 1e-3), min(max(cy, lo[1] + 1e-3), hi[1] - 1e-3)]
-        try:
-            r = least_squares(residual, start, bounds=(lo, hi), diff_step=1e-3)
-        except Exception:                               # noqa: BLE001 - a fit that cannot run
-            return best
-        best = (float(r.x[0]), float(r.x[1]), flux_at(r.x)[0])
+        p = _search(residual, np.clip([cx, cy], lo + 1e-3, hi - 1e-3), lo, hi)
+        best = (float(p[0]), float(p[1]), flux_at(p)[0])
         cx, cy = best[0], best[1]
     return best
 
 
 def measure(photo: Photo, ra: float, dec: float) -> Measurement:
     """Measure whatever is at the expected sky position (ra, dec) in this photo."""
-    w = photo.wcs
-    ex, ey = (float(v) for v in w.world_to_pixel_values(ra, dec))
+    return measure_many(photo, [(ra, dec)])[0]
+
+
+def measure_many(photo: Photo, places: list[tuple[float, float]]) -> list[Measurement]:
+    """Measure several expected sky positions in one photo (the sky-to-pixel conversions are
+    done together, which is where most of the time goes)."""
+    if not places:
+        return []
+    ras, decs = np.array([p[0] for p in places]), np.array([p[1] for p in places])
+    xs, ys = photo.wcs.world_to_pixel_values(ras, decs)
+    out = [_measure_at_pixel(photo, float(x), float(y)) for x, y in zip(np.atleast_1d(xs), np.atleast_1d(ys))]
+    found = [i for i, m in enumerate(out) if m.x is not None]
+    if found:
+        sra, sdec = photo.wcs.pixel_to_world_values(np.array([out[i].x for i in found]),
+                                                    np.array([out[i].y for i in found]))
+        for i, mra, mdec in zip(found, np.atleast_1d(sra), np.atleast_1d(sdec)):
+            out[i].east, out[i].north = offset_arcsec(places[i][0], places[i][1], float(mra), float(mdec))
+    return out
+
+
+def _measure_at_pixel(photo: Photo, ex: float, ey: float) -> Measurement:
+    """Measure at an expected pixel position; the sky offset is filled in by the caller."""
     out = Measurement(status="off-edge", mjd=photo.mjd, camera=photo.camera, file=photo.ref.file)
     ny, nx = photo.image.shape
     if not (EDGE_PX <= ex < nx - EDGE_PX and EDGE_PX <= ey < ny - EDGE_PX):
@@ -140,6 +185,4 @@ def measure(photo: Photo, ra: float, dec: float) -> Measurement:
         # the optimal-fit noise: a Gaussian's noise-equivalent area is 4*pi*sigma^2 pixels
         out.snr = out.flux / (noise * math.sqrt(4.0 * math.pi * sigma_px ** 2))
     out.x, out.y = fx + x_lo, fy + y_lo
-    sra, sdec = (float(v) for v in w.pixel_to_world_values(out.x, out.y))
-    out.east, out.north = offset_arcsec(ra, dec, sra, sdec)
     return out

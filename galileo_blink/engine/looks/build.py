@@ -263,6 +263,7 @@ def build_view(req: ViewRequest, progress: Progress = lambda stage, fraction: No
         degraded.append("photos")
 
     progress("Stacking each camera's seasons", 0.68)
+    t_render = time.time()
     out = view_dir(req.key)
     out.mkdir(parents=True, exist_ok=True)
     stacks: dict[str, np.ndarray] = {}
@@ -272,6 +273,7 @@ def build_view(req: ViewRequest, progress: Progress = lambda stage, fraction: No
     np.savez_compressed(buf, **stacks)
     atomic_write(out / "stacks.npz", buf.getvalue())
 
+    render_s = time.time() - t_render
     progress("Measuring against the star catalogue", 0.80)
     t_measure = time.time()
     movers = catalogues.fast_movers(gaia, catwise)
@@ -373,7 +375,8 @@ def build_view(req: ViewRequest, progress: Progress = lambda stage, fraction: No
         left_out=left_out, degraded=sorted(set(degraded)),
         versions=sorted({f.photo.ref.version for f in frames if f.photo.ref.version}),
         stats=dict(total_s=round(time.time() - started, 1), list_s=round(list_s, 1),
-                   fetch_s=round(fetch_s, 1), measure_s=round(measure_s, 1),
+                   fetch_s=round(fetch_s, 1), render_s=round(render_s, 1),
+                   measure_s=round(measure_s, 1),
                    photos_used=len(frames), photos_asked=len(jobs),
                    mb_downloaded=round(sum(f.photo.bytes_read for f in frames) / 1e6, 1),
                    from_cloud=sum(1 for f in frames if f.photo.source == "cloud"),

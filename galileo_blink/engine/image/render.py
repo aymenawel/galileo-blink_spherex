@@ -44,7 +44,7 @@ def _upscaled(channel: np.ndarray, smooth: bool) -> Image.Image:
 
 def _png(image: Image.Image) -> bytes:
     buf = io.BytesIO()
-    image.save(buf, "PNG", optimize=True)
+    image.save(buf, "PNG", compress_level=6)
     return buf.getvalue()
 
 
