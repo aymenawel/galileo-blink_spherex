@@ -10,6 +10,8 @@ takes real expertise to use.
 Galileo Blink opens it to everyone. Type a place in the sky, watch it blink across the dates
 like a short video, and see what moved. No code, no downloads, no astronomy degree.
 
+**Try it: https://galileo-blink-802043035343.us-east4.run.app**
+
 Built by **Team Galileo** for the 2026 NASA Space Apps Challenge, *Planet X and SPHEREx*.
 
 ## What it does
@@ -47,6 +49,9 @@ Luhman & Esplin 2016) predicts for the same dates. Errors are one sigma.
 | WISE 0855 | 9.02 ± 1.43″ | 8.07″ | 1 (camera 5 only: it is invisible at shorter wavelengths) | agrees |
 | RW Aurigae | 0.47 ± 0.40″ | 0.03″ | 6 | does not move, as expected |
 | R Draconis | 1.30 ± 0.69″ | 0.02″ | saturated in every photo; measured from its wings | does not move, as expected |
+| Proxima Centauri (typed, built live) | 3.66 ± 0.48″ | 3.84″ | 6 | agrees |
+| Wolf 359 (typed, built live) | 4.52 ± 0.41″ | 4.78″ | 6 | agrees |
+| Teegarden's Star (typed, built live) | 5.33 ± 0.38″ | 5.15″ | 6 | agrees |
 
 Reproduce them with `python scripts/prebuild_targets.py`.
 
@@ -163,8 +168,15 @@ docker build -t galileo-blink .
 docker run -p 8080:8080 galileo-blink
 ```
 
-It runs anywhere containers do. A US-East region is the natural home: NASA's cloud copy of
-the archive lives there, so photos arrive fastest. Set `GALILEO_BLINK_CACHE` to a persistent folder to keep
+It runs anywhere containers do. The public site runs on Google Cloud Run in a US-East region,
+next to NASA's cloud copy of the archive, so photos arrive fastest:
+
+```bash
+gcloud run deploy galileo-blink --source . --region us-east4
+```
+
+Views are built in background threads, so the service needs CPU that stays allocated between
+requests (`--no-cpu-throttling`) and a single instance (`--max-instances 1`). Set `GALILEO_BLINK_CACHE` to a persistent folder to keep
 built views between restarts.
 
 ## New data releases
