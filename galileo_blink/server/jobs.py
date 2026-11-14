@@ -15,6 +15,7 @@ from ..engine import constants as C
 from ..engine.archive.cache import cache_dir, read_json
 from ..engine.errors import ServiceDown, UserError
 from ..engine.looks.build import ViewRequest, build_view
+from ..engine.visit.build import VisitRequest, build_visit
 
 MAX_BUILDS_AT_ONCE = 2
 MAX_WAITING = 8
@@ -38,12 +39,19 @@ class Job:
                     seconds=round(time.time() - self.started, 1))
 
 
+def build_any(req, progress):
+    """Build whichever kind of view the request asks for."""
+    if isinstance(req, VisitRequest):
+        return build_visit(req, progress)
+    return build_view(req, progress)
+
+
 class Busy(Exception):
     """Too many builds are already waiting."""
 
 
 class Builder:
-    def __init__(self, build=build_view):
+    def __init__(self, build=build_any):
         self._build = build
         self._pool = ThreadPoolExecutor(MAX_BUILDS_AT_ONCE, thread_name_prefix="build")
         self._jobs: dict[str, Job] = {}
@@ -73,7 +81,7 @@ class Builder:
         return view
 
     # ---------------------------------------------------------------- building
-    def ensure(self, req: ViewRequest) -> dict:
+    def ensure(self, req: ViewRequest | VisitRequest) -> dict:
         """Make sure the view exists or is on its way. Returns its public state."""
         key = req.key
         if self.load(key) is not None:
@@ -101,7 +109,7 @@ class Builder:
             return dict(key=key, state="ready")
         return job.public() if job else None
 
-    def _run(self, job: Job, req: ViewRequest) -> None:
+    def _run(self, job: Job, req: ViewRequest | VisitRequest) -> None:
         job.state, job.stage = "building", "Starting"
 
         def progress(stage: str, fraction: float) -> None:

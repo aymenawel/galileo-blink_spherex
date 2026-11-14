@@ -127,3 +127,19 @@ def test_a_spectrum_can_be_asked_for_anywhere(client, monkeypatch):
     monkeypatch.setattr(cube, "quick_spectrum", down)
     r = client.get("/api/spectrum", params=dict(ra=10, dec=20))
     assert r.status_code == 502 and r.json()["error_kind"] == "service"
+
+
+def test_the_asteroid_view_opens_by_place_or_by_name(client, monkeypatch):
+    from galileo_blink.engine.sky import asteroids
+    key = client.get("/api/visit", params=dict(ra=180, dec=0, camera=3)).json()["key"]
+    assert key.startswith("v") and wait(client, key)["state"] == "ready"
+    monkeypatch.setattr(asteroids, "find_asteroid", lambda name: asteroids.AsteroidVisit(
+        name="45 Eugenia", camera=4, ra=83.6, dec=16.6, size_deg=0.4, mjd_start=60926.3,
+        mjd_end=60927.5, vmag=13.6, n_photos=20, n_moments=7))
+    r = client.get("/api/asteroid", params=dict(name="Eugenia")).json()
+    assert r["asteroid"]["name"] == "45 Eugenia" and wait(client, r["key"])["state"] == "ready"
+
+    def unknown(name):
+        raise UserError("No asteroid called that is known.")
+    monkeypatch.setattr(asteroids, "find_asteroid", unknown)
+    assert client.get("/api/asteroid", params=dict(name="zzz")).status_code == 400

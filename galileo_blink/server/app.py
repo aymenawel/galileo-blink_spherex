@@ -20,8 +20,9 @@ from ..engine.errors import ServiceDown, UserError
 from ..engine.image import render
 from ..engine.image.stack import change_map, combine
 from ..engine.looks.build import ViewRequest, target_request
-from ..engine.sky import coords, targets
+from ..engine.sky import asteroids, coords, targets
 from ..engine.spectrum import cube
+from ..engine.visit.build import VisitRequest
 from .jobs import Builder, Busy
 
 WEB_DIST = Path(__file__).resolve().parents[2] / "web" / "dist"
@@ -83,12 +84,36 @@ def create_app(builder: Builder | None = None) -> FastAPI:
     def open_view(ra: float | None = None, dec: float | None = None,
                   size: float = C.FIELD_DEFAULT_DEG, target: str | None = None):
         """Open (and if needed start building) the view of a place. Poll /api/view/{key}."""
+        return _ensure(_request(ra, dec, size, target))
+
+    def _ensure(req):
         try:
-            return builder.ensure(_request(ra, dec, size, target))
+            return builder.ensure(req)
         except Busy:
             return JSONResponse({"error": "Many views are being built right now. Please try "
                                           "again in a moment.", "error_kind": "busy"},
                                 status_code=503)
+
+    @app.get("/api/visit")
+    def open_visit(ra: float = Query(..., ge=0, le=360), dec: float = Query(..., ge=-90, le=90),
+                   size: float = Query(0.2, ge=C.FIELD_MIN_DEG, le=C.FIELD_MAX_DEG),
+                   camera: int | None = Query(None, ge=1, le=6)):
+        """Open the asteroid view of a place: one visit, moment by moment, searched for movers.
+        Poll /api/view/{key} like any other view."""
+        return _ensure(VisitRequest(ra=round(ra % 360.0, 5), dec=round(dec, 5),
+                                    size_deg=round(size, 3), camera=camera))
+
+    @app.get("/api/asteroid")
+    def open_asteroid(name: str = Query(..., max_length=60)):
+        """Find a named asteroid in SPHEREx's photos and open the visit where it is best seen."""
+        v = asteroids.find_asteroid(name)
+        status = _ensure(VisitRequest(ra=v.ra, dec=v.dec, size_deg=v.size_deg, camera=v.camera,
+                                      mjd_start=round(v.mjd_start, 4), mjd_end=round(v.mjd_end, 4),
+                                      label=v.name))
+        if isinstance(status, dict):
+            status["asteroid"] = dict(name=v.name, vmag=v.vmag, camera=v.camera,
+                                      n_moments=v.n_moments, ra=v.ra, dec=v.dec)
+        return status
 
     @app.get("/api/view/{key}")
     def view_status(key: str):
