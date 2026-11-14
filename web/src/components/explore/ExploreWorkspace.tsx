@@ -6,15 +6,18 @@ import { useEffect } from "react";
 import type { ViewRequest } from "../../api/client";
 import type { View } from "../../api/types";
 import { useAbout } from "../../api/useResource";
-import { COPY } from "../../lib/copy";
+import { COPY, VISIT_COPY } from "../../lib/copy";
 import { exploreAddress, type ExploreChoices } from "../../lib/exploreAddress";
 import { riseOrder } from "../../lib/stagger";
 import { navigate } from "../../router";
 import { FlagsPanel } from "../panels/FlagsPanel";
 import { HonestyPanel } from "../panels/HonestyPanel";
 import { MotionPanel } from "../panels/MotionPanel";
+import { MoversPanel } from "../panels/MoversPanel";
+import { SearchMethodPanel } from "../panels/SearchMethodPanel";
 import { SpectrumPanel } from "../panels/SpectrumPanel";
 import { SubjectPanel } from "../panels/SubjectPanel";
+import { VisitPanel } from "../panels/VisitPanel";
 import { CameraStrip } from "../viewport/CameraStrip";
 import { DatePair } from "../viewport/DatePair";
 import { SeasonTimeline } from "../viewport/SeasonTimeline";
@@ -33,11 +36,24 @@ interface ExploreWorkspaceProps {
 const TYPING_TARGETS = "input, textarea, select, [contenteditable], [role=slider]";
 const PRESSABLE_TARGETS = "button, a, summary";
 
+function sixMonthNote(mode: Workspace["mode"]): string {
+  if (mode === "blink") return COPY.viewport.keyboardHint;
+  if (mode === "compare") return COPY.viewport.compareNote;
+  if (mode === "change") return COPY.viewport.changeNote;
+  return COPY.viewport.combinedNote;
+}
+
+function visitNote(mode: Workspace["mode"]): string {
+  if (mode === "change") return VISIT_COPY.subtractedNote;
+  if (mode === "combined") return VISIT_COPY.staticNote;
+  return VISIT_COPY.keyboardHint;
+}
+
 /** Arrow keys step through the dates and Space plays or pauses, unless the visitor is typing. */
 function useBlinkKeys(ws: Workspace): void {
-  const { mode, step, togglePlaying } = ws;
+  const { stepping, step, togglePlaying } = ws;
   useEffect(() => {
-    if (mode !== "blink") return;
+    if (!stepping) return;
     const onKey = (event: KeyboardEvent) => {
       if (event.defaultPrevented || event.altKey || event.ctrlKey || event.metaKey) return;
       const target = event.target instanceof Element ? event.target : null;
@@ -52,7 +68,7 @@ function useBlinkKeys(ws: Workspace): void {
     };
     window.addEventListener("keydown", onKey);
     return () => window.removeEventListener("keydown", onKey);
-  }, [mode, step, togglePlaying]);
+  }, [stepping, step, togglePlaying]);
 }
 
 /**
@@ -71,7 +87,7 @@ export function ExploreWorkspace({ view, request, name, initial }: ExploreWorksp
   useBlinkKeys(ws);
   useAddressSync(ws, request, name);
 
-  const picksDates = ws.mode === "compare" || ws.mode === "change";
+  const picksDates = !ws.visit && (ws.mode === "compare" || ws.mode === "change");
   const leftOut = view.seasons_left_out ?? 0;
 
   return (
@@ -80,7 +96,7 @@ export function ExploreWorkspace({ view, request, name, initial }: ExploreWorksp
         <section className="panel stage rise" aria-label={COPY.viewport.stageLabel} style={riseOrder(0)}>
           <Viewport ws={ws} />
           <div className="stage__below">
-            {ws.mode === "blink" && (
+            {ws.stepping && (
               <SeasonTimeline
                 view={view}
                 season={ws.season}
@@ -100,7 +116,7 @@ export function ExploreWorkspace({ view, request, name, initial }: ExploreWorksp
                 onSwap={ws.swapDates}
               />
             )}
-            {ws.mode === "change" && (
+            {ws.mode === "change" && !ws.visit && (
               <ul className="change-legend" aria-label={COPY.viewport.changeLegend.label}>
                 <li className="change-legend__warm">{COPY.viewport.changeLegend.brighter}</li>
                 <li className="change-legend__cool">{COPY.viewport.changeLegend.fainter}</li>
@@ -108,32 +124,31 @@ export function ExploreWorkspace({ view, request, name, initial }: ExploreWorksp
               </ul>
             )}
             <p className="stage__note muted">
-              {ws.mode === "blink" && COPY.viewport.keyboardHint}
-              {ws.mode === "compare" && COPY.viewport.compareNote}
-              {ws.mode === "change" && COPY.viewport.changeNote}
-              {ws.mode === "combined" && COPY.viewport.combinedNote}{" "}
+              {ws.visit ? visitNote(ws.mode) : sixMonthNote(ws.mode)}{" "}
               {COPY.viewport.noData}.{leftOut > 0 && ws.mode === "blink" ? ` ${COPY.timeline.leftOut(leftOut)}` : ""}
             </p>
           </div>
         </section>
         <div className="rise" style={riseOrder(2)}>
-          <CameraStrip ws={ws} />
+          {ws.visit ? <SearchMethodPanel /> : <CameraStrip ws={ws} />}
         </div>
       </div>
 
       <div className="bento__right">
         <div className="rise" style={riseOrder(1)}>
-          <SubjectPanel view={view} searchedName={name} />
+          {ws.visit ? <VisitPanel view={view} /> : <SubjectPanel view={view} searchedName={name} />}
         </div>
         <div className="rise bento__grow" style={riseOrder(3)}>
-          <MotionPanel view={view} camera={ws.camera} />
+          {ws.visit ? <MoversPanel view={view} /> : <MotionPanel view={view} camera={ws.camera} />}
         </div>
       </div>
 
-      <div className="bento__spectrum">
-        <SpectrumPanel view={view} bands={about.status === "ready" ? about.data.cameras : undefined} />
-      </div>
-      <div className="bento__flags">
+      {!ws.visit && (
+        <div className="bento__spectrum">
+          <SpectrumPanel view={view} bands={about.status === "ready" ? about.data.cameras : undefined} />
+        </div>
+      )}
+      <div className={ws.visit ? "bento__flags bento__flags--wide" : "bento__flags"}>
         <FlagsPanel
           view={view}
           camera={ws.camera}

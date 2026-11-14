@@ -130,6 +130,9 @@ export const COPY = {
     overlays: "Overlays",
     markers: "Markers",
     stars: "Gaia stars",
+    catwise: "CatWISE",
+    catwiseHint:
+      "Objects the CatWISE catalogue lists as moving fast. Many are false alarms near bright stars, so they are hidden until you ask.",
     flags: "Flags",
     flagsOnlyInBlink: "Flags are shown for one date at a time. Switch to Blink to see them.",
     noLook: "No photos this season",
@@ -287,6 +290,8 @@ export const COPY = {
       "Each photo is a different wavelength. A star can look brighter on one date only because that photo caught it in a brighter colour.",
     seasons: (count: number) =>
       `${plural(count, "season")} of photos ${count === 1 ? "was" : "were"} left out to keep the view quick to build.`,
+    catwise:
+      "CatWISE's fast movers are hidden by default: most are false alarms. Its entries within 4 arcminutes of a bright star are never marked, so a real faint mover there would be missed.",
     markersLeftOut: (count: number) =>
       `${plural(count, "more catalogued moving object")} in this field ${count === 1 ? "is" : "are"} not marked, to keep the picture readable.`,
     noDiscovery: "A new dot is not a discovery. Check the flags first: most surprises are blemishes.",
@@ -352,6 +357,8 @@ export function subjectName(view: Pick<View, "target" | "subject" | "label">): s
 
 /** Whose prediction a measurement is compared with. */
 export function catalogueName(subject: Subject | null | undefined): string {
+  if (subject?.predicted_by === "Gaia DR3") return "Gaia's catalogue";
+  if (subject?.predicted_by === "CatWISE2020") return "The CatWISE catalogue";
   const source = `${subject?.catalog ?? ""} ${subject?.source ?? ""}`;
   if (/gaia/i.test(source)) return "Gaia's catalogue";
   if (/catwise/i.test(source)) return "The CatWISE catalogue";
@@ -464,6 +471,8 @@ const DEGRADED: Record<string, string> = {
     "The CatWISE catalogue did not answer while this view was built, so some cold, faint moving objects may not be marked. It will be rebuilt automatically.",
   photo_list: "NASA's archive did not answer, so this view uses a saved list of photos. The newest photos may be missing.",
   photos: "Some photos did not arrive from NASA's archive. The view will be rebuilt automatically to fetch them.",
+  asteroid_catalogue:
+    "The asteroid catalogue did not answer while this view was built, so movers could not be named. It will be rebuilt automatically.",
 };
 
 export function degradedSentence(service: string): string {
@@ -496,4 +505,121 @@ export function combinedAlt(place: string, camera: string, band: readonly [numbe
 
 export function changeAlt(place: string, camera: string, a: string, b: string): string {
   return `Change map of ${place} in camera ${camera}: ${a} minus ${b}. Warm colours are brighter in ${a}, cool colours fainter.`;
+}
+
+// ---------------------------------------------------------------------------- asteroids (one visit)
+
+export const VISIT_COPY = {
+  home: {
+    eyebrow: "Faster movers",
+    title: "Asteroids, hour by hour",
+    lede: "Within a single SPHEREx visit an asteroid crosses the picture in hours. Galileo Blink subtracts the sky that stays put and finds what is left moving. These five are real asteroids in real SPHEREx photos, found by that search without being told where to look.",
+    open: "Watch it move",
+    building: "Build and open",
+    failed: "The asteroid examples could not be loaded. The server may be starting up: try again in a moment.",
+    searchLabel: "An asteroid's name or number",
+    searchPlaceholder: 'Any asteroid: try "Pallas" or "324"',
+    searchSubmit: "Find it",
+    searchEmpty: "Type an asteroid's name or number first.",
+    magnitude: (vmag: number) => `magnitude ${vmag.toFixed(1)}`,
+    faintNote: "faint: a test of the search",
+  },
+  switch: {
+    label: "What to look for",
+    looks: "Six-month blink",
+    visit: "Asteroid search",
+  },
+  modes: {
+    blink: { label: "Blink", hint: "Step through the moments. Asteroids jump from one to the next." },
+    change: { label: "Subtracted", hint: "Each moment minus the sky that stays put. What is left is what moved or changed." },
+    combined: { label: "Static sky", hint: "The sky that stays put: the middle value of all the moments." },
+  },
+  subtractedChip: "moment minus the static sky",
+  staticChip: "Static sky",
+  keyboardHint: "Arrow keys step through the moments. Space plays and pauses.",
+  subtractedNote: "Warm dots are light that was there only at that moment: an asteroid, or a cosmic-ray hit.",
+  staticNote: "An asteroid is in a different place at every moment, so it vanishes from this picture.",
+  panel: {
+    eyebrow: "What you're looking at",
+    kind: "One visit by SPHEREx, moment by moment",
+    explain: "SPHEREx came back to this place several times within a few days. Each moment is a short burst of photos from one camera.",
+    unnamed: "This place",
+    camera: "Camera",
+    moments: "Moments",
+    over: (hours: number) => (hours >= 48 ? `over ${(hours / 24).toFixed(1)} days` : `over ${Math.round(hours)} hours`),
+    from: "First moment",
+    until: "Last moment",
+  },
+  movers: {
+    eyebrow: "The search",
+    title: "What moved?",
+    none: "Nothing was found moving here. That means no object brighter than about magnitude 18.5 crossed this view in three or more moments.",
+    notSearched: (moments: number) =>
+      `This visit has only ${plural(moments, "moment")}. A path needs three, so the search could not run here.`,
+    strong: "Found",
+    possible: "Possible",
+    identified: "A catalogued asteroid",
+    unidentified: "Not in the asteroid catalogue",
+    unnamedMover: "Unidentified mover",
+    speed: "Speed",
+    perHour: "per hour",
+    heading: "Heading",
+    seen: "Seen in",
+    ofMoments: (seen: number, all: number) => `${seen} of ${all} moments`,
+    possibleNote:
+      "A “possible” path is three faint leftovers that line up. Cosmic-ray hits do that by chance, so it is a hint to look closer, never a discovery.",
+    unidentifiedNote:
+      "An unidentified mover is not a discovery either: check the flags, and remember the catalogue lookup can miss objects close to Earth.",
+    knownTitle: "Catalogued asteroids predicted in this field",
+    knownNone: "The asteroid catalogue lists no object in this field during the visit.",
+    knownMore: (count: number) =>
+      `…and ${plural(count, "fainter one")}, all far too faint for a single SPHEREx photo. Only those brighter than magnitude 19.5 are drawn on the picture.`,
+    catalogueDown: "The asteroid catalogue did not answer, so movers could not be named. The view will be rebuilt automatically.",
+  },
+  how: {
+    eyebrow: "How the search works",
+    title: "Subtract what stays, keep what moves",
+    steps: [
+      "Line up every moment north-up, so stars fall on the same pixels.",
+      "Take the middle value of each pixel across the moments: that is the sky that stays put.",
+      "Subtract it from each moment. Stars vanish; an asteroid is left as a dot.",
+      "Join leftover dots that fall on one straight path at a steady speed, in at least three moments.",
+      "Ask the asteroid catalogue what should be there, and name what matches.",
+    ],
+    why: "Subtracting first matters: a faint asteroid passing over a star is invisible as a slightly brighter star, but obvious once the star is removed.",
+  },
+  honesty: {
+    moments: (min: number) =>
+      `An object in view for fewer than ${min} moments cannot be found, however bright it is.`,
+    faint: (vmag: number) =>
+      `Single SPHEREx photos are not deep: asteroids fainter than about magnitude ${vmag} are not expected to be found.`,
+    overlap: "Movers are searched for only where at least three moments overlap; the picture's corners are often covered less.",
+    chance: "Three leftovers in a line can be chance. Such paths are marked “possible”.",
+    slow: "Anything that barely moves within a few days (a distant planet, a star) cancels out in the subtraction and is not found here. That is what the six-month blink is for.",
+  },
+} as const;
+
+const KNOWN_NOTES: Record<string, (vmag: number, moments: number) => string> = {
+  found: () => "found by the search",
+  too_faint: (vmag) => `too faint to find (magnitude ${vmag.toFixed(1)})`,
+  in_view_too_briefly: (_vmag, moments) =>
+    `searchable in only ${plural(moments, "moment")}: three are needed`,
+  missed: (vmag) => `bright enough (magnitude ${vmag.toFixed(1)}) but not found`,
+};
+
+/** Why a catalogued asteroid was or was not found. */
+export function knownAsteroidNote(note: string, vmag: number, moments: number): string {
+  return (KNOWN_NOTES[note] ?? KNOWN_NOTES.missed!)(vmag, moments);
+}
+
+const COMPASS_POINTS = ["north", "north-east", "east", "south-east", "south", "south-west", "west", "north-west"];
+
+/** A direction in degrees east of north, in words. */
+export function compassWord(degrees: number): string {
+  return COMPASS_POINTS[Math.round((((degrees % 360) + 360) % 360) / 45) % 8]!;
+}
+
+/** "moves 33″ per hour". */
+export function hourlySpeed(arcsecPerHour: number): string {
+  return `moves ${arcsec(arcsecPerHour, arcsecPerHour < 10 ? 1 : 0)} per hour`;
 }

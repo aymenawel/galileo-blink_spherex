@@ -7,7 +7,7 @@ import { useMemo } from "react";
 import type { CameraKey, View } from "../../api/types";
 import { defaultCamera, looksOf, seasonsWithLooks } from "../../lib/cameras";
 import { COPY, subjectName } from "../../lib/copy";
-import { markersToDraw } from "../../lib/markers";
+import { markersToDraw, visitMarkers } from "../../lib/markers";
 import { useBlinkClock } from "../../lib/useBlinkClock";
 import { useReducedMotion } from "../../lib/useReducedMotion";
 import { ImageStack } from "./ImageStack";
@@ -29,11 +29,14 @@ export function BlinkPreview({ view, preferCamera, beat = 900, showDate = false 
   const seasons = useMemo(() => seasonsWithLooks(view, camera), [view, camera]);
   const step = useBlinkClock(seasons.length, beat, !reducedMotion);
   const season = seasons[step] ?? 0;
-  const subject = useMemo(() => markersToDraw(view.markers).filter((drawn) => drawn.marker.subject), [view.markers]);
+  const subject = useMemo(
+    () => (view.kind === "visit" ? visitMarkers(view) : markersToDraw(view.markers)).filter((drawn) => drawn.marker.subject),
+    [view],
+  );
 
   return (
     <div className="blink-preview sky">
-      <ImageStack view={view} camera={camera} season={season} place={subjectName(view)} />
+      <ImageStack view={view} camera={camera} season={season} place={view.kind === "visit" ? (view.label ?? "") : subjectName(view)} />
       <SkyOverlay n={view.n} markers={subject} season={season} />
       {showDate && (
         <span className="blink-preview__date mono">

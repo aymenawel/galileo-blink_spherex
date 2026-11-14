@@ -619,3 +619,10 @@
     gap: 6px;
   }
 }
+
+/* ---------------------------------------------------------------- asteroid examples */
+
+.asteroid-search {
+  margin-top: 18px;
+  max-width: 460px;
+}

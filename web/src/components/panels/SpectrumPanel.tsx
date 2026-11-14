@@ -40,10 +40,10 @@ function alignQuick(quick: Quick, measured: MeasuredPoint[]): { points: QuickSpe
   if (quick.state !== "shown") return { points: [], unit: PHOTO_UNIT, scaled: false };
   if (measured.length === 0) return { points: quick.points, unit: quick.unit, scaled: false };
   if (/^mjy$/i.test(quick.unit.trim())) return { points: quick.points, unit: PHOTO_UNIT, scaled: false };
-  const level = median(quick.points.flatMap((p) => (p.flux !== null && p.flux > 0 ? [p.flux] : [])));
+  const level = median(quick.points.flatMap((p) => (p.flux_mjy !== null && p.flux_mjy > 0 ? [p.flux_mjy] : [])));
   const factor = level > 0 ? median(measured.map((p) => p.flux_mjy)) / level : 1;
   return {
-    points: quick.points.map((p) => ({ ...p, flux: p.flux === null ? null : p.flux * factor })),
+    points: quick.points.map((p) => ({ ...p, flux_mjy: p.flux_mjy === null ? null : p.flux_mjy * factor })),
     unit: PHOTO_UNIT,
     scaled: true,
   };
@@ -66,7 +66,7 @@ export function SpectrumPanel({ view, bands }: SpectrumPanelProps) {
       (answer) => {
         const points = (answer.points ?? []).filter((p) => typeof p.wavelength === "number");
         setQuick(
-          points.some((p) => p.flux !== null)
+          points.some((p) => p.flux_mjy !== null)
             ? { state: "shown", points, unit: answer.unit ?? PHOTO_UNIT, note: answer.note ?? null }
             : { state: "empty" },
         );

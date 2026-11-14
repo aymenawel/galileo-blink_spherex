@@ -36,8 +36,12 @@ function catalogueLine(drawn: DrawnMarker): string {
   return alsoKnownAs[0] ?? marker.source ?? "";
 }
 
+function speedLine(drawn: DrawnMarker): string {
+  return drawn.marker.speed_text ?? markerSpeed(drawn.marker.pm);
+}
+
 function describe(drawn: DrawnMarker): string {
-  return [drawn.marker.name, catalogueLine(drawn), markerSpeed(drawn.marker.pm)].filter(Boolean).join(", ");
+  return [drawn.marker.name, catalogueLine(drawn), speedLine(drawn)].filter(Boolean).join(", ");
 }
 
 /** Brighter stars get slightly larger dots. Gaia G magnitudes run from about 6 to 18.5 here. */
@@ -153,7 +157,7 @@ export function SkyOverlay({
         >
           <strong>{active.marker.name}</strong>
           {catalogueLine(active) && <span>{catalogueLine(active)}</span>}
-          <span className="mono">{markerSpeed(active.marker.pm)}</span>
+          <span className="mono">{speedLine(active)}</span>
         </div>
       )}
     </div>

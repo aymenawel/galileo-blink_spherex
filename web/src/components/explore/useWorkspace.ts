@@ -5,7 +5,7 @@
 import { useCallback, useEffect, useMemo, useState } from "react";
 import type { CameraKey, View } from "../../api/types";
 import { defaultCamera, looksOf, seasonsWithLooks } from "../../lib/cameras";
-import { subjectName } from "../../lib/copy";
+import { VISIT_COPY, subjectName } from "../../lib/copy";
 import type { ExploreChoices, Mode } from "../../lib/exploreAddress";
 import { useReducedMotion } from "../../lib/useReducedMotion";
 
@@ -14,11 +14,15 @@ export type Speed = "slow" | "normal" | "fast";
 /** Time each date stays on screen while blinking, in milliseconds. */
 export const SPEED_MS: Record<Speed, number> = { slow: 1300, normal: 700, fast: 350 };
 
-export type OverlayName = "markers" | "stars" | "flags";
+export type OverlayName = "markers" | "catwise" | "stars" | "flags";
 export type Overlays = Record<OverlayName, boolean>;
 
 export interface Workspace {
   view: View;
+  /** True for an asteroid view: one camera, moment by moment. */
+  visit: boolean;
+  /** True while the picture steps through dates (Blink, and an asteroid view's Subtracted). */
+  stepping: boolean;
   /** The place's name, for sentences and picture descriptions. */
   place: string;
   camera: CameraKey;
@@ -76,20 +80,24 @@ export function useWorkspace(view: View, initial: ExploreChoices): Workspace {
   const [season, setSeason] = useState<number>(() =>
     knownSeason(initial.season) ? initial.season : firstOf(cameraSeasons, 0),
   );
-  const [mode, setMode] = useState<Mode>(initial.mode ?? "blink");
+  const [mode, setMode] = useState<Mode>(() =>
+    initial.mode && !(view.kind === "visit" && initial.mode === "compare") ? initial.mode : "blink",
+  );
   const [a, setA] = useState<number>(() => (knownSeason(initial.a) ? initial.a : lastOf(cameraSeasons, 0)));
   const [b, setB] = useState<number>(() => (knownSeason(initial.b) ? initial.b : firstOf(cameraSeasons, 0)));
   // A shared link that names a date opens paused on that date.
   const [playing, setPlaying] = useState(() => !reducedMotion && initial.season === null);
   const [speed, setSpeed] = useState<Speed>("normal");
-  const [overlays, setOverlays] = useState<Overlays>({ markers: true, stars: false, flags: false });
+  const [overlays, setOverlays] = useState<Overlays>({ markers: true, catwise: false, stars: false, flags: false });
+  const visit = view.kind === "visit";
+  const stepping = mode === "blink" || (visit && mode === "change");
 
   const advance = useCallback(
     (direction: 1 | -1) => setSeason((current) => neighbour(cameraSeasons, current, direction)),
     [cameraSeasons],
   );
 
-  const blinking = playing && mode === "blink" && cameraSeasons.length > 1;
+  const blinking = playing && stepping && cameraSeasons.length > 1;
   useEffect(() => {
     if (!blinking) return;
     const timer = window.setInterval(() => advance(1), SPEED_MS[speed]);
@@ -133,11 +141,13 @@ export function useWorkspace(view: View, initial: ExploreChoices): Workspace {
     [],
   );
 
-  const shownSeason = mode === "blink" ? season : mode === "combined" ? null : a;
+  const shownSeason = stepping ? season : mode === "combined" ? null : a;
 
   return {
     view,
-    place: subjectName(view),
+    visit,
+    stepping,
+    place: visit ? (view.label ?? VISIT_COPY.panel.unnamed) : subjectName(view),
     camera,
     season,
     mode,

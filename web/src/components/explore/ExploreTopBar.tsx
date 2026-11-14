@@ -2,8 +2,8 @@
 import { Share2 } from "lucide-react";
 import { useCallback, useState } from "react";
 import type { ViewRequest } from "../../api/client";
-import { COPY } from "../../lib/copy";
-import { FIELD_CHOICES, exploreAddress } from "../../lib/exploreAddress";
+import { COPY, VISIT_COPY } from "../../lib/copy";
+import { DEFAULT_FIELD, DEFAULT_VISIT_FIELD, FIELD_CHOICES, exploreAddress } from "../../lib/exploreAddress";
 import { formatField } from "../../lib/format";
 import { navigate } from "../../router";
 import { SearchBox } from "../shell/SearchBox";
@@ -34,23 +34,38 @@ export function ExploreTopBar({ request, name }: ExploreTopBarProps) {
   };
 
   // A size the address asks for is offered even when it is not one of the usual choices.
+  const sized = request?.kind === "place" || request?.kind === "visit" ? request : null;
   const fields =
-    request?.kind === "place" && !FIELD_CHOICES.includes(request.size)
-      ? [...FIELD_CHOICES, request.size].sort((a, b) => a - b)
-      : FIELD_CHOICES;
+    sized && !FIELD_CHOICES.includes(sized.size) ? [...FIELD_CHOICES, sized.size].sort((a, b) => a - b) : FIELD_CHOICES;
+  // The same place can be watched over six months (stars) or within one visit (asteroids).
+  const switchTo = (kind: "place" | "visit") => {
+    if (!sized || sized.kind === kind) return;
+    const size = kind === "visit" ? Math.max(sized.size, DEFAULT_VISIT_FIELD) : Math.min(sized.size, DEFAULT_FIELD);
+    navigate(exploreAddress({ kind, ra: sized.ra, dec: sized.dec, size }, name));
+  };
 
   return (
     <header className="topbar">
       <Wordmark />
       <SearchBox size="compact" key={name ?? ""} initialText={name ?? ""} />
       <div className="topbar__tools">
-        {request?.kind === "place" && (
+        {sized && (
+          <div className="segmented segmented--quiet" role="group" aria-label={VISIT_COPY.switch.label}>
+            <button type="button" className="segmented__item" aria-pressed={sized.kind === "place"} onClick={() => switchTo("place")}>
+              {VISIT_COPY.switch.looks}
+            </button>
+            <button type="button" className="segmented__item" aria-pressed={sized.kind === "visit"} onClick={() => switchTo("visit")}>
+              {VISIT_COPY.switch.visit}
+            </button>
+          </div>
+        )}
+        {sized && (
           <label className="topbar__field">
             <span className="eyebrow">{COPY.explore.fieldLabel}</span>
             <select
               className="select"
-              value={request.size}
-              onChange={(event) => navigate(exploreAddress({ ...request, size: Number(event.target.value) }, name))}
+              value={sized.size}
+              onChange={(event) => navigate(exploreAddress({ ...sized, size: Number(event.target.value) }, name))}
             >
               {fields.map((size) => (
                 <option key={size} value={size}>

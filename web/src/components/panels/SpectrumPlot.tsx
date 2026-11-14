@@ -48,7 +48,7 @@ export function SpectrumPlot({ view, bands, points, quick, unit }: SpectrumPlotP
   const [frame, width] = useElementWidth<HTMLDivElement>(560);
   const [hovered, setHovered] = useState<number | null>(null);
 
-  const quickValues = quick.flatMap((p) => (p.flux === null ? [] : [p.flux]));
+  const quickValues = quick.flatMap((p) => (p.flux_mjy === null ? [] : [p.flux_mjy]));
   const scale = brightnessScale([...points.map((p) => p.flux_mjy), ...quickValues]);
   if (!scale) return null;
 
@@ -79,9 +79,9 @@ export function SpectrumPlot({ view, bands, points, quick, unit }: SpectrumPlotP
 
   const active = hovered === null ? undefined : points[hovered];
   const quickLine = quick
-    .filter((p): p is QuickSpectrumPoint & { flux: number } => p.flux !== null && !belowAxis(p.flux))
+    .filter((p): p is QuickSpectrumPoint & { flux_mjy: number } => p.flux_mjy !== null && !belowAxis(p.flux_mjy))
     .sort((a, b) => a.wavelength - b.wavelength)
-    .map((p) => `${x(p.wavelength)},${y(p.flux)}`)
+    .map((p) => `${x(p.wavelength)},${y(p.flux_mjy)}`)
     .join(" ");
 
   return (

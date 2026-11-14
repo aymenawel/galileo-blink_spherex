@@ -568,3 +568,113 @@
     grid-template-columns: minmax(0, 1fr);
   }
 }
+
+/* ---------------------------------------------------------------- asteroid view panels */
+
+.readouts--tight {
+  gap: 12px 18px;
+  margin-top: 10px;
+}
+
+.movers__list {
+  list-style: none;
+  margin: 0;
+  padding: 0;
+  display: grid;
+  gap: 10px;
+}
+
+.mover {
+  padding: 14px 16px;
+  border-radius: var(--r-inner);
+  background: var(--sunken);
+  border: 1px solid var(--hairline);
+}
+
+.mover--strong {
+  border-color: rgba(255, 178, 74, 0.28);
+  background: linear-gradient(180deg, var(--ember-soft), transparent 70%), var(--sunken);
+}
+
+.mover__head {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+}
+
+.mover__name {
+  margin: 0;
+  font-family: var(--font-display);
+  font-size: 1.5rem;
+  font-weight: 400;
+  line-height: 1.1;
+}
+
+.mover__kind {
+  margin: 4px 0 0;
+  font-size: 0.86rem;
+}
+
+.movers__note {
+  margin: 12px 0 0;
+  font-size: 0.86rem;
+}
+
+.movers__known-title {
+  margin: 22px 0 8px;
+}
+
+.movers__known {
+  list-style: none;
+  margin: 0;
+  padding: 0;
+  display: grid;
+  gap: 2px;
+  font-size: 0.88rem;
+}
+
+.known {
+  display: flex;
+  justify-content: space-between;
+  gap: 14px;
+  padding: 7px 0;
+  border-bottom: 1px solid var(--hairline);
+}
+
+.known:last-child {
+  border-bottom: 0;
+}
+
+.known__name {
+  font-family: var(--font-mono);
+  font-size: 0.82rem;
+}
+
+.known--found .known__name {
+  color: var(--ember);
+}
+
+.known .muted {
+  text-align: right;
+}
+
+.search-method__steps {
+  list-style: none;
+  margin: 4px 0 16px;
+  padding: 0;
+  display: grid;
+  gap: 12px;
+}
+
+.search-method__steps li {
+  display: grid;
+  grid-template-columns: 34px 1fr;
+  align-items: baseline;
+  line-height: 1.45;
+}
+
+.search-method__number {
+  color: var(--ember);
+  font-size: 0.78rem;
+}

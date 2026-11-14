@@ -839,3 +839,10 @@
     grid-template-columns: repeat(3, minmax(0, 1fr));
   }
 }
+
+/* A segmented control used outside the picture (the top bar): flatter, no floating shadow. */
+.segmented--quiet {
+  background: var(--panel);
+  border-color: var(--hairline);
+  box-shadow: none;
+}

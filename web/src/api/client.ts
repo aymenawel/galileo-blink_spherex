@@ -2,6 +2,7 @@
 import { COPY } from "../lib/copy";
 import type {
   About,
+  AsteroidExample,
   ErrorKind,
   QuickSpectrum,
   ResolvedPlace,
@@ -10,10 +11,16 @@ import type {
   ViewStatus,
 } from "./types";
 
-/** A place to open: one of NASA's test targets, or any spot in the sky. */
+/**
+ * What to open: one of NASA's test targets or any spot in the sky (the six-month view), or
+ * an asteroid example, an asteroid by name, or any spot searched for movers (one visit).
+ */
 export type ViewRequest =
   | { kind: "target"; id: string }
-  | { kind: "place"; ra: number; dec: number; size: number };
+  | { kind: "place"; ra: number; dec: number; size: number }
+  | { kind: "asteroid"; id: string }
+  | { kind: "asteroidName"; name: string }
+  | { kind: "visit"; ra: number; dec: number; size: number };
 
 /** A failed request, with a sentence fit to show and whose side the failure is on. */
 export class ApiError extends Error {
@@ -75,6 +82,10 @@ export function fetchTargets(signal?: AbortSignal): Promise<Target[]> {
   return getJson<Target[]>("/api/targets", signal);
 }
 
+export function fetchAsteroids(signal?: AbortSignal): Promise<AsteroidExample[]> {
+  return getJson<AsteroidExample[]>("/api/asteroids", signal);
+}
+
 export function fetchAbout(signal?: AbortSignal): Promise<About> {
   return getJson<About>("/api/about", signal);
 }
@@ -85,11 +96,22 @@ export function resolvePlace(text: string, signal?: AbortSignal): Promise<Resolv
 
 /** Ask for a view; the server starts building it if it does not exist yet. */
 export function openView(request: ViewRequest, signal?: AbortSignal): Promise<ViewStatus> {
-  const query =
-    request.kind === "target"
-      ? `target=${encodeURIComponent(request.id)}`
-      : `ra=${request.ra}&dec=${request.dec}&size=${request.size}`;
-  return getJson<ViewStatus>(`/api/view?${query}`, signal);
+  return getJson<ViewStatus>(openAddress(request), signal);
+}
+
+function openAddress(request: ViewRequest): string {
+  switch (request.kind) {
+    case "target":
+      return `/api/view?target=${encodeURIComponent(request.id)}`;
+    case "place":
+      return `/api/view?ra=${request.ra}&dec=${request.dec}&size=${request.size}`;
+    case "asteroid":
+      return `/api/asteroids/${encodeURIComponent(request.id)}`;
+    case "asteroidName":
+      return `/api/asteroid?name=${encodeURIComponent(request.name)}`;
+    case "visit":
+      return `/api/visit?ra=${request.ra}&dec=${request.dec}&size=${request.size}`;
+  }
 }
 
 /** Progress of a view; includes the view itself once it is ready. */

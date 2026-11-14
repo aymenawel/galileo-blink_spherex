@@ -42,8 +42,24 @@ export interface ResolvedPlace {
   label: string;
   kind: "coordinates" | "name";
   target_id: string | null;
-  /** Set when the typed position was an old catalogue position of a test target. */
+  /** Set when the typed position was an old catalogue position of a fast-moving object. */
   moved_arcmin: number | null;
+  /** Catalogue name of the moving star the view was re-centred on, if any. */
+  follows?: string | null;
+}
+
+// ---------------------------------------------------------------------------- /api/asteroids
+
+/** A ready-made asteroid example: a real asteroid crossing a real SPHEREx visit. */
+export interface AsteroidExample {
+  id: string;
+  name: string;
+  blurb: string;
+  /** Visual magnitude during the visit: larger is fainter. */
+  vmag: number;
+  camera: number;
+  key: string;
+  ready: boolean;
 }
 
 // ---------------------------------------------------------------------------- /api/about
@@ -68,7 +84,8 @@ export interface About {
 
 export interface QuickSpectrumPoint {
   wavelength: number;
-  flux: number | null;
+  /** Brightness above the surroundings, in mJy; null where the map has no data. */
+  flux_mjy: number | null;
   camera?: number;
 }
 
@@ -147,10 +164,44 @@ export interface Marker {
   gmag?: number | null;
   subject?: boolean;
   track: MarkerPosition[];
+  /** Words to show instead of a yearly speed, such as "moves 33″ per hour". */
+  speed_text?: string;
 }
 
-/** A Gaia star: [x, y, G magnitude], same coordinates as markers. */
-export type StarDot = [number, number, number];
+/**
+ * A Gaia star: [x, y, G magnitude, speed in arcseconds per year, right ascension, declination],
+ * same coordinates as markers. Older views carry only the first three.
+ */
+export type StarDot = [number, number, number, number?, number?, number?];
+
+/** A mover the asteroid search found: sightings in several moments along one straight path. */
+export interface VisitTrack {
+  id: number;
+  /** The catalogued asteroid it matches, or null if none does. */
+  name: string | null;
+  confidence: "strong" | "possible";
+  speed_arcsec_per_hour: number;
+  /** Direction of travel in degrees east of north. */
+  direction_deg: number;
+  rms_px?: number;
+  n_moments: number;
+  points: Array<MarkerPosition & { significance?: number }>;
+  /** Where the fitted path puts it at every moment. */
+  path: MarkerPosition[];
+}
+
+export type KnownAsteroidNote = "found" | "in_view_too_briefly" | "too_faint" | "missed";
+
+/** A catalogued asteroid predicted to be in the field during the visit. */
+export interface KnownAsteroid {
+  name: string;
+  number?: string;
+  vmag: number;
+  track: MarkerPosition[];
+  found: boolean;
+  moments_in_view: number;
+  note: KnownAsteroidNote | string;
+}
 
 export type SubjectKind = "target" | "mover" | "star" | "spot";
 
@@ -163,6 +214,8 @@ export interface Subject {
   pm?: number | null;
   parallax_mas?: number | null;
   gmag?: number | null;
+  /** Whose numbers the prediction rests on, such as "Gaia DR3". */
+  predicted_by?: string | null;
 }
 
 export interface TargetSummary {
@@ -243,7 +296,7 @@ export interface LeftOutPhoto {
   reason: LeftOutReason | string;
 }
 
-export type DegradedService = "gaia" | "catwise" | "photo_list" | "photos";
+export type DegradedService = "gaia" | "catwise" | "photo_list" | "photos" | "asteroid_catalogue";
 
 export type MotionReason = "no_target" | "catalogue_down" | "one_season" | "too_faint" | "off_track";
 
@@ -257,6 +310,14 @@ export interface ViewStats {
 /** Everything the screen shows about one place in the sky. */
 export interface View {
   key: string;
+  /** "looks": six-month seasons in six cameras. "visit": one camera, moment by moment (asteroids). */
+  kind?: "looks" | "visit";
+  /** Visit views only: the one camera shown, how long the visit lasted, and what was found. */
+  camera?: number;
+  span_hours?: number;
+  tracks?: VisitTrack[];
+  known_asteroids?: KnownAsteroid[];
+  search?: { searched?: boolean; moments?: number; min_moments?: number; faint_vmag?: number };
   ra: number;
   dec: number;
   size_deg: number;

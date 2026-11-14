@@ -86,7 +86,8 @@
   flex: 1;
 }
 
-.bento__honesty {
+.bento__honesty,
+.bento__flags--wide {
   grid-column: 1 / -1;
 }
 

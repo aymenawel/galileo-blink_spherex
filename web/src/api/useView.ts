@@ -16,9 +16,16 @@ export type ViewLoad =
 
 /** A text that is the same for two requests exactly when they ask for the same view. */
 export function requestId(request: ViewRequest): string {
-  return request.kind === "target"
-    ? `target:${request.id}`
-    : `place:${request.ra}:${request.dec}:${request.size}`;
+  switch (request.kind) {
+    case "target":
+    case "asteroid":
+      return `${request.kind}:${request.id}`;
+    case "asteroidName":
+      return `asteroidName:${request.name.toLowerCase()}`;
+    case "place":
+    case "visit":
+      return `${request.kind}:${request.ra}:${request.dec}:${request.size}`;
+  }
 }
 
 function failure(cause: unknown): ViewLoad {

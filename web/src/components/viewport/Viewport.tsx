@@ -5,9 +5,9 @@
 import { useMemo, useRef, useState } from "react";
 import { fileUrl } from "../../api/client";
 import { bandOf, lookAt, looksOf } from "../../lib/cameras";
-import { COPY, lookSummary } from "../../lib/copy";
+import { COPY, VISIT_COPY, lookSummary } from "../../lib/copy";
 import { formatDate } from "../../lib/format";
-import { markersToDraw } from "../../lib/markers";
+import { markersToDraw, visitMarkers } from "../../lib/markers";
 import type { Workspace } from "../explore/useWorkspace";
 import { ChangeMap } from "./ChangeMap";
 import { Compass } from "./Compass";
@@ -30,6 +30,11 @@ function readout(ws: Workspace): { when: string; date: string; what: string } {
   const { view, camera, mode, season, a, b } = ws;
   const band = bandOf(view.cameras[camera], camera);
   const labelOf = (index: number) => view.seasons.find((s) => s.index === index)?.label ?? "";
+  if (ws.visit && mode !== "blink") {
+    return mode === "combined"
+      ? { when: VISIT_COPY.staticChip, date: "", what: lookSummary(camera, band, null) }
+      : { when: labelOf(season), date: "", what: VISIT_COPY.subtractedChip };
+  }
   if (mode === "combined") {
     const photos = looksOf(view, camera).reduce((sum, look) => sum + look.n_photos, 0);
     return { when: COPY.viewport.combinedChip, date: "", what: lookSummary(camera, band, photos) };
@@ -52,7 +57,20 @@ export function Viewport({ ws }: ViewportProps) {
   const { view, camera, mode, season, a, b, overlays, place } = ws;
   const sky = useRef<HTMLDivElement>(null);
   const [divider, setDivider] = useState(0.5);
-  const markers = useMemo(() => markersToDraw(view.markers), [view.markers]);
+  // CatWISE's motions are often false, so its markers are drawn only when asked for.
+  const markers = useMemo(
+    () =>
+      view.kind === "visit"
+        ? visitMarkers(view)
+        : markersToDraw(view.markers).filter(
+            ({ marker }) => overlays.catwise || marker.subject || marker.catalog !== "CatWISE2020",
+          ),
+    [view, overlays.catwise],
+  );
+  const hasCatwise = useMemo(
+    () => (view.markers ?? []).some((marker) => marker.catalog === "CatWISE2020" && !marker.subject),
+    [view.markers],
+  );
   const chip = readout(ws);
   const flagsMask = mode === "blink" && overlays.flags ? lookAt(view, camera, season)?.flags_png : null;
 
@@ -74,7 +92,10 @@ export function Viewport({ ws }: ViewportProps) {
       <div className="viewport__sky sky" ref={sky}>
         {mode === "blink" && <ImageStack view={view} camera={camera} season={season} place={place} />}
         {mode === "combined" && <ImageStack view={view} camera={camera} season={null} place={place} />}
-        {mode === "change" && <ChangeMap view={view} camera={camera} a={a} b={b} place={place} />}
+        {mode === "change" && ws.visit && (
+          <ImageStack view={view} camera={camera} season={season} place={place} layer="change" />
+        )}
+        {mode === "change" && !ws.visit && <ChangeMap view={view} camera={camera} a={a} b={b} place={place} />}
         {mode === "compare" && (
           <SwipeCompare view={view} camera={camera} a={a} b={b} place={place} divider={divider} onDivider={setDivider} />
         )}
@@ -87,7 +108,7 @@ export function Viewport({ ws }: ViewportProps) {
             {overlay(b, `inset(0 0 0 ${divider * 100}%)`)}
           </>
         ) : (
-          overlay(mode === "blink" ? season : mode === "change" ? a : null)
+          overlay(ws.stepping ? season : mode === "change" ? a : null)
         )}
 
         <Crosshair skyRef={sky} view={view} />
@@ -97,7 +118,7 @@ export function Viewport({ ws }: ViewportProps) {
       </div>
 
       <div className="viewport__top">
-        <ModePills mode={mode} onSelect={ws.selectMode} />
+        <ModePills mode={mode} visit={ws.visit} onSelect={ws.selectMode} />
         <div className="look-chip" aria-live="off">
           <span className="look-chip__when mono">
             {chip.when}
@@ -108,7 +129,7 @@ export function Viewport({ ws }: ViewportProps) {
       </div>
 
       <div className="viewport__bottom">
-        {mode === "blink" ? (
+        {ws.stepping ? (
           <TransportBar
             playing={ws.playing}
             speed={ws.speed}
@@ -118,9 +139,17 @@ export function Viewport({ ws }: ViewportProps) {
             onSpeed={ws.selectSpeed}
           />
         ) : (
-          <span className="viewport__hint">{COPY.viewport.modes[mode].hint}</span>
+          <span className="viewport__hint">
+            {ws.visit && mode !== "compare" ? VISIT_COPY.modes[mode].hint : COPY.viewport.modes[mode].hint}
+          </span>
         )}
-        <OverlayToggles overlays={overlays} flagsAvailable={mode === "blink"} onToggle={ws.toggleOverlay} />
+        <OverlayToggles
+          overlays={overlays}
+          flagsAvailable={mode === "blink"}
+          catwiseAvailable={hasCatwise}
+          starsAvailable={(view.stars?.length ?? 0) > 0}
+          onToggle={ws.toggleOverlay}
+        />
       </div>
     </div>
   );

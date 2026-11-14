@@ -1,6 +1,6 @@
 /** "What this view can't tell you": the limits of this particular view, written from its own numbers. */
 import type { View } from "../../api/types";
-import { COPY, degradedSentence, leftOutSentence } from "../../lib/copy";
+import { COPY, VISIT_COPY, degradedSentence, leftOutSentence } from "../../lib/copy";
 import { Link } from "../../router";
 import { Panel } from "./Panel";
 
@@ -15,7 +15,22 @@ function countReasons(view: View): Array<[string, number]> {
   return [...counts.entries()];
 }
 
+function visitLimits(view: View): string[] {
+  const words = VISIT_COPY.honesty;
+  return [
+    ...(view.degraded ?? []).map(degradedSentence),
+    words.moments(view.search?.min_moments ?? 3),
+    words.faint(view.search?.faint_vmag ?? 18.5),
+    words.overlap,
+    words.chance,
+    words.slow,
+    ...countReasons(view).map(([reason, count]) => leftOutSentence(reason, count)),
+    COPY.honesty.noDiscovery,
+  ];
+}
+
 function limits(view: View): string[] {
+  if (view.kind === "visit") return visitLimits(view);
   const floor = view.motion?.floor;
   return [
     ...(view.degraded ?? []).map(degradedSentence),
@@ -24,6 +39,7 @@ function limits(view: View): string[] {
     ...countReasons(view).map(([reason, count]) => leftOutSentence(reason, count)),
     ...(view.seasons_left_out ? [COPY.honesty.seasons(view.seasons_left_out)] : []),
     ...(view.markers_left_out ? [COPY.honesty.markersLeftOut(view.markers_left_out)] : []),
+    COPY.honesty.catwise,
     COPY.honesty.noDiscovery,
   ];
 }

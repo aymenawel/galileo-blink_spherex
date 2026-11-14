@@ -16,9 +16,11 @@ interface ImageStackProps {
   season: number | null;
   /** The place's name, for the picture's description. */
   place: string;
+  /** "change" shows each date's ready-made change map instead of the photo itself. */
+  layer?: "photo" | "change";
 }
 
-export function ImageStack({ view, camera, season, place }: ImageStackProps) {
+export function ImageStack({ view, camera, season, place, layer = "photo" }: ImageStackProps) {
   const cameraView = view.cameras[camera];
   const band = bandOf(cameraView, camera);
   const looks = cameraView?.looks ?? [];
@@ -39,7 +41,7 @@ export function ImageStack({ view, camera, season, place }: ImageStackProps) {
       {looks.map((look) => (
         <img
           key={look.png}
-          src={fileUrl(view, look.png)}
+          src={fileUrl(view, layer === "change" && look.change ? look.change : look.png)}
           alt={look === shown ? lookAlt(place, camera, band, seasonLabel) : ""}
           aria-hidden={look === shown ? undefined : true}
           className={look === shown ? undefined : "is-hidden"}

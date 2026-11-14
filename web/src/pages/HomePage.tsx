@@ -2,11 +2,12 @@
 import { ArrowRight } from "lucide-react";
 import { useTargets } from "../api/useResource";
 import { useReadyView } from "../api/useView";
+import { AsteroidList } from "../components/AsteroidList";
 import { TargetList } from "../components/TargetList";
 import { SearchBox } from "../components/shell/SearchBox";
 import { Wordmark } from "../components/shell/Wordmark";
 import { BlinkPreview } from "../components/viewport/BlinkPreview";
-import { COPY } from "../lib/copy";
+import { COPY, VISIT_COPY } from "../lib/copy";
 import { exploreAddress } from "../lib/exploreAddress";
 import { riseOrder } from "../lib/stagger";
 import { Link } from "../router";
@@ -75,6 +76,17 @@ export function HomePage() {
           <p className="muted section__lede">{COPY.home.targetsLede}</p>
         </header>
         <TargetList />
+      </section>
+
+      <section className="section" id="asteroids" aria-labelledby="asteroids-title">
+        <header className="section__head">
+          <p className="eyebrow">{VISIT_COPY.home.eyebrow}</p>
+          <h2 className="section__title display" id="asteroids-title">
+            {VISIT_COPY.home.title}
+          </h2>
+          <p className="muted section__lede">{VISIT_COPY.home.lede}</p>
+        </header>
+        <AsteroidList />
       </section>
 
       <section className="section" aria-labelledby="steps-title">

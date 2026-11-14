@@ -13,6 +13,8 @@ export const MODES: readonly Mode[] = ["blink", "compare", "change", "combined"]
 /** Fields of view offered for places that are not test targets, in degrees. */
 export const FIELD_CHOICES: readonly number[] = [0.1, 0.15, 0.25, 0.4];
 export const DEFAULT_FIELD = 0.15;
+/** Asteroids cross a narrow view in hours, so the asteroid search starts wider. */
+export const DEFAULT_VISIT_FIELD = 0.25;
 
 /** What the visitor has chosen to look at inside a view. */
 export interface ExploreChoices {
@@ -44,10 +46,16 @@ function seasonOrNull(text: string | null): number | null {
 function readRequest(query: URLSearchParams): ViewRequest | null {
   const target = query.get("target");
   if (target) return { kind: "target", id: target };
+  const asteroid = query.get("asteroid");
+  if (asteroid) return { kind: "asteroid", id: asteroid };
+  const asteroidName = query.get("asteroid_name");
+  if (asteroidName) return { kind: "asteroidName", name: asteroidName };
   const ra = numberOrNull(query.get("ra"));
   const dec = numberOrNull(query.get("dec"));
   if (ra === null || dec === null) return null;
-  return { kind: "place", ra, dec, size: numberOrNull(query.get("size")) ?? DEFAULT_FIELD };
+  const size = numberOrNull(query.get("size"));
+  if (query.get("view") === "asteroids") return { kind: "visit", ra, dec, size: size ?? DEFAULT_VISIT_FIELD };
+  return { kind: "place", ra, dec, size: size ?? DEFAULT_FIELD };
 }
 
 export function readExploreAddress(query: URLSearchParams): ExploreAddress {
@@ -72,7 +80,12 @@ export function exploreAddress(
   const query = new URLSearchParams();
   if (request.kind === "target") {
     query.set("target", request.id);
+  } else if (request.kind === "asteroid") {
+    query.set("asteroid", request.id);
+  } else if (request.kind === "asteroidName") {
+    query.set("asteroid_name", request.name);
   } else {
+    if (request.kind === "visit") query.set("view", "asteroids");
     query.set("ra", String(request.ra));
     query.set("dec", String(request.dec));
     query.set("size", String(request.size));

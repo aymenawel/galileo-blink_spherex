@@ -375,8 +375,8 @@ button:disabled {
 }
 
 .rise {
-  animation: rise 520ms var(--ease) both;
-  animation-delay: calc(var(--i, 0) * 70ms);
+  animation: rise 380ms var(--ease) both;
+  animation-delay: calc(var(--i, 0) * 50ms);
 }
 
 @keyframes spin {

@@ -1,7 +1,7 @@
 /** Small facts fetched once per visit and shared by every component that needs them. */
 import { useEffect, useState } from "react";
-import { ApiError, fetchAbout, fetchTargets } from "./client";
-import type { About, Target } from "./types";
+import { ApiError, fetchAbout, fetchAsteroids, fetchTargets } from "./client";
+import type { About, AsteroidExample, Target } from "./types";
 
 export type Resource<T> =
   | { status: "loading" }
@@ -44,10 +44,16 @@ function useResource<T>(name: string, load: () => Promise<T>): Resource<T> {
 
 const loadTargets = () => fetchTargets();
 const loadAbout = () => fetchAbout();
+const loadAsteroids = () => fetchAsteroids();
 
 /** NASA's five test targets. */
 export function useTargets(): Resource<Target[]> {
   return useResource("targets", loadTargets);
+}
+
+/** The ready-made asteroid examples. */
+export function useAsteroids(): Resource<AsteroidExample[]> {
+  return useResource("asteroids", loadAsteroids);
 }
 
 /** Camera bands, field limits and the meaning of NASA's quality flags. */
