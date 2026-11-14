@@ -4,6 +4,7 @@ from __future__ import annotations
 import itertools
 import json
 import os
+import shutil
 import threading
 import time
 from pathlib import Path
@@ -90,7 +91,6 @@ def trim(folder: Path, max_bytes: int) -> int:
             break
         try:
             if entry.is_dir():
-                import shutil
                 shutil.rmtree(entry, ignore_errors=True)
             else:
                 entry.unlink(missing_ok=True)
