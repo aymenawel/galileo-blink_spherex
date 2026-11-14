@@ -61,10 +61,18 @@ class Track:
 
 
 def static_sky(moments: list[np.ndarray]) -> np.ndarray:
-    """What stays put: the median of the moments (needs at least three to reject a mover)."""
+    """What stays put. Where three or more moments have data: their median, which a mover
+    cannot survive. Where only two do (photos are rolled, so corners are covered less often):
+    the fainter of the two, since a mover only ever adds light. Where only one does there is
+    nothing to compare with, so no sky and no search (NaN)."""
+    cube = np.stack(moments)
+    valid = np.isfinite(cube).sum(axis=0)
     with warnings.catch_warnings():
         warnings.simplefilter("ignore", RuntimeWarning)
-        return np.nanmedian(np.stack(moments), axis=0)
+        sky = np.nanmedian(cube, axis=0)
+        low = np.nanmin(cube, axis=0)
+    sky = np.where(valid == 2, low, sky)
+    return np.where(valid >= 2, sky, np.nan)
 
 
 def leftovers(moment: np.ndarray, sky: np.ndarray) -> np.ndarray:
@@ -131,6 +139,9 @@ def link(detections: list[list[Detection]], days: list[float], has_data=None) ->
                             members.append(min(near, key=lambda d: math.hypot(d.x - ex, d.y - ey)))
                     if len(members) < C.VISIT_MIN_MOMENTS:
                         continue
+                    if (len(members) == C.VISIT_MIN_MOMENTS
+                            and min(d.significance for d in members) < C.VISIT_THREE_MOMENT_SIGMA):
+                        continue                # three faint leftovers line up by chance
                     members.sort(key=lambda d: d.moment)
                     x0, y0, fvx, fvy, rms = _fit(members, days)
                     if rms > C.VISIT_MAX_RMS_PX:
@@ -174,7 +185,10 @@ def find_movers(moments: list[np.ndarray], days: list[float]) -> tuple[list[Trac
     if len(moments) < C.VISIT_MIN_MOMENTS:
         return [], static_sky(moments) if moments else np.zeros((0, 0)), []
     sky = static_sky(moments)
-    maps = [leftovers(m, sky) for m in moments]
+    # Movers are searched for only where three or more moments overlap: with two, a leftover
+    # cannot be told from a cosmic ray or a star that changed colour.
+    searchable = np.isfinite(np.stack(moments)).sum(axis=0) >= C.VISIT_MIN_MOMENTS
+    maps = [np.where(searchable, leftovers(m, sky), np.nan) for m in moments]
     detections = [find_peaks(s, k) for k, s in enumerate(maps)]
 
     def has_data(k: int, x: float, y: float) -> bool:

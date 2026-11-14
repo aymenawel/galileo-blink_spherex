@@ -5,7 +5,7 @@ engine wrote.
 """
 from __future__ import annotations
 
-import io
+import json
 from pathlib import Path
 
 import numpy as np
@@ -26,7 +26,13 @@ from ..engine.visit.build import VisitRequest
 from .jobs import Builder, Busy
 
 WEB_DIST = Path(__file__).resolve().parents[2] / "web" / "dist"
+ASTEROID_EXAMPLES = Path(__file__).resolve().parents[2] / "data" / "asteroid_examples.json"
 SAFE_FILE = {".png": "image/png", ".json": "application/json"}
+
+
+def _example_request(e: dict) -> VisitRequest:
+    return VisitRequest(ra=e["ra"], dec=e["dec"], size_deg=e["size_deg"], camera=e["camera"],
+                        mjd_start=e["mjd_start"], mjd_end=e["mjd_end"], label=e["name"])
 
 
 def create_app(builder: Builder | None = None) -> FastAPI:
@@ -58,6 +64,23 @@ def create_app(builder: Builder | None = None) -> FastAPI:
                             ra=req.ra, dec=req.dec, pm=round(t.mover.pm_total, 2),
                             ready=builder.load(req.key) is not None))
         return out
+
+    @app.get("/api/asteroids")
+    def list_asteroids():
+        """Ready-made asteroid examples: real asteroids crossing real SPHEREx visits."""
+        out = []
+        for e in json.loads(ASTEROID_EXAMPLES.read_text(encoding="utf8")):
+            req = _example_request(e)
+            out.append(dict(id=e["id"], name=e["name"], blurb=e["blurb"], vmag=e["vmag"],
+                            camera=e["camera"], key=req.key, ready=builder.load(req.key) is not None))
+        return out
+
+    @app.get("/api/asteroids/{example_id}")
+    def open_example(example_id: str):
+        for e in json.loads(ASTEROID_EXAMPLES.read_text(encoding="utf8")):
+            if e["id"] == example_id:
+                return _ensure(_example_request(e))
+        raise HTTPException(404, "No such asteroid example.")
 
     @app.get("/api/resolve")
     def resolve(q: str = Query(..., max_length=200)):

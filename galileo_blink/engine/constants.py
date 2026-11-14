@@ -191,6 +191,9 @@ VISIT_MIN_COMPLETENESS = 0.7
 """A "strong" track was seen in 4+ moments and in 70% of the moments where it could have been.
 Three aligned leftovers alone happen by chance, so they stay "possible"."""
 VISIT_DETECT_SIGMA = 5.0
+VISIT_THREE_MOMENT_SIGMA = 6.0
+"""A path seen in only three moments must be clear in each. Measured on a real 293-pixel
+field: two chance alignments of 5-6.7 sigma leftovers appeared with a 5 sigma threshold."""
 VISIT_EDGE_PX = 2
 VISIT_MAX_PEAKS_PER_MOMENT = 60
 VISIT_MIN_SHIFT_PX = 1.5

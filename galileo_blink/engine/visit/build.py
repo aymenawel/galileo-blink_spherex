@@ -114,6 +114,7 @@ def _name_tracks(tracks: list[Track], known: list[list[asteroids.KnownObject]], 
             name, n = max(votes.items(), key=lambda kv: kv[1])
             if n >= NAME_MIN_MATCHES:
                 t.name = name
+                t.confidence = "strong"         # the catalogue independently confirms it
 
 
 def build_visit(req: VisitRequest, progress: Progress = lambda stage, fraction: None) -> dict:
@@ -225,12 +226,16 @@ def build_visit(req: VisitRequest, progress: Progress = lambda stage, fraction: 
     found_names = {t.name for t in tracks if t.name}
     known_out = []
     for entry in sorted(by_name.values(), key=lambda e: e["vmag"]):
-        inside = [p for p in entry["track"] if 0 <= p["x"] < grid.n and 0 <= p["y"] < grid.n]
+        inside = [p for p in entry["track"]
+                  if -0.5 <= p["x"] < grid.n - 0.5 and -0.5 <= p["y"] < grid.n - 0.5]
+        # in view AND searchable: the leftover map has data there at that moment
+        searchable = [p for p in inside if maps and np.isfinite(
+            maps[p["season"]][int(round(p["y"])), int(round(p["x"]))])]
         entry["found"] = entry["name"] in found_names
-        entry["moments_in_view"] = len(inside)
+        entry["moments_in_view"] = len(searchable)
         if entry["found"]:
             entry["note"] = "found"
-        elif len(inside) < C.VISIT_MIN_MOMENTS:
+        elif len(searchable) < C.VISIT_MIN_MOMENTS:
             entry["note"] = "in_view_too_briefly"
         elif entry["vmag"] > C.ASTEROID_FAINT_VMAG:
             entry["note"] = "too_faint"

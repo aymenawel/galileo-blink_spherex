@@ -77,3 +77,15 @@ def test_three_sightings_alone_are_only_possible():
 def test_two_moments_cannot_show_a_mover_at_all():
     moments, days, _ = visit(6, n_moments=2, mover=(20.0, 30.0, 60.0, 20.0, 5.0))
     assert find_movers(moments, days)[0] == []
+
+
+def test_a_mover_in_a_corner_only_two_moments_cover_is_not_subtracted_away():
+    from galileo_blink.engine.visit.detect import static_sky
+    rng = np.random.default_rng(7)
+    moments = [rng.normal(0, 0.02, (40, 40)) for _ in range(3)]
+    moments[0][:10, :] = np.nan                               # this strip: two moments only
+    moments[2][5, 20] += 3.0                                  # something there in one of them
+    moments[1][30, 30] = moments[2][30, 30] = np.nan          # this pixel: one moment only
+    sky = static_sky(moments)
+    assert abs(sky[5, 20]) < 0.1                              # not swallowed into the static sky
+    assert np.isnan(sky[30, 30])                              # nothing to compare with: no search
