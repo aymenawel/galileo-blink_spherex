@@ -225,7 +225,7 @@ the old folders would otherwise be left behind next to the new ones.
 
 ## Use of AI
 
-Galileo Blink was built with an AI coding assistant, Anthropic's Claude, under the team's direction. It wrote most of the code, the documentation and the site's text, and designed the interface. No AI-generated images are used.
+Galileo Blink was built with an AI coding assistant, Anthropic's Claude, under the team's direction. It wrote most of the code, the documentation and the site's text, and designed the interface. The demo video was animated in code the same way, with an AI-generated voice and music (ElevenLabs). No AI-generated images are used.
 
 ## Data and credits
 

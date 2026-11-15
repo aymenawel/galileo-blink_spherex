@@ -77,6 +77,7 @@ Every external resource Galileo Blink uses: data, services, software and fonts.
 | Tool | Used for | Link |
 |---|---|---|
 | Claude (Anthropic), through Claude Code | AI coding assistant; see "Use of AI" in the README | https://www.anthropic.com/claude-code |
+| ElevenLabs (text to speech and music) | Narration voice and music of the demo video | https://elevenlabs.io |
 
 ## Hosting and build
 
