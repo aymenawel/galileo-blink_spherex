@@ -1,5 +1,5 @@
 /**
- * A change map: date A minus date B for one camera. Warm is brighter in A, cool is fainter,
+ * A change map: date A minus date B for one camera. Green is brighter in A, pink is fainter,
  * dark is unchanged. Uses the ready-made map when B is the camera's first date; otherwise
  * asks the server to subtract the two.
  */

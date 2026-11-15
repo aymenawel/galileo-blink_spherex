@@ -63,9 +63,10 @@ def gray_png(a01: np.ndarray) -> bytes:
                                    _upscaled(np.where(has_data, 255, 0), False))))
 
 
-# Change maps: brighter than before = warm, fainter = cool, no change = dark.
-_WARM = np.array([255, 176, 64])
-_COOL = np.array([72, 176, 255])
+# Change maps: brighter than before = green, fainter = magenta, no change = dark. The two
+# are opposite colours, so they stay apart for colour-blind eyes too.
+_BRIGHTER = np.array([164, 240, 92])
+_FAINTER = np.array([255, 96, 170])
 
 
 def change_png(sigma_map: np.ndarray) -> bytes:
@@ -73,7 +74,7 @@ def change_png(sigma_map: np.ndarray) -> bytes:
     has_data = np.isfinite(sigma_map)
     t = np.clip(np.nan_to_num(sigma_map) / C.CHANGE_LIMIT_SIGMA, -1, 1)
     strength = np.abs(t) ** 0.7
-    rgb = np.where(t[..., None] >= 0, _WARM, _COOL) * strength[..., None]
+    rgb = np.where(t[..., None] >= 0, _BRIGHTER, _FAINTER) * strength[..., None]
     channels = [_upscaled(rgb[..., i], True) for i in range(3)]
     channels.append(_upscaled(np.where(has_data, 255, 0), False))
     return _png(Image.merge("RGBA", channels))
@@ -91,7 +92,7 @@ GIF_SIZE = 560                    # pixels across: large enough to read, small e
 _GIF_BACKGROUND = (10, 11, 13)
 _GIF_NO_DATA = (38, 41, 46)
 _GIF_TEXT = (236, 238, 241)
-_GIF_ACCENT = (255, 178, 74)
+_GIF_ACCENT = (164, 240, 92)
 
 
 def blink_gif(pictures: list[bytes], captions: list[str], credit: str, frame_ms: int = 700) -> bytes:
