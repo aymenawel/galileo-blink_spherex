@@ -29,6 +29,9 @@ def session() -> requests.Session:
     return s
 
 
+REFUSAL_KEPT_CHARS = 4000         # how much of a refusing answer is kept for the caller to read
+
+
 def request(method: str, url: str, *, service: str, timeout: float = C.HTTP_TIMEOUT_S,
             retries: int | None = None, backoff: tuple[float, ...] = C.BUSY_BACKOFF_S,
             **kwargs) -> requests.Response:
@@ -37,7 +40,7 @@ def request(method: str, url: str, *, service: str, timeout: float = C.HTTP_TIME
 
     A refusal is instant, so it is worth many retries; a timeout costs the whole deadline, so
     after MAX_TIMEOUTS_IN_A_ROW of them the service is taken to be down."""
-    last, timeouts = "", 0
+    last, timeouts, said = "", 0, ""
     retries = len(backoff) if retries is None else retries
     for attempt in range(retries + 1):
         try:
@@ -53,10 +56,11 @@ def request(method: str, url: str, *, service: str, timeout: float = C.HTTP_TIME
                 return r
             last, timeouts = f"HTTP {r.status_code}", 0
             if r.status_code not in C.BUSY_STATUS:
+                said = r.text[:REFUSAL_KEPT_CHARS]
                 break
         if attempt < retries:
             time.sleep(backoff[min(attempt, len(backoff) - 1)])
-    raise ServiceDown(service, last, timed_out=timeouts > 0)
+    raise ServiceDown(service, last, timed_out=timeouts > 0, body=said)
 
 
 def get(url: str, *, service: str, **kwargs) -> requests.Response:

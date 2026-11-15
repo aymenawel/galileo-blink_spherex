@@ -99,7 +99,23 @@ def parse_most(text: str) -> tuple[str | None, list[Sighting]]:
     return name, sorted(sightings, key=lambda s: s.mjd)
 
 
-def asteroid_sightings(name: str) -> tuple[str, list[Sighting]]:
+_MATCH_LINE = re.compile(r"^\s*(\d+)\s+(.+?),\s*Object Type=Asteroid", re.MULTILINE)
+
+
+def numbered_match(answer: str, name: str) -> str | None:
+    """The number of the asteroid the visitor meant, when the search answers "multiple
+    matches". Famous asteroids are listed twice (an old entry and the numbered one), so
+    "Vesta" alone is ambiguous while "4" is not. Only an entry whose name is exactly what was
+    typed counts; None if the answer is not such a list or holds no such entry."""
+    if "multiple matches" not in answer.lower():
+        return None
+    wanted = name.strip().lower()
+    numbers = [int(number) for number, listed in _MATCH_LINE.findall(answer)
+               if listed.strip().lower() == wanted]
+    return str(min(numbers)) if numbers else None
+
+
+def asteroid_sightings(name: str, _retried: bool = False) -> tuple[str, list[Sighting]]:
     """Every SPHEREx exposure that caught the named asteroid."""
     from astropy.time import Time
     params = dict(catalog="spherex", input_type="name_input", obj_type="Asteroid", obj_name=name,
@@ -111,10 +127,17 @@ def asteroid_sightings(name: str) -> tuple[str, list[Sighting]]:
         r = http.get(MOST, service=MOST_SERVICE, params=params, timeout=MOST_TIMEOUT_S,
                      backoff=C.BUSY_BACKOFF_S)
     except ServiceDown as e:
-        if e.detail == "HTTP 400":              # MOST's way of saying it does not know the name
+        if e.detail == "HTTP 400":              # MOST's way of saying it cannot settle the name
+            number = None if _retried else numbered_match(e.body, name)
+            if number:                          # "Vesta" is ambiguous; "4" is not
+                return asteroid_sightings(number, _retried=True)
             raise unknown from None
         raise
     full_name, sightings = parse_most(r.text)
+    if not sightings and not _retried:
+        number = numbered_match(r.text, name)
+        if number:                              # "Vesta" is ambiguous; "4" is not
+            return asteroid_sightings(number, _retried=True)
     if not sightings:
         head = r.text.lower()[:2000]
         if "<html" in head and "not found" not in head:
