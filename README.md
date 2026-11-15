@@ -13,6 +13,7 @@ like a short video, and see what moved. No code, no downloads, no astronomy degr
 **Try it: https://galileoblink.earth** (also at https://galileo-blink-802043035343.us-east4.run.app)
 
 Built by **Team Galileo** for the 2026 NASA Space Apps Challenge, *Planet X and SPHEREx*.
+An independent student project. Not an official NASA product.
 
 ## What it does
 
@@ -28,6 +29,7 @@ Built by **Team Galileo** for the 2026 NASA Space Apps Challenge, *Planet X and 
 | See its colours | A spectrum from the photos themselves, and a 102-colour quick look anywhere from NASA's all-sky cube |
 | Trust it | NASA's quality flags shown on the image; every limit stated in plain words |
 | Share it | Everything is in the URL |
+| Save it | Any camera's blink as an animated GIF |
 
 NASA's five test targets (Barnard's Star, Epsilon Indi B, WISE 0855, RW Aurigae, R Draconis)
 and five asteroid examples are prebuilt and open instantly. Any other place is built live, in
@@ -46,30 +48,43 @@ Luhman & Esplin 2016) predicts for the same dates. Errors are one sigma.
 | Target | Measured | Catalogue predicts | Cameras | Verdict |
 |---|---|---|---|---|
 | Barnard's Star | 10.27 ± 0.46″ | 10.29″ | 6 | agrees |
-| Epsilon Indi B | 4.25 ± 0.39″ | 4.61″ | 6 | agrees |
-| WISE 0855 | 9.02 ± 1.43″ | 8.07″ | 1 (camera 5 only: it is invisible at shorter wavelengths) | agrees |
+| Epsilon Indi B | 4.25 ± 0.39″ | 4.61″ | 5 | agrees |
+| WISE 0855 | 9.02 ± 1.43″ | 8.07″ | 1 (camera 5, May 2025 to May 2026; its May 2026 photo is blended with a faint star, see HOW_IT_MEASURES. Camera 6 saw it only from November 2025: 3.11 ± 1.43″ against 4.51″) | agrees |
 | RW Aurigae | 0.47 ± 0.40″ | 0.03″ | 6 | does not move, as expected |
-| R Draconis | 1.30 ± 0.69″ | 0.02″ | saturated in every photo; measured from its wings | does not move, as expected |
+| R Draconis | 1.30 ± 0.69″ | 0.02″ | 2 (saturated in every photo; measured from its wings) | consistent with no motion (large error: saturated) |
 | Proxima Centauri (typed, built live) | 3.66 ± 0.48″ | 3.84″ | 6 | agrees |
 | Wolf 359 (typed, built live) | 4.52 ± 0.41″ | 4.78″ | 6 | agrees |
 | Teegarden's Star (typed, built live) | 5.33 ± 0.38″ | 5.15″ | 6 | agrees |
 
-Reproduce them with `python scripts/prebuild_targets.py`.
+The five test targets are reproduced with `python scripts/prebuild_targets.py`; the three
+typed rows by typing the star's name on the site.
 
-The asteroid search, run blind on real visits, finds and names Eugenia, Bamberga, Hygiea, Iris
-and the faint Steins (magnitude 17.5), each as the single strong track in its field.
+The asteroid search, run blind on real visits, recovers and names the known asteroids
+Eugenia, Bamberga, Hygiea, Iris and the faint Steins (magnitude 17.5), each as the single
+strong track in its field.
 
 ## How it fits together
 
 ```
 web/                    The interface (React + TypeScript, built with Vite). Pictures and
-                        numbers only: no astronomy happens in the browser.
+                        numbers only: every measurement and prediction comes from the
+                        engine; the browser only converts picture positions to coordinates
+                        for the pointer readout.
+  src/api/              Talking to the server: requests, response types, the view cache.
+  src/components/       The pieces of the screen: the viewer, the panels, the page frame.
+  src/pages/            One file per page: Home, Explore, How it works, About, Not found.
+  src/lib/              Shared helpers: wording, coordinates, number formats, plot scales.
+  src/content/          The text of the longer pages.
+  src/styles/           The stylesheets.
 galileo_blink/
   server/               The web layer (FastAPI). Thin: routes, the background build queue,
     app.py              honest error states. No astronomy here either.
     jobs.py
   engine/               The science. Pure Python, no web code; usable from a script or notebook.
-    constants.py        Every number that changes a result, with its reason, in one place.
+    constants.py        The main tuning numbers, each with its reason. Numbers that belong
+                        to one step are named at the top of that step's module.
+    errors.py           The engine's error types: a bad request, a service that did not
+                        answer, a place SPHEREx has not photographed.
     flags.py            NASA's per-pixel quality flags in plain words.
     archive/            Getting the data.
       photos.py           Which photos cover a place (IRSA Simple Image Access).
@@ -77,6 +92,7 @@ galileo_blink/
       store.py            Cloud copy first, IRSA as fallback, validated disk cache.
       http.py, cache.py   Deadlines and retries on every request; atomic cache writes.
     image/              Working with pixels.
+      frames.py           Fetches one photo and readies it: aligned, quality-checked, flags counted.
       grid.py             Puts every photo on one north-up grid.
       stack.py            Adds photos together; subtracts one date from another.
       measure.py          Position and brightness of a star (profile fit; wing fit if saturated).
@@ -110,7 +126,8 @@ of 65 MB each), while Gaia and CatWISE are queried in parallel. Each photo is ma
 NASA's flags, resampled north-up, and stacked per camera and season. Field stars correct each
 photo's astrometry; the central object is measured in every photo and compared with its
 catalogue prediction. The result is a folder of PNGs and one `view.json`. The browser polls
-until it is ready, then only ever loads pictures and JSON.
+until it is ready, then only ever loads pictures and JSON. Every route of the web API is
+described at `/api/docs` on a running server.
 
 ### Rules the engine keeps
 
@@ -129,7 +146,8 @@ until it is ready, then only ever loads pictures and JSON.
 
 ## Run it
 
-Requirements: Python 3.11+, Node 20+.
+Requirements: Python 3.11+, Node 22.18+ (`npm test` runs the `.ts` test files directly
+with `node --test`).
 
 ```bash
 python -m pip install -e ".[dev]"
@@ -141,7 +159,8 @@ cd web && npm install && npm run dev
 ```
 
 Open http://localhost:5173. For a production-style run, `npm run build` in `web/` and open
-http://localhost:8000 (the Python server serves the built interface).
+http://localhost:8000 (the Python server serves the built interface). The server looks for
+`web/dist` when it starts, so restart it after building.
 
 ## Test it
 
@@ -153,9 +172,14 @@ python -m pytest
 python -m pytest -m live tests/live
 ```
 
+```bash
+cd web && npm test && npm run typecheck
+```
+
 The first runs offline against synthetic SPHEREx-like photos with known truth. The second
 talks to NASA's live services and checks, among other things, that a cutout read from the
-cloud copy equals IRSA's own cutout service pixel for pixel.
+cloud copy equals IRSA's own cutout service pixel for pixel. The third runs the interface's
+own tests and checks its TypeScript.
 
 ## Deploy it
 
@@ -173,24 +197,29 @@ It runs anywhere containers do. The public site runs on Google Cloud Run in a US
 next to NASA's cloud copy of the archive, so photos arrive fastest:
 
 ```bash
-gcloud run deploy galileo-blink --source . --region us-east4
+gcloud run deploy galileo-blink --source . --region us-east4 --cpu 4 --memory 4Gi --min-instances 1 --max-instances 1 --no-cpu-throttling --allow-unauthenticated
 ```
 
-Views are built in background threads, so the service needs CPU that stays allocated between
-requests (`--no-cpu-throttling`) and a single instance (`--max-instances 1`). Set `GALILEO_BLINK_CACHE` to a persistent folder to keep
-built views between restarts.
+Views are built in background threads and the table of build jobs lives in memory, so the
+service needs one instance that is always on (`--min-instances 1 --max-instances 1`) with
+CPU that stays allocated between requests (`--no-cpu-throttling`). Set
+`GALILEO_BLINK_CACHE` to a persistent folder to keep built views between restarts.
 
 ## New data releases
 
 SPHEREx data arrives continuously. Three places know about releases, each one line:
 `SPHEREX_COLLECTIONS` in `engine/constants.py` (image collections), `CUBE_PREFIX` in
 `engine/spectrum/cube.py` (the all-sky cube), and `ENGINE_VERSION` to retire cached views.
-Then rerun `python scripts/prebuild_targets.py --ship`.
+Then delete `prebuilt/` and rerun `python scripts/prebuild_targets.py --ship`. Deleting
+first matters: an asteroid view's folder name includes the engine version, so after a bump
+the old folders would otherwise be left behind next to the new ones.
 
 ## Data and credits
 
 - **SPHEREx** Level-2 images and the DR1 all-sky spectral cube: NASA/JPL-Caltech, served by
   the NASA/IPAC Infrared Science Archive (IRSA) and its public cloud copy on AWS Open Data.
+  Datasets: DR1 spectral images (doi:10.26131/IRSA678), QR3 spectral images
+  (doi:10.26131/IRSA662), DR1 spectral all-sky cube (doi:10.26131/IRSA679).
 - **Gaia DR3**: ESA/Gaia/DPAC, served by NASA's Mikulski Archive for Space Telescopes (MAST).
 - **CatWISE2020** (Marocco et al. 2021): served by IRSA.
 - WISE 0855 proper motion and parallax: Luhman & Esplin 2016, AJ 152, 78.
@@ -200,6 +229,44 @@ Then rerun `python scripts/prebuild_targets.py --ship`.
 Every library, dataset and font used is listed in [docs/REFERENCES.md](docs/REFERENCES.md).
 How each number is measured, and what the tool cannot do, is in
 [docs/HOW_IT_MEASURES.md](docs/HOW_IT_MEASURES.md).
+
+## Acknowledgements
+
+This research has made use of the NASA/IPAC Infrared Science Archive, which is funded by the
+National Aeronautics and Space Administration and operated by the California Institute of
+Technology.
+
+This publication makes use of data products from the Spectro-Photometer for the History of
+the Universe, Epoch of Reionization and Ices Explorer (SPHEREx), which is a joint project of
+the Jet Propulsion Laboratory and the California Institute of Technology, and is funded by the
+National Aeronautics and Space Administration.
+
+This work has made use of data from the European Space Agency (ESA) mission Gaia
+(https://www.cosmos.esa.int/gaia), processed by the Gaia Data Processing and Analysis
+Consortium (DPAC, https://www.cosmos.esa.int/web/gaia/dpac/consortium). Funding for the DPAC
+has been provided by national institutions, in particular the institutions participating in
+the Gaia Multilateral Agreement.
+
+This publication makes use of data products from the Wide-field Infrared Survey Explorer,
+which is a joint project of the University of California, Los Angeles, and the Jet Propulsion
+Laboratory/California Institute of Technology, funded by the National Aeronautics and Space
+Administration. This publication also makes use of data products from NEOWISE, which is a
+project of the Jet Propulsion Laboratory/California Institute of Technology, funded by the
+Planetary Science Division of the National Aeronautics and Space Administration. The CatWISE2020
+catalogue built from them is described by Marocco et al. 2021, ApJS 253, 8.
+
+This research has made use of IMCCE's SkyBoT VO tool (Berthier et al. 2006, ASP Conf. Ser.
+351, 367).
+
+This research has made use of the NASA/IPAC Extragalactic Database (NED), which is funded by
+the National Aeronautics and Space Administration and operated by the California Institute of
+Technology.
+
+This research has made use of the SIMBAD database, operated at CDS, Strasbourg, France
+(Wenger et al. 2000, A&AS 143, 9), through the CDS Sesame name resolver.
+
+This research made use of Astropy, a community-developed core Python package and an ecosystem
+of tools and resources for astronomy (Astropy Collaboration 2013, 2018, 2022).
 
 ## Licence
 

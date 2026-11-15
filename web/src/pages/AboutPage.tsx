@@ -1,6 +1,6 @@
 /** The challenge, the team, and credit to everyone whose data and software this site stands on. */
 import { ArrowUpRight } from "lucide-react";
-import { ABOUT_INTRO, CHALLENGE, DATA_SOURCES, LIBRARIES, SOURCE, TEAM } from "../content/about";
+import { ABOUT_INTRO, ACKNOWLEDGEMENTS, CHALLENGE, DATA_SOURCES, LIBRARIES, SOURCE, TEAM } from "../content/about";
 import { COPY, REPOSITORY_URL } from "../lib/copy";
 
 function NameList({ title, items }: { title: string; items: readonly string[] }) {
@@ -72,6 +72,16 @@ export function AboutPage() {
           </dl>
         </section>
 
+        <section className="about__section about__acknowledgements" aria-labelledby="acknowledgements-title">
+          <h2 className="doc-section__title" id="acknowledgements-title">
+            {ACKNOWLEDGEMENTS.title}
+          </h2>
+          <p className="muted">{ACKNOWLEDGEMENTS.note}</p>
+          {ACKNOWLEDGEMENTS.items.map((sentence) => (
+            <p key={sentence}>{sentence}</p>
+          ))}
+        </section>
+
         <section className="about__section about__software" aria-labelledby="software-title">
           <h2 className="doc-section__title" id="software-title">
             {LIBRARIES.title}
@@ -80,6 +90,12 @@ export function AboutPage() {
           <NameList title={LIBRARIES.engine.title} items={LIBRARIES.engine.items} />
           <NameList title={LIBRARIES.site.title} items={LIBRARIES.site.items} />
           <NameList title={LIBRARIES.fonts.title} items={LIBRARIES.fonts.items} />
+          <p className="muted">
+            {LIBRARIES.full.body}{" "}
+            <a href={LIBRARIES.full.href} target="_blank" rel="noreferrer">
+              {LIBRARIES.full.link}
+            </a>
+          </p>
         </section>
 
         <section className="about__section about__source" aria-labelledby="source-title">

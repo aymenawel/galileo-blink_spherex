@@ -18,7 +18,7 @@ export const TEAM = {
   title: "The team",
   name: "Team Galileo",
   members: ["Adam", "Aymen", "Rami", "Akram"],
-  place: "Arlington, Virginia — virtual event",
+  place: "Arlington, Virginia (virtual event)",
 };
 
 export interface Credit {
@@ -32,7 +32,15 @@ export const DATA_SOURCES = {
   items: [
     {
       name: "SPHEREx images",
-      detail: "NASA/JPL-Caltech. Served by the NASA/IPAC Infrared Science Archive (IRSA). NASA mission data is free to use with credit.",
+      detail: "NASA/JPL-Caltech. Served by the NASA/IPAC Infrared Science Archive (IRSA). NASA mission data is free to use with credit. DR1 spectral images (doi:10.26131/IRSA678) and QR3 spectral images (doi:10.26131/IRSA662).",
+    },
+    {
+      name: "SPHEREx all-sky cube",
+      detail: "The DR1 spectral all-sky cube (doi:10.26131/IRSA679), all 102 colours at any place, used for the quick spectrum. NASA/JPL-Caltech, served by IRSA.",
+    },
+    {
+      name: "NASA's cloud copy of SPHEREx",
+      detail: "IRSA's public copy of the SPHEREx archive on AWS Open Data. Photos and cube tiles are read from it first, with IRSA's own servers as the fallback.",
     },
     {
       name: "Gaia DR3 star catalogue",
@@ -46,7 +54,26 @@ export const DATA_SOURCES = {
       name: "Object names",
       detail: "Names typed in the search box are looked up with the CDS Sesame service (Strasbourg) and NASA's NED.",
     },
+    {
+      name: "Known asteroids",
+      detail: "IMCCE's SkyBoT service (Paris Observatory) says which catalogued asteroids should be in a field at a given moment. NASA/IPAC's Moving Object Search Tool (MOST) finds the SPHEREx photos that caught an asteroid you name.",
+    },
   ] satisfies Credit[],
+};
+
+export const ACKNOWLEDGEMENTS = {
+  title: "Acknowledgements",
+  note: "The sentences the data providers ask users to include.",
+  items: [
+    "This research has made use of the NASA/IPAC Infrared Science Archive, which is funded by the National Aeronautics and Space Administration and operated by the California Institute of Technology.",
+    "This publication makes use of data products from the Spectro-Photometer for the History of the Universe, Epoch of Reionization and Ices Explorer (SPHEREx), which is a joint project of the Jet Propulsion Laboratory and the California Institute of Technology, and is funded by the National Aeronautics and Space Administration.",
+    "This work has made use of data from the European Space Agency (ESA) mission Gaia (https://www.cosmos.esa.int/gaia), processed by the Gaia Data Processing and Analysis Consortium (DPAC, https://www.cosmos.esa.int/web/gaia/dpac/consortium). Funding for the DPAC has been provided by national institutions, in particular the institutions participating in the Gaia Multilateral Agreement.",
+    "This publication makes use of data products from the Wide-field Infrared Survey Explorer, which is a joint project of the University of California, Los Angeles, and the Jet Propulsion Laboratory/California Institute of Technology, funded by the National Aeronautics and Space Administration. This publication also makes use of data products from NEOWISE, which is a project of the Jet Propulsion Laboratory/California Institute of Technology, funded by the Planetary Science Division of the National Aeronautics and Space Administration. The CatWISE2020 catalogue built from them is described by Marocco et al. 2021.",
+    "This research has made use of IMCCE's SkyBoT VO tool (Berthier et al. 2006, ASP Conf. Ser. 351, 367).",
+    "This research has made use of the NASA/IPAC Extragalactic Database (NED), which is funded by the National Aeronautics and Space Administration and operated by the California Institute of Technology.",
+    "This research has made use of the SIMBAD database, operated at CDS, Strasbourg, France (Wenger et al. 2000).",
+    "This research made use of Astropy, a community-developed core Python package and an ecosystem of tools and resources for astronomy (Astropy Collaboration 2013, 2018, 2022).",
+  ],
 };
 
 export const LIBRARIES = {
@@ -54,15 +81,20 @@ export const LIBRARIES = {
   note: "Galileo Blink is itself open source under the Apache-2.0 licence, and is built on these projects.",
   engine: {
     title: "The engine (Python)",
-    items: ["Astropy", "NumPy", "SciPy", "reproject", "Pillow", "Requests", "FastAPI", "Uvicorn"],
+    items: ["Astropy", "astropy-healpix", "NumPy", "SciPy", "reproject", "Pillow", "Requests", "FastAPI", "Uvicorn"],
   },
   site: {
     title: "This site",
-    items: ["React", "Vite", "lucide"],
+    items: ["React", "TypeScript", "Vite", "lucide"],
   },
   fonts: {
     title: "Typefaces (SIL Open Font License)",
     items: ["Hanken Grotesk"],
+  },
+  full: {
+    body: "Every library, dataset, font and service, with its licence, is listed in the repository.",
+    link: "Full list of references and licences",
+    href: "https://github.com/aymenawel/galileo-blink_spherex/blob/main/docs/REFERENCES.md",
   },
 };
 
