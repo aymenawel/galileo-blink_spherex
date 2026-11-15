@@ -28,7 +28,7 @@ RING_WIDTH = 3
 
 _GROUND = (13, 14, 15)              # the site's ground colour, #0d0e0f
 _NO_DATA = (38, 41, 46)             # as in the GIF: no data is grey, never the black of empty sky
-_ACCENT = (164, 240, 92)            # #a4f05c
+_ACCENT = (61, 139, 255)            # #3d8bff, the site's accent
 _TEXT = (242, 243, 240)             # #f2f3f0
 _QUIET = (164, 168, 166)            # #a4a8a6
 _CREDIT = (122, 127, 125)           # #7a7f7d

@@ -173,7 +173,7 @@ GIF_SIZE = 560                    # pixels across: large enough to read, small e
 _GIF_BACKGROUND = (10, 11, 13)
 _GIF_NO_DATA = (38, 41, 46)
 _GIF_TEXT = (236, 238, 241)
-_GIF_ACCENT = (164, 240, 92)
+_GIF_ACCENT = (61, 139, 255)      # the site's accent
 
 
 def blink_gif(pictures: list[bytes], captions: list[str], credit: str, frame_ms: int = 700) -> bytes:

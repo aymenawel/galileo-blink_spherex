@@ -13,8 +13,10 @@
   --faint: #7a7f7d;
 
   /* One accent: "this is the thing we are following", and the one thing to do. */
-  --accent: #a4f05c;
-  --accent-ink: #0d0e0f;
+  --accent: #3d8bff;
+  /* Words and icons on the accent, and words on a surface of that ink. */
+  --accent-ink: #f2f3f0;
+  --accent-ink-contrast: #0d0e0f;
 
   /* Status, used only where something needs care. */
   --warn: #f0d264;

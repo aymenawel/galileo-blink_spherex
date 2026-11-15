@@ -151,7 +151,7 @@ button:disabled {
 }
 
 .button--primary:hover:not(:disabled) {
-  background: color-mix(in srgb, var(--accent) 80%, #fff);
+  background: color-mix(in srgb, var(--accent) 86%, #000);
 }
 
 .button--primary:disabled {
@@ -176,11 +176,11 @@ button:disabled {
 /* On a field of accent colour, the button is ink. */
 .button--ink {
   background: var(--accent-ink);
-  color: var(--ink);
+  color: var(--accent-ink-contrast);
 }
 
 .button--ink:hover {
-  background: color-mix(in srgb, var(--accent-ink) 88%, #fff);
+  background: color-mix(in srgb, var(--accent-ink) 88%, var(--accent));
 }
 
 /* ------------------------------------------------------------------ a choice of a few: segmented */

@@ -152,7 +152,7 @@ def test_the_ring_is_drawn_where_the_subject_is_on_that_date():
     cx, cy = card.MARGIN + (6 + 0.5) * side, card.MARGIN + (9 - 0.5 - 6) * side
     radius = card.SUBJECT_RING * card.PICTURE_SIZE
     on_ring = image[round(cy), round(cx + radius)]
-    assert on_ring[1] > 200 and on_ring[0] < 200                 # the accent green
+    assert np.abs(on_ring.astype(int) - card._ACCENT).max() < 40   # the ring is the site's accent
     assert image[round(cy), round(cx)].max() < 40                # the star itself is not covered
     old = (card.MARGIN + 2.5 * side + radius, card.MARGIN + 6.5 * side)
     assert image[round(old[1]), round(old[0])].max() < 40        # nor drawn at another date
@@ -179,7 +179,8 @@ def test_an_asteroid_card_rings_the_found_track_at_that_moment():
     image = np.asarray(Image.open(io.BytesIO(card.card_png(black, view, 3, 0, "photo", CREDIT))).convert("RGB"))
     c = card.MARGIN + 10.5 * card.PICTURE_SIZE / 20
     y = card.MARGIN + (20 - 0.5 - 10) * card.PICTURE_SIZE / 20
-    assert image[round(y), round(c + card.TRACK_RING * card.PICTURE_SIZE)][1] > 200
+    on_ring = image[round(y), round(c + card.TRACK_RING * card.PICTURE_SIZE)]
+    assert np.abs(on_ring.astype(int) - card._ACCENT).max() < 40   # the ring is the site's accent
 
 
 def test_a_card_without_a_result_still_has_the_name_and_credit():
