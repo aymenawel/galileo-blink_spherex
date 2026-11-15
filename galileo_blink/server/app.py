@@ -78,11 +78,11 @@ class Limiter:
 
 def _visitor(request: Request) -> str:
     """Who a request came from, for the per-visitor limit. Google's front end appends the
-    visitor's address to X-Forwarded-For, and on a custom domain its own address after that,
-    so the last two entries together tell visitors apart; anything earlier is whatever the
-    sender chose to write and is ignored."""
+    visitor's own address to X-Forwarded-For, so the last entry is the real one; anything
+    before it is whatever the sender chose to write and is ignored. (Checked on the live
+    site: a made-up entry arrives in front of the real address, never after it.)"""
     hops = [hop.strip() for hop in request.headers.get("x-forwarded-for", "").split(",") if hop.strip()]
-    return ", ".join(hops[-2:]) or (request.client.host if request.client else "")
+    return hops[-1] if hops else (request.client.host if request.client else "")
 
 
 def _example_request(e: dict) -> VisitRequest:

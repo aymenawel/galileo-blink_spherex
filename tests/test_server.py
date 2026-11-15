@@ -401,9 +401,9 @@ def test_every_shipped_example_opens_from_the_real_prebuilt_folder(tmp_path, mon
             assert (folder / name).is_file(), f"{key}/{name} is missing"
 
 
-def test_visitors_behind_one_front_end_are_still_told_apart(make_client):
-    """Google's front end appends its own address after the visitor's, so the last entry of
-    X-Forwarded-For is shared by everyone: the limit must not treat all visitors as one."""
+def test_a_made_up_address_does_not_buy_more_builds(make_client):
+    """Google's front end appends the visitor's real address last; an entry the sender wrote
+    in front of it must not make them look like someone new."""
     from galileo_blink.server import jobs
     release = threading.Event()
 
@@ -412,19 +412,16 @@ def test_visitors_behind_one_front_end_are_still_told_apart(make_client):
         fake_build(req, progress)
 
     client = make_client(slow_build)
-    front_end = "216.239.36.21"
     try:
         for i in range(jobs.MAX_PER_VISITOR):
             r = client.get("/api/view", params=dict(ra=100 + i, dec=0),
-                           headers={"X-Forwarded-For": f"203.0.113.7, {front_end}"})
+                           headers={"X-Forwarded-For": f"10.0.0.{i}, 203.0.113.7"})
             assert r.status_code == 200
-        # the same visitor is held, even if they write a made-up address in front of their own
         held = client.get("/api/view", params=dict(ra=150, dec=0),
-                          headers={"X-Forwarded-For": f"10.9.8.7, 203.0.113.7, {front_end}"})
+                          headers={"X-Forwarded-For": "10.9.8.7, 203.0.113.7"})
         assert held.status_code == 503
-        # another visitor through the same front end is not
         other = client.get("/api/view", params=dict(ra=200, dec=0),
-                           headers={"X-Forwarded-For": f"198.51.100.9, {front_end}"})
+                           headers={"X-Forwarded-For": "10.9.8.7, 198.51.100.9"})
         assert other.status_code == 200
     finally:
         release.set()
