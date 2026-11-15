@@ -14,8 +14,8 @@
 
   /* One accent: "this is the thing we are following", and the one thing to do. */
   --accent: #a4f05c;
-  --accent-ink: #10160a;
-  --accent-soft: rgba(164, 240, 92, 0.14);
+  --accent-ink: #0d0e0f;
+  --accent-soft: color-mix(in srgb, var(--accent) 14%, transparent);
 
   /* Status, used only where something needs care. */
   --warn: #f0d264;
@@ -35,7 +35,7 @@
 
   /* Space */
   --margin: clamp(20px, 3.2vw, 44px);
-  --page-max: 1560px;
+  --page-max: 1760px;
   --section-gap: clamp(96px, 12vw, 200px);
   --bar: 68px;
 

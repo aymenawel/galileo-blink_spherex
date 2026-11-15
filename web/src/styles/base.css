@@ -151,7 +151,7 @@ button:disabled {
 }
 
 .button--primary:hover:not(:disabled) {
-  background: #b9f780;
+  background: color-mix(in srgb, var(--accent) 80%, #fff);
 }
 
 .button--primary:disabled {
@@ -180,7 +180,7 @@ button:disabled {
 }
 
 .button--ink:hover {
-  background: #1f2a12;
+  background: color-mix(in srgb, var(--accent-ink) 88%, #fff);
 }
 
 /* ------------------------------------------------------------------ a choice of a few: segmented */

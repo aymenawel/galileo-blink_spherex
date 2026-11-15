@@ -22,7 +22,7 @@ interface ViewportProps {
   ws: Workspace;
 }
 
-/** The two lines of the readout in the picture's corner: when, and what took it. */
+/** The parts of the picture's caption: when, and what took it. */
 function readout(ws: Workspace): { when: string; date: string; what: string } {
   const { view, camera, mode, season, a, b } = ws;
   const band = bandOf(view.cameras[camera], camera);
@@ -113,13 +113,15 @@ export function Viewport({ ws }: ViewportProps) {
   );
 }
 
-/** What is on screen, in words: the date, and which camera took it. Sits beside the mode tabs. */
+/** What is on screen, in words: the date, and which camera took it. The picture's caption. */
 export function LookReadout({ ws }: ViewportProps) {
   const chip = readout(ws);
+  // The dates rail already names the month; the caption gives the exact day.
+  const when = chip.date && !ws.visit ? chip.date : [chip.when, chip.date].filter(Boolean).join(" · ");
   return (
     <p className="look" aria-live="off">
-      <span className="look__when">{chip.when}</span>
-      <span className="look__what">{[chip.date, chip.what].filter(Boolean).join(" · ")}</span>
+      <span className="look__when">{when}</span>
+      <span className="look__what">{chip.what}</span>
     </p>
   );
 }

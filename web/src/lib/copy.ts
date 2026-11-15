@@ -161,7 +161,6 @@ export const COPY = {
     north: "N",
     east: "E",
     compassLabel: "North is up, east is to the left",
-    stageLabel: "The sky picture and its controls",
     seasonA: "Date A",
     seasonB: "Date B",
     swap: "Swap date A and date B",

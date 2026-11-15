@@ -1,7 +1,8 @@
 /**
- * The Explore page once a view is ready. The first screen is the picture and the one
- * result that matters; every number behind it is further down, under "The details".
- * Keeps the address bar in step with what is on screen.
+ * The Explore page once a view is ready. The first screen is the picture, as tall as the
+ * window, with its dates in a rail beside it and the one result that matters; every number
+ * behind it is further down, under "The details". Keeps the address bar in step with what
+ * is on screen.
  */
 import { useEffect, useMemo } from "react";
 import type { ViewRequest } from "../../api/client";
@@ -40,17 +41,13 @@ interface ExploreWorkspaceProps {
 const TYPING_TARGETS = "input, textarea, select, [contenteditable], [role=slider]";
 const PRESSABLE_TARGETS = "button, a, summary";
 
-function sixMonthNote(mode: Workspace["mode"]): string {
-  if (mode === "blink") return COPY.viewport.keyboardHint;
+/** One line about what the picture shows, for every way of looking except the plain blink. */
+function noteFor(mode: Workspace["mode"], visit: boolean): string | null {
+  if (mode === "blink") return null;
+  if (visit) return mode === "change" ? VISIT_COPY.subtractedNote : VISIT_COPY.staticNote;
   if (mode === "compare") return COPY.viewport.compareNote;
   if (mode === "change") return COPY.viewport.changeNote;
   return COPY.viewport.combinedNote;
-}
-
-function visitNote(mode: Workspace["mode"]): string {
-  if (mode === "change") return VISIT_COPY.subtractedNote;
-  if (mode === "combined") return VISIT_COPY.staticNote;
-  return VISIT_COPY.keyboardHint;
 }
 
 /** Arrow keys step through the dates and Space plays or pauses, unless the visitor is typing. */
@@ -96,6 +93,7 @@ export function ExploreWorkspace({ view: built, request, name, initial }: Explor
 
   const picksDates = !ws.visit && (ws.mode === "compare" || ws.mode === "change");
   const leftOut = view.seasons_left_out ?? 0;
+  const modeNote = noteFor(ws.mode, ws.visit);
 
   const flagsPanel = (
     <FlagsPanel
@@ -112,69 +110,78 @@ export function ExploreWorkspace({ view: built, request, name, initial }: Explor
   return (
     <>
       <div className="viewer">
-        <section className="stage" aria-label={COPY.viewport.stageLabel}>
-          <div className="stage__bar">
-            <ModePills mode={ws.mode} visit={ws.visit} onSelect={ws.selectMode} />
-            <LookReadout ws={ws} />
-          </div>
+        <div className="viewer__modes">
+          <ModePills mode={ws.mode} visit={ws.visit} onSelect={ws.selectMode} />
+        </div>
+
+        <figure className="viewer__sky">
           <Viewport ws={ws} />
-          <div className="stage__controls">
-            {ws.stepping && (
-              <SeasonTimeline
-                view={view}
-                season={ws.season}
-                cameraSeasons={ws.cameraSeasons}
-                camera={ws.camera}
-                onSelect={ws.selectSeason}
-              />
-            )}
-            {picksDates && (
-              <DatePair
-                view={view}
-                cameraSeasons={ws.cameraSeasons}
-                a={ws.a}
-                b={ws.b}
-                onA={ws.selectA}
-                onB={ws.selectB}
-                onSwap={ws.swapDates}
-              />
-            )}
-            {ws.mode === "change" && !ws.visit && (
-              <ul className="change-legend" aria-label={COPY.viewport.changeLegend.label}>
-                <li className="change-legend__warm">{COPY.viewport.changeLegend.brighter}</li>
-                <li className="change-legend__cool">{COPY.viewport.changeLegend.fainter}</li>
-                <li className="change-legend__dark">{COPY.viewport.changeLegend.same}</li>
-              </ul>
-            )}
-            <div className="stage__transport">
-              {ws.stepping && (
-                <TransportBar
-                  playing={ws.playing}
-                  speed={ws.speed}
-                  enabled={ws.cameraSeasons.length > 1}
-                  onStep={ws.step}
-                  onTogglePlaying={ws.togglePlaying}
-                  onSpeed={ws.selectSpeed}
-                />
-              )}
-              <p className="stage__note">
-                {ws.visit ? visitNote(ws.mode) : sixMonthNote(ws.mode)} {COPY.viewport.noData}.
-                {leftOut > 0 && ws.mode === "blink" ? ` ${COPY.timeline.leftOut(leftOut)}` : ""}
-              </p>
-            </div>
-          </div>
-        </section>
+          <figcaption>
+            <LookReadout ws={ws} />
+          </figcaption>
+        </figure>
+
+        <div className="rail">
+          {ws.stepping && (
+            <SeasonTimeline
+              view={view}
+              season={ws.season}
+              cameraSeasons={ws.cameraSeasons}
+              camera={ws.camera}
+              onSelect={ws.selectSeason}
+            />
+          )}
+          {picksDates && (
+            <DatePair
+              view={view}
+              cameraSeasons={ws.cameraSeasons}
+              a={ws.a}
+              b={ws.b}
+              onA={ws.selectA}
+              onB={ws.selectB}
+              onSwap={ws.swapDates}
+            />
+          )}
+          {ws.mode === "change" && !ws.visit && (
+            <ul className="change-legend" aria-label={COPY.viewport.changeLegend.label}>
+              <li className="change-legend__warm">{COPY.viewport.changeLegend.brighter}</li>
+              <li className="change-legend__cool">{COPY.viewport.changeLegend.fainter}</li>
+              <li className="change-legend__dark">{COPY.viewport.changeLegend.same}</li>
+            </ul>
+          )}
+          {modeNote && <p className="rail__note">{modeNote}</p>}
+          {ws.stepping && (
+            <TransportBar
+              playing={ws.playing}
+              speed={ws.speed}
+              enabled={ws.cameraSeasons.length > 1}
+              onStep={ws.step}
+              onTogglePlaying={ws.togglePlaying}
+              onSpeed={ws.selectSpeed}
+            />
+          )}
+        </div>
 
         <aside className="side">
           <ViewTitle view={view} searchedName={name} />
-          {ws.visit ? <VisitResult view={view} /> : <MotionResult view={view} />}
-          <a className="side__more" href="#details">
-            {COPY.explore.detailsLink}
-          </a>
-          {!ws.visit && <CameraPicker ws={ws} />}
-          <ShowPicker ws={ws} />
-          <ViewActions ws={ws} request={request} name={name} />
+          <div className="side__result">
+            {ws.visit ? <VisitResult view={view} /> : <MotionResult view={view} />}
+            <a className="side__more" href="#details">
+              {COPY.explore.detailsLink}
+            </a>
+          </div>
         </aside>
+      </div>
+
+      <div className="tools">
+        {!ws.visit && <CameraPicker ws={ws} />}
+        <ShowPicker ws={ws} />
+        <ViewActions ws={ws} request={request} name={name} />
+        <p className="tools__note">
+          {ws.stepping ? `${ws.visit ? VISIT_COPY.keyboardHint : COPY.viewport.keyboardHint} ` : ""}
+          {COPY.viewport.noData}.
+          {leftOut > 0 && ws.mode === "blink" ? ` ${COPY.timeline.leftOut(leftOut)}` : ""}
+        </p>
       </div>
 
       <section className="details" id="details" aria-labelledby="details-title">
