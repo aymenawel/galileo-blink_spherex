@@ -4,7 +4,7 @@
  */
 import { useState, type PointerEvent } from "react";
 import type { Band, BrightnessPoint, CameraKey, QuickSpectrumPoint, View } from "../../api/types";
-import { CAMERA_COLOURS, CAMERA_KEYS, seasonColour } from "../../lib/cameras";
+import { CAMERA_KEYS, seasonColour } from "../../lib/cameras";
 import { COPY } from "../../lib/copy";
 import { formatCount, formatFlux, formatMjd, micron } from "../../lib/format";
 import { brightnessScale, type BrightnessScale } from "../../lib/spectrumScale";
@@ -100,9 +100,9 @@ export function SpectrumPlot({ view, bands, points, quick, unit }: SpectrumPlotP
           const [low, high] = bands[key];
           return (
             <g key={key}>
-              <rect x={x(low)} y={MARGIN.top} width={x(high) - x(low)} height={plotHeight} fill={CAMERA_COLOURS[key]} opacity={0.045} />
-              <rect x={x(low)} y={bottom + 1} width={x(high) - x(low)} height={4} rx={2} fill={CAMERA_COLOURS[key]} />
-              <text className="plot__band" x={(x(low) + x(high)) / 2} y={bottom + 17} textAnchor="middle" fill={CAMERA_COLOURS[key]}>
+              {/* Every other camera's range is shaded, so the six ranges read as six. */}
+              <rect x={x(low)} y={MARGIN.top} width={x(high) - x(low)} height={plotHeight} fill="#fff" opacity={Number(key) % 2 ? 0.035 : 0} />
+              <text className="plot__band" x={(x(low) + x(high)) / 2} y={bottom + 17} textAnchor="middle">
                 {x(high) - x(low) >= BAND_NAME_NEEDS ? COPY.spectrum.bandName(key) : key}
               </text>
             </g>

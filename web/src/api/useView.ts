@@ -23,8 +23,9 @@ export function requestId(request: ViewRequest): string {
     case "asteroidName":
       return `asteroidName:${request.name.toLowerCase()}`;
     case "place":
+      return `place:${request.ra}:${request.dec}:${request.size}`;
     case "visit":
-      return `${request.kind}:${request.ra}:${request.dec}:${request.size}`;
+      return `visit:${request.ra}:${request.dec}:${request.size}:${request.camera ?? "auto"}`;
   }
 }
 

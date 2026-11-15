@@ -13,7 +13,7 @@ export function ScaleBar({ n, pixelArcsec }: ScaleBarProps) {
   return (
     <div className="scale-bar" style={{ width: `${bar.fraction * 100}%` }}>
       <span className="scale-bar__line" aria-hidden="true" />
-      <span className="scale-bar__label mono">{label}</span>
+      <span className="scale-bar__label">{label}</span>
     </div>
   );
 }

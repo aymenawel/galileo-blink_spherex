@@ -87,7 +87,7 @@ export function SpectrumPanel({ view, bands }: SpectrumPanelProps) {
           : COPY.spectrum.noneUsable;
 
   return (
-    <Panel eyebrow={COPY.spectrum.eyebrow} title={COPY.spectrum.title} className="spectrum">
+    <Panel title={COPY.spectrum.title} context={COPY.spectrum.eyebrow} className="spectrum">
       {emptyReason && <p className="spectrum__empty">{emptyReason}</p>}
 
       {(measured.length > 0 || aligned.points.length > 0) && (
@@ -105,7 +105,7 @@ export function SpectrumPanel({ view, bands }: SpectrumPanelProps) {
       </ul>
 
       <div className="spectrum__actions">
-        <button type="button" className="pill pill--quiet" onClick={askQuick} disabled={quick.state === "loading" || quick.state === "shown"}>
+        <button type="button" className="button button--quiet" onClick={askQuick} disabled={quick.state === "loading" || quick.state === "shown"}>
           {quick.state === "loading" ? COPY.spectrum.quickLoading : COPY.spectrum.quickButton}
         </button>
         <span className="muted" role="status">
@@ -118,7 +118,7 @@ export function SpectrumPanel({ view, bands }: SpectrumPanelProps) {
         <details className="disclosure">
           <summary>{COPY.spectrum.showNumbers}</summary>
           <div className="numbers__scroll numbers__scroll--tall">
-            <table className="numbers__table mono">
+            <table className="numbers__table">
               <thead>
                 <tr>
                   <th scope="col">{COPY.spectrum.table.date}</th>

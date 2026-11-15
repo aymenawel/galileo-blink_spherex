@@ -1,4 +1,4 @@
-/** An instrument readout: a small label over a large number. */
+/** A labelled value: a small label over a number. */
 import type { ReactNode } from "react";
 
 interface ReadoutProps {
@@ -6,15 +6,15 @@ interface ReadoutProps {
   value: ReactNode;
   /** Smaller text after the value, such as an error bar or a unit. */
   suffix?: ReactNode;
-  tone?: "plain" | "ember" | "ice";
+  tone?: "plain" | "measured";
   size?: "large" | "small";
 }
 
 export function Readout({ label, value, suffix, tone = "plain", size = "small" }: ReadoutProps) {
   return (
     <div className={`readout readout--${tone} readout--${size}`}>
-      <dt className="eyebrow">{label}</dt>
-      <dd className="readout__value mono">
+      <dt className="readout__label">{label}</dt>
+      <dd className="readout__value">
         {value}
         {suffix && <span className="readout__suffix">{suffix}</span>}
       </dd>

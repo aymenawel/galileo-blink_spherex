@@ -62,7 +62,7 @@ export const LIBRARIES = {
   },
   fonts: {
     title: "Typefaces (SIL Open Font License)",
-    items: ["Instrument Serif", "Instrument Sans", "DM Mono"],
+    items: ["Hanken Grotesk"],
   },
 };
 

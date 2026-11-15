@@ -11,7 +11,7 @@ export type Mode = "blink" | "compare" | "change" | "combined";
 export const MODES: readonly Mode[] = ["blink", "compare", "change", "combined"];
 
 /** Fields of view offered for places that are not test targets, in degrees. */
-export const FIELD_CHOICES: readonly number[] = [0.1, 0.15, 0.25, 0.4];
+export const FIELD_CHOICES: readonly number[] = [0.1, 0.15, 0.25, 0.4, 0.5];
 export const DEFAULT_FIELD = 0.15;
 /** Asteroids cross a narrow view in hours, so the asteroid search starts wider. */
 export const DEFAULT_VISIT_FIELD = 0.25;
@@ -54,7 +54,10 @@ function readRequest(query: URLSearchParams): ViewRequest | null {
   const dec = numberOrNull(query.get("dec"));
   if (ra === null || dec === null) return null;
   const size = numberOrNull(query.get("size"));
-  if (query.get("view") === "asteroids") return { kind: "visit", ra, dec, size: size ?? DEFAULT_VISIT_FIELD };
+  if (query.get("view") === "asteroids") {
+    const camera = Number(toCameraKey(query.get("vcam")) ?? 0);
+    return { kind: "visit", ra, dec, size: size ?? DEFAULT_VISIT_FIELD, ...(camera ? { camera } : {}) };
+  }
   return { kind: "place", ra, dec, size: size ?? DEFAULT_FIELD };
 }
 
@@ -85,7 +88,10 @@ export function exploreAddress(
   } else if (request.kind === "asteroidName") {
     query.set("asteroid_name", request.name);
   } else {
-    if (request.kind === "visit") query.set("view", "asteroids");
+    if (request.kind === "visit") {
+      query.set("view", "asteroids");
+      if (request.camera) query.set("vcam", String(request.camera));
+    }
     query.set("ra", String(request.ra));
     query.set("dec", String(request.dec));
     query.set("size", String(request.size));

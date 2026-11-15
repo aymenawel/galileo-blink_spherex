@@ -19,8 +19,7 @@ export function VisitPanel({ view }: VisitPanelProps) {
   const photosUsed = view.stats?.photos_used;
 
   return (
-    <Panel eyebrow={words.eyebrow} title={view.label ?? words.unnamed} className="subject">
-      <p className="subject__kind">{words.kind}</p>
+    <Panel title={COPY.subject.title} className="subject">
       <p className="muted">{words.explain}</p>
 
       <dl className="readouts">

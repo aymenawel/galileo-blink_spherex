@@ -46,7 +46,7 @@ export function Crosshair({ skyRef, view }: CrosshairProps) {
       <span className="crosshair__v" style={{ left: `${at.left * 100}%` }} />
       <span className="crosshair__h" style={{ top: `${at.top * 100}%` }} />
       <div
-        className="crosshair__readout mono"
+        className="crosshair__readout"
         style={{
           left: `${at.left * 100}%`,
           top: `${at.top * 100}%`,

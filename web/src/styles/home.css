@@ -1,0 +1,488 @@
+/* The front page, and the two text pages (How it works, About). */
+
+/* ------------------------------------------------------------------ hero: one line of headline, then words left and the eyepiece right */
+.hero {
+  display: grid;
+  grid-template-columns: minmax(0, 1.05fr) minmax(0, 0.95fr);
+  grid-template-areas:
+    "headline headline"
+    "text preview";
+  align-items: center;
+  gap: clamp(24px, 3vw, 40px) clamp(32px, 5vw, 88px);
+  min-height: calc(100svh - var(--bar));
+  padding: 8px 0 40px;
+}
+
+.hero__headline {
+  grid-area: headline;
+  font-size: clamp(2.4rem, 6.6vw, 7rem);
+  letter-spacing: -0.055em;
+  line-height: 0.95;
+}
+
+.hero__text {
+  grid-area: text;
+}
+
+.hero__lede {
+  max-width: 30em;
+  margin-bottom: 36px;
+  font-size: var(--step-lead);
+  line-height: 1.4;
+  color: var(--muted);
+}
+
+.hero .search {
+  max-width: 640px;
+}
+
+.hero__preview {
+  grid-area: preview;
+  justify-self: end;
+  width: min(100%, calc(100svh - var(--bar) - 290px), 760px);
+  min-width: 280px;
+}
+
+.hero__preview figcaption {
+  margin-top: 18px;
+  text-align: center;
+  color: var(--muted);
+  font-size: 1rem;
+}
+
+.hero__preview a {
+  color: var(--ink);
+}
+
+/* ------------------------------------------------------------------ sections */
+.section {
+  margin-top: var(--section-gap);
+}
+
+.section__head {
+  display: grid;
+  grid-template-columns: minmax(0, 1.05fr) minmax(0, 0.95fr);
+  align-items: end;
+  gap: 16px clamp(32px, 5vw, 88px);
+  margin-bottom: clamp(32px, 4vw, 64px);
+}
+
+.section__title {
+  font-size: var(--step-head);
+  letter-spacing: -0.045em;
+  line-height: 0.98;
+}
+
+.section__lede {
+  max-width: 36em;
+  color: var(--muted);
+  font-size: var(--step-body);
+}
+
+/* ------------------------------------------------------------------ index: rows of names with round pictures */
+.index--loading {
+  min-height: 420px;
+}
+
+.index--preview {
+  display: grid;
+  grid-template-columns: minmax(0, 0.8fr) minmax(0, 1.2fr);
+  align-items: start;
+  gap: clamp(32px, 5vw, 88px);
+}
+
+.index__preview {
+  position: sticky;
+  top: calc(var(--bar) + 24px);
+  width: min(100%, 70svh);
+}
+
+.index-row {
+  display: grid;
+  grid-template-columns: 72px minmax(0, 1fr) auto;
+  align-items: center;
+  gap: 20px;
+  padding: 16px 20px 16px 16px;
+  border-radius: 999px;
+  text-decoration: none;
+  transition: background var(--fast) var(--ease);
+}
+
+.index-row:hover,
+.index-row:focus-visible,
+.index-row.is-active {
+  background: var(--surface);
+}
+
+.index-row__thumb {
+  display: block;
+  width: 72px;
+}
+
+.index-row__text {
+  display: grid;
+  gap: 4px;
+  min-width: 0;
+}
+
+.index-row__name {
+  font-size: clamp(1.5rem, 1.1rem + 1.5vw, 2.5rem);
+  font-weight: 500;
+  letter-spacing: -0.035em;
+  line-height: 1.05;
+}
+
+.index-row__line {
+  color: var(--muted);
+  font-size: 1rem;
+  line-height: 1.4;
+}
+
+.index-row__fact {
+  max-width: 11em;
+  color: var(--muted);
+  font-size: 1rem;
+  text-align: right;
+}
+
+.index-row.is-active .index-row__fact,
+.index-row:hover .index-row__fact {
+  color: var(--accent);
+}
+
+/* Asteroids: two columns, no big preview. */
+.index--columns .index__rows {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 8px clamp(24px, 4vw, 64px);
+}
+
+.index--columns .index-row__name {
+  font-size: clamp(1.375rem, 1.1rem + 0.9vw, 1.875rem);
+}
+
+.index__search {
+  align-self: center;
+  padding: 0 16px;
+}
+
+/* ------------------------------------------------------------------ three steps, as three columns of text */
+.steps {
+  display: grid;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  gap: 32px clamp(24px, 4vw, 64px);
+  margin-bottom: 40px;
+  counter-reset: step;
+}
+
+.step__title {
+  margin-bottom: 12px;
+  font-size: var(--step-lead);
+  letter-spacing: -0.02em;
+  line-height: 1.15;
+}
+
+.step p {
+  color: var(--muted);
+}
+
+/* ------------------------------------------------------------------ one field of colour: what this is not */
+.field-section {
+  display: grid;
+  grid-template-columns: minmax(0, 1.05fr) minmax(0, 0.95fr);
+  gap: 24px clamp(32px, 5vw, 88px);
+  margin-top: var(--section-gap);
+  padding: clamp(32px, 5vw, 72px);
+  border-radius: clamp(28px, 4vw, 56px);
+  background: var(--accent);
+  color: var(--accent-ink);
+}
+
+.field-section__body {
+  margin-bottom: 28px;
+  font-size: var(--step-lead);
+  line-height: 1.35;
+}
+
+/* ------------------------------------------------------------------ text pages */
+.doc {
+  padding-top: clamp(32px, 6vw, 96px);
+}
+
+.doc__head {
+  display: grid;
+  grid-template-columns: minmax(0, 1.05fr) minmax(0, 0.95fr);
+  align-items: end;
+  gap: 24px clamp(32px, 5vw, 88px);
+  margin-bottom: clamp(56px, 8vw, 120px);
+}
+
+.doc__title {
+  font-size: var(--step-head);
+  letter-spacing: -0.045em;
+  line-height: 0.98;
+}
+
+.doc__lede {
+  max-width: 34em;
+  color: var(--muted);
+  font-size: var(--step-lead);
+  line-height: 1.4;
+}
+
+/* A text section: its title on the left, its text on the right. */
+.doc-section,
+.about__section {
+  margin-top: clamp(56px, 7vw, 104px);
+}
+
+.doc-section__body,
+.about__section {
+  display: grid;
+  grid-template-columns: minmax(0, 0.8fr) minmax(0, 1.2fr);
+  gap: 16px clamp(32px, 5vw, 88px);
+}
+
+.doc-section__body > *,
+.about__section > * {
+  grid-column: 2;
+  max-width: 44em;
+}
+
+.doc-section__body > .doc-section__title,
+.about__section > .doc-section__title {
+  grid-column: 1;
+  grid-row: 1 / span 30;
+}
+
+.doc-section__title {
+  grid-row: 1 / span 20;
+}
+
+.doc-section__title {
+  font-size: clamp(1.5rem, 1.1rem + 1.6vw, 2.5rem);
+  letter-spacing: -0.035em;
+  line-height: 1.05;
+}
+
+.doc-section__body p,
+.about__section p {
+  line-height: 1.6;
+}
+
+.definitions {
+  display: grid;
+  gap: 4px;
+  margin-top: 8px;
+}
+
+.definitions__item {
+  display: grid;
+  grid-template-columns: minmax(0, 0.42fr) minmax(0, 1fr);
+  gap: 20px;
+  padding: 16px 20px;
+  border-radius: 20px;
+  background: var(--surface);
+}
+
+.definitions dt {
+  font-weight: 500;
+}
+
+.definitions dd {
+  color: var(--muted);
+}
+
+.doc-table__scroll {
+  overflow-x: auto;
+}
+
+.doc-table {
+  width: 100%;
+  margin-top: 8px;
+  border-collapse: collapse;
+  font-size: 1rem;
+  text-align: left;
+}
+
+.doc-table th,
+.doc-table td {
+  padding: 12px 20px 12px 0;
+  border-bottom: 1px solid var(--line);
+  vertical-align: top;
+  font-weight: 400;
+}
+
+.doc-table thead th {
+  color: var(--muted);
+  font-size: var(--step-small);
+}
+
+.doc-table tbody th {
+  font-weight: 500;
+  white-space: nowrap;
+}
+
+.doc-table__blank {
+  color: var(--warn);
+}
+
+.limits {
+  margin-top: var(--section-gap);
+  padding: clamp(32px, 5vw, 72px);
+  border-radius: clamp(28px, 4vw, 56px);
+  background: var(--surface);
+}
+
+.limits__title {
+  font-size: var(--step-head);
+  letter-spacing: -0.045em;
+}
+
+.limits__lede {
+  max-width: 40em;
+  margin-top: 16px;
+  color: var(--muted);
+  font-size: var(--step-lead);
+}
+
+.limits__list {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 40px clamp(32px, 5vw, 88px);
+  margin-top: clamp(40px, 5vw, 72px);
+}
+
+.limits__item h3 {
+  margin-bottom: 10px;
+  font-size: var(--step-lead);
+  letter-spacing: -0.02em;
+  line-height: 1.15;
+}
+
+.limits__item p {
+  color: var(--muted);
+}
+
+.about__tagline,
+.about__team-name {
+  font-size: var(--step-lead);
+  font-weight: 500;
+  letter-spacing: -0.02em;
+}
+
+.about__members {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+}
+
+.about__members li,
+.credits__names li {
+  padding: 8px 16px;
+  border-radius: 999px;
+  background: var(--surface);
+  font-size: 1rem;
+}
+
+.credits__group {
+  margin-top: 8px;
+}
+
+.credits__title {
+  margin-bottom: 10px;
+  color: var(--muted);
+  font-size: 1rem;
+  font-weight: 400;
+  letter-spacing: 0;
+}
+
+.credits__names {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+}
+
+.not-found {
+  display: grid;
+  justify-items: start;
+  gap: 20px;
+  padding: clamp(48px, 10vw, 160px) 0;
+}
+
+/* ------------------------------------------------------------------ narrower screens */
+@media (max-width: 960px) {
+  .hero {
+    grid-template-columns: 1fr;
+    grid-template-areas:
+      "headline"
+      "text"
+      "preview";
+    min-height: 0;
+    padding-top: 24px;
+  }
+
+  .hero__preview {
+    justify-self: center;
+    width: min(100%, 560px);
+    margin-top: 24px;
+  }
+
+  .section__head,
+  .doc__head,
+  .field-section,
+  .doc-section__body,
+  .about__section {
+    grid-template-columns: 1fr;
+  }
+
+  .doc-section__body > *,
+  .about__section > *,
+  .doc-section__body > .doc-section__title,
+  .about__section > .doc-section__title {
+    grid-column: 1;
+    grid-row: auto;
+  }
+
+  .index--preview {
+    grid-template-columns: 1fr;
+  }
+
+  .index__preview {
+    display: none;
+  }
+
+  .index--columns .index__rows,
+  .steps,
+  .limits__list {
+    grid-template-columns: 1fr;
+  }
+}
+
+@media (max-width: 620px) {
+  .index-row {
+    grid-template-columns: 56px minmax(0, 1fr);
+    gap: 14px;
+    padding: 12px 16px 12px 12px;
+    border-radius: 40px;
+  }
+
+  .index-row__thumb {
+    width: 56px;
+  }
+
+  .index-row__fact {
+    grid-column: 2;
+    max-width: none;
+    text-align: left;
+  }
+
+  .index__search {
+    padding: 8px 0 0;
+  }
+
+  .definitions__item {
+    grid-template-columns: 1fr;
+    gap: 4px;
+  }
+}

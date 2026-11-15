@@ -50,8 +50,6 @@ Every external resource Galileo Blink uses: data, services, software and fonts.
 
 | Font | Licence |
 |---|---|
-| Instrument Serif | SIL Open Font License 1.1 |
-| Instrument Sans | SIL Open Font License 1.1 |
-| DM Mono | SIL Open Font License 1.1 |
+| Hanken Grotesk | SIL Open Font License 1.1 |
 
-All three are self-hosted from the Fontsource packages.
+Self-hosted from the Fontsource package.

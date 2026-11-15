@@ -7,20 +7,15 @@ import { Panel } from "./Panel";
 export function SearchMethodPanel() {
   const words = VISIT_COPY.how;
   return (
-    <Panel eyebrow={words.eyebrow} title={words.title} className="search-method">
+    <Panel title={words.title} className="search-method">
       <ol className="search-method__steps">
-        {words.steps.map((step, i) => (
-          <li key={step}>
-            <span className="search-method__number mono" aria-hidden="true">
-              {String(i + 1).padStart(2, "0")}
-            </span>
-            {step}
-          </li>
+        {words.steps.map((step) => (
+          <li key={step}>{step}</li>
         ))}
       </ol>
       <p className="muted">{words.why}</p>
       <Link to="/how-it-works#limits" className="honesty__more">
-        {COPY.honesty.more} →
+        {COPY.honesty.more}
       </Link>
     </Panel>
   );

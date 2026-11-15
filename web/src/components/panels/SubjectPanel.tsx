@@ -1,37 +1,22 @@
-/** "What you're looking at": the object or the spot this view watches, and the basic facts of the view. */
+/** "Where and when": the basic facts of this view. */
 import type { View } from "../../api/types";
-import { COPY, subjectName } from "../../lib/copy";
+import { COPY } from "../../lib/copy";
 import { arcsec, formatCount, formatDate, formatDec, formatDegrees, formatField, formatRa } from "../../lib/format";
 import { Panel } from "./Panel";
 import { Readout } from "./Readout";
 
 interface SubjectPanelProps {
   view: View;
-  /** The name the visitor searched for, when the place is not a test target. */
-  searchedName: string | null;
 }
 
-export function SubjectPanel({ view, searchedName }: SubjectPanelProps) {
-  const { target, subject } = view;
+export function SubjectPanel({ view }: SubjectPanelProps) {
+  const { subject } = view;
   const kind = subject?.kind ?? "spot";
-  const title = target?.name ?? searchedName ?? view.label ?? (kind === "spot" ? COPY.subject.unnamedPlace : subjectName(view));
-  const catalogueName = !target && kind !== "spot" && subject?.name && subject.name !== title ? subject.name : null;
   const photosUsed = view.stats?.photos_used;
+  const catalogueName = !view.target && kind !== "spot" ? subject?.name : null;
 
   return (
-    <Panel eyebrow={COPY.subject.title} title={title} className="subject">
-      {target ? (
-        <>
-          <p className="subject__kind">{target.kind}</p>
-          <p className="muted">{target.blurb}</p>
-        </>
-      ) : (
-        <p className="muted">
-          {COPY.subject.chosen[kind]}
-          {catalogueName && <span className="mono subject__catalogue"> {catalogueName}</span>}
-        </p>
-      )}
-
+    <Panel title={COPY.subject.title} context={catalogueName ?? undefined} className="subject">
       <dl className="readouts">
         <Readout
           label={COPY.subject.position}

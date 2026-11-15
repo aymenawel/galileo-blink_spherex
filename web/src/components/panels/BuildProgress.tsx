@@ -2,7 +2,7 @@
  * Shown while a view is being built, and when a build fails. Calm and honest: what is
  * happening now, how far along it is, and when it fails, whose side the failure is on.
  */
-import { RotateCw, TriangleAlert } from "lucide-react";
+import { RotateCw } from "lucide-react";
 import { useEffect, useState } from "react";
 import type { ErrorKind, ViewStatus } from "../../api/types";
 import { COPY } from "../../lib/copy";
@@ -33,11 +33,10 @@ export function BuildProgress({ status }: BuildProgressProps) {
   const stage = status?.stage ?? (status ? COPY.build.queued : COPY.explore.opening);
 
   return (
-    <section className="panel build" aria-labelledby="build-title">
-      <p className="eyebrow">{COPY.build.title}</p>
-      <h2 className="build__stage display" id="build-title" aria-live="polite">
+    <section className="build" aria-labelledby="build-title">
+      <h1 className="build__stage" id="build-title" aria-live="polite">
         {stage}
-      </h2>
+      </h1>
 
       <div
         className="build__bar"
@@ -52,12 +51,12 @@ export function BuildProgress({ status }: BuildProgressProps) {
 
       <dl className="build__readouts">
         <div>
-          <dt className="eyebrow">{COPY.build.progress}</dt>
-          <dd className="mono">{percent}%</dd>
+          <dt>{COPY.build.progress}</dt>
+          <dd>{percent}%</dd>
         </div>
         <div>
-          <dt className="eyebrow">{COPY.build.elapsed}</dt>
-          <dd className="mono">{formatSeconds(status?.seconds ?? 0)}</dd>
+          <dt>{COPY.build.elapsed}</dt>
+          <dd>{formatSeconds(status?.seconds ?? 0)}</dd>
         </div>
       </dl>
 
@@ -75,14 +74,10 @@ interface BuildFailedProps {
 
 export function BuildFailed({ message, kind, onRetry }: BuildFailedProps) {
   return (
-    <section className="panel build build--failed" role="alert">
-      <p className="eyebrow">{COPY.build.failedTitle}</p>
-      <h2 className="build__stage display">
-        <TriangleAlert size={26} aria-hidden="true" />
-        {message}
-      </h2>
+    <section className="build build--failed" role="alert">
+      <h1 className="build__stage">{message}</h1>
       <p className="muted build__side">{COPY.errors.side[kind]}</p>
-      <button type="button" className="pill pill--primary" onClick={onRetry}>
+      <button type="button" className="button button--primary" onClick={onRetry}>
         <RotateCw size={16} aria-hidden="true" />
         {COPY.errors.retry}
       </button>

@@ -1,7 +1,7 @@
 /** The precise numbers behind the motion verdict: one row per camera, then how they were obtained. */
 import type { ReactNode } from "react";
 import type { Motion, View } from "../../api/types";
-import { CAMERA_COLOURS, CAMERA_KEYS } from "../../lib/cameras";
+import { CAMERA_KEYS } from "../../lib/cameras";
 import { COPY, floorNote, parallaxNote, referenceStarsNote } from "../../lib/copy";
 import { arcsec } from "../../lib/format";
 
@@ -40,7 +40,7 @@ export function MotionNumbers({ view, headline }: MotionNumbersProps) {
   return (
     <div className="numbers">
       <div className="numbers__scroll">
-        <table className="numbers__table mono">
+        <table className="numbers__table">
           <thead>
             <tr>
               <th scope="col">{table.camera}</th>
@@ -55,15 +55,7 @@ export function MotionNumbers({ view, headline }: MotionNumbersProps) {
             {CAMERA_KEYS.map((key) => {
               const motion = view.motion_by_camera?.[key];
               return motion
-                ? row(
-                    <>
-                      <span className="camera-dot" style={{ background: CAMERA_COLOURS[key] }} aria-hidden="true" />
-                      {key}
-                    </>,
-                    motion,
-                    key,
-                  )
-                : null;
+                ? row(key, motion, key) : null;
             })}
             {view.motion_combined && row(table.together, view.motion_combined, "together", true)}
           </tbody>

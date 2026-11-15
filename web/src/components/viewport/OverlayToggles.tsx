@@ -1,5 +1,4 @@
 /** Switches for what is drawn on top of the picture. */
-import { CircleDashed, Crosshair, Flag, Sparkles } from "lucide-react";
 import { COPY } from "../../lib/copy";
 import type { OverlayName, Overlays } from "../explore/useWorkspace";
 
@@ -18,7 +17,6 @@ export function OverlayToggles({ overlays, flagsAvailable, catwiseAvailable, sta
   return (
     <div className="toggles" role="group" aria-label={COPY.viewport.overlays}>
       <button type="button" className="toggle" aria-pressed={overlays.markers} onClick={() => onToggle("markers")}>
-        <Crosshair size={15} aria-hidden="true" />
         {COPY.viewport.markers}
       </button>
       {catwiseAvailable && (
@@ -29,13 +27,11 @@ export function OverlayToggles({ overlays, flagsAvailable, catwiseAvailable, sta
           title={COPY.viewport.catwiseHint}
           onClick={() => onToggle("catwise")}
         >
-          <CircleDashed size={15} aria-hidden="true" />
           {COPY.viewport.catwise}
         </button>
       )}
       {starsAvailable && (
         <button type="button" className="toggle" aria-pressed={overlays.stars} onClick={() => onToggle("stars")}>
-          <Sparkles size={15} aria-hidden="true" />
           {COPY.viewport.stars}
         </button>
       )}
@@ -47,7 +43,6 @@ export function OverlayToggles({ overlays, flagsAvailable, catwiseAvailable, sta
         title={flagsAvailable ? undefined : COPY.viewport.flagsOnlyInBlink}
         onClick={() => onToggle("flags")}
       >
-        <Flag size={15} aria-hidden="true" />
         {COPY.viewport.flags}
       </button>
     </div>

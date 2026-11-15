@@ -46,14 +46,14 @@ function limits(view: View): string[] {
 
 export function HonestyPanel({ view }: HonestyPanelProps) {
   return (
-    <Panel eyebrow={COPY.honesty.eyebrow} title={COPY.honesty.title} className="honesty">
+    <Panel title={COPY.honesty.title} className="honesty">
       <ul className="honesty__list">
         {limits(view).map((sentence) => (
           <li key={sentence}>{sentence}</li>
         ))}
       </ul>
       <Link to="/how-it-works#limits" className="honesty__more">
-        {COPY.honesty.more} →
+        {COPY.honesty.more}
       </Link>
     </Panel>
   );

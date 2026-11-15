@@ -19,6 +19,7 @@ Built by **Team Galileo** for the 2026 NASA Space Apps Challenge, *Planet X and 
 | You want to... | Galileo Blink gives you |
 |---|---|
 | Look at any place | Type coordinates (decimal, sexagesimal, or NASA's own "Right Ascension 08h55m10.831s, declination -7d14m42.53s") or an object name |
+| Choose how to look | Pictures months apart (for stars) or hours apart (for asteroids), the width of the view in fractions of the Moon, and the camera of an asteroid search |
 | See what moved | A blink of every six-month season SPHEREx has seen, aligned north-up, in all six cameras at once |
 | Know where things *should* be | Markers from Gaia DR3 and CatWISE2020, carried to each date with proper motion and parallax |
 | Measure it | The motion of the central object versus its catalogue prediction, per camera, with error bars measured from the stars that do not move |

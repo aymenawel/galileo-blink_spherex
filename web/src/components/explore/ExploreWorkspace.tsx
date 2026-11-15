@@ -1,6 +1,7 @@
 /**
- * The Explore page once a view is ready: the main picture with its controls, and the
- * panels that explain what it shows. Keeps the address bar in step with what is on screen.
+ * The Explore page once a view is ready. The first screen is the picture and the one
+ * result that matters; every number behind it is further down, under "The details".
+ * Keeps the address bar in step with what is on screen.
  */
 import { useEffect, useMemo } from "react";
 import type { ViewRequest } from "../../api/client";
@@ -8,7 +9,6 @@ import type { View } from "../../api/types";
 import { useAbout } from "../../api/useResource";
 import { COPY, VISIT_COPY } from "../../lib/copy";
 import { exploreAddress, type ExploreChoices } from "../../lib/exploreAddress";
-import { riseOrder } from "../../lib/stagger";
 import { navigate } from "../../router";
 import { FlagsPanel } from "../panels/FlagsPanel";
 import { HonestyPanel } from "../panels/HonestyPanel";
@@ -21,7 +21,11 @@ import { VisitPanel } from "../panels/VisitPanel";
 import { CameraStrip } from "../viewport/CameraStrip";
 import { DatePair } from "../viewport/DatePair";
 import { SeasonTimeline } from "../viewport/SeasonTimeline";
-import { Viewport } from "../viewport/Viewport";
+import { ModePills } from "../viewport/ModePills";
+import { TransportBar } from "../viewport/TransportBar";
+import { LookReadout, Viewport } from "../viewport/Viewport";
+import { MotionResult, ViewTitle, VisitResult } from "./Summary";
+import { CameraPicker, ShowPicker, ViewActions } from "./ViewControls";
 import { useWorkspace, type Workspace } from "./useWorkspace";
 
 interface ExploreWorkspaceProps {
@@ -93,12 +97,28 @@ export function ExploreWorkspace({ view: built, request, name, initial }: Explor
   const picksDates = !ws.visit && (ws.mode === "compare" || ws.mode === "change");
   const leftOut = view.seasons_left_out ?? 0;
 
+  const flagsPanel = (
+    <FlagsPanel
+      view={view}
+      camera={ws.camera}
+      season={ws.shownSeason}
+      flags={about.status === "ready" ? about.data.flags : undefined}
+      overlayOn={ws.overlays.flags}
+      overlayAvailable={ws.mode === "blink"}
+      onToggleOverlay={() => ws.toggleOverlay("flags")}
+    />
+  );
+
   return (
-    <div className="bento">
-      <div className="bento__left">
-        <section className="panel stage rise" aria-label={COPY.viewport.stageLabel} style={riseOrder(0)}>
+    <>
+      <div className="viewer">
+        <section className="stage" aria-label={COPY.viewport.stageLabel}>
+          <div className="stage__bar">
+            <ModePills mode={ws.mode} visit={ws.visit} onSelect={ws.selectMode} />
+            <LookReadout ws={ws} />
+          </div>
           <Viewport ws={ws} />
-          <div className="stage__below">
+          <div className="stage__controls">
             {ws.stepping && (
               <SeasonTimeline
                 view={view}
@@ -126,45 +146,67 @@ export function ExploreWorkspace({ view: built, request, name, initial }: Explor
                 <li className="change-legend__dark">{COPY.viewport.changeLegend.same}</li>
               </ul>
             )}
-            <p className="stage__note muted">
-              {ws.visit ? visitNote(ws.mode) : sixMonthNote(ws.mode)}{" "}
-              {COPY.viewport.noData}.{leftOut > 0 && ws.mode === "blink" ? ` ${COPY.timeline.leftOut(leftOut)}` : ""}
-            </p>
+            <div className="stage__transport">
+              {ws.stepping && (
+                <TransportBar
+                  playing={ws.playing}
+                  speed={ws.speed}
+                  enabled={ws.cameraSeasons.length > 1}
+                  onStep={ws.step}
+                  onTogglePlaying={ws.togglePlaying}
+                  onSpeed={ws.selectSpeed}
+                />
+              )}
+              <p className="stage__note">
+                {ws.visit ? visitNote(ws.mode) : sixMonthNote(ws.mode)} {COPY.viewport.noData}.
+                {leftOut > 0 && ws.mode === "blink" ? ` ${COPY.timeline.leftOut(leftOut)}` : ""}
+              </p>
+            </div>
           </div>
         </section>
-        <div className="rise" style={riseOrder(2)}>
-          {ws.visit ? <SearchMethodPanel /> : <CameraStrip ws={ws} />}
-        </div>
+
+        <aside className="side">
+          <ViewTitle view={view} searchedName={name} />
+          {ws.visit ? <VisitResult view={view} /> : <MotionResult view={view} />}
+          <a className="side__more" href="#details">
+            {COPY.explore.detailsLink}
+          </a>
+          {!ws.visit && <CameraPicker ws={ws} />}
+          <ShowPicker ws={ws} />
+          <ViewActions ws={ws} request={request} name={name} />
+        </aside>
       </div>
 
-      <div className="bento__right">
-        <div className="rise" style={riseOrder(1)}>
-          {ws.visit ? <VisitPanel view={view} /> : <SubjectPanel view={view} searchedName={name} />}
-        </div>
-        <div className="rise bento__grow" style={riseOrder(3)}>
-          {ws.visit ? <MoversPanel view={view} /> : <MotionPanel view={view} camera={ws.camera} />}
-        </div>
-      </div>
-
-      {!ws.visit && (
-        <div className="bento__spectrum">
-          <SpectrumPanel view={view} bands={about.status === "ready" ? about.data.cameras : undefined} />
-        </div>
-      )}
-      <div className={ws.visit ? "bento__flags bento__flags--wide" : "bento__flags"}>
-        <FlagsPanel
-          view={view}
-          camera={ws.camera}
-          season={ws.shownSeason}
-          flags={about.status === "ready" ? about.data.flags : undefined}
-          overlayOn={ws.overlays.flags}
-          overlayAvailable={ws.mode === "blink"}
-          onToggleOverlay={() => ws.toggleOverlay("flags")}
-        />
-      </div>
-      <div className="bento__honesty">
-        <HonestyPanel view={view} />
-      </div>
-    </div>
+      <section className="details" id="details" aria-labelledby="details-title">
+        <header className="details__head">
+          <h2 className="details__title" id="details-title">
+            {COPY.explore.detailsTitle}
+          </h2>
+          <p className="details__lede">{COPY.explore.detailsLede}</p>
+        </header>
+        {ws.visit ? (
+          <div className="details__grid">
+            <MoversPanel view={view} />
+            <VisitPanel view={view} />
+            <SearchMethodPanel />
+            <HonestyPanel view={view} />
+            <div className="details__wide">{flagsPanel}</div>
+          </div>
+        ) : (
+          <div className="details__grid">
+            <MotionPanel view={view} camera={ws.camera} />
+            <SubjectPanel view={view} />
+            <div className="details__wide">
+              <SpectrumPanel view={view} bands={about.status === "ready" ? about.data.cameras : undefined} />
+            </div>
+            <div className="details__wide">
+              <CameraStrip ws={ws} />
+            </div>
+            {flagsPanel}
+            <HonestyPanel view={view} />
+          </div>
+        )}
+      </section>
+    </>
   );
 }

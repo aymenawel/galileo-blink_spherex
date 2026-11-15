@@ -5,10 +5,9 @@ import { Link } from "../router";
 export function NotFoundPage() {
   return (
     <div className="page not-found">
-      <p className="eyebrow">404</p>
-      <h1 className="display not-found__title">{COPY.errors.notFoundTitle}</h1>
+      <h1 className="doc__title">{COPY.errors.notFoundTitle}</h1>
       <p className="muted">{COPY.errors.notFoundBody}</p>
-      <Link to="/" className="pill pill--primary">
+      <Link to="/" className="button button--primary">
         {COPY.errors.goHome}
       </Link>
     </div>

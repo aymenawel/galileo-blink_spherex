@@ -18,7 +18,7 @@ export function DatePair({ view, cameraSeasons, a, b, onA, onB, onSwap }: DatePa
   const options = view.seasons.filter((season) => cameraSeasons.includes(season.index));
   const picker = (label: string, value: number, onChange: (season: number) => void) => (
     <label className="date-pair__field">
-      <span className="eyebrow">{label}</span>
+      <span className="date-pair__label">{label}</span>
       <select className="select" value={value} onChange={(event) => onChange(Number(event.target.value))}>
         {options.map((season) => (
           <option key={season.index} value={season.index}>

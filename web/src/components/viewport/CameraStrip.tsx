@@ -2,9 +2,8 @@
  * The six cameras side by side, each showing the same date as the main picture, so the
  * blink runs in all six at once. Choosing a tile puts that camera in the main picture.
  */
-import type { CSSProperties } from "react";
 import type { CameraKey } from "../../api/types";
-import { CAMERA_COLOURS, CAMERA_KEYS, bandOf } from "../../lib/cameras";
+import { CAMERA_KEYS, bandOf } from "../../lib/cameras";
 import { COPY } from "../../lib/copy";
 import { microns } from "../../lib/format";
 import type { Workspace } from "../explore/useWorkspace";
@@ -26,16 +25,14 @@ export function CameraStrip({ ws }: CameraStripProps) {
           className="camera-tile"
           aria-pressed={key === ws.camera}
           aria-label={COPY.cameras.select(key, band)}
-          style={{ "--camera": CAMERA_COLOURS[key] } as CSSProperties}
           onClick={() => ws.selectCamera(key)}
         >
           <span className="camera-tile__sky sky">
             <ImageStack view={view} camera={key} season={shownSeason} place={place} />
           </span>
           <span className="camera-tile__label">
-            <span className="camera-tile__chip" aria-hidden="true" />
             <span className="camera-tile__name">{COPY.cameras.camera(key)}</span>
-            <span className="camera-tile__band mono">{band}</span>
+            <span className="camera-tile__band">{band}</span>
           </span>
         </button>
       </li>
@@ -45,9 +42,9 @@ export function CameraStrip({ ws }: CameraStripProps) {
   return (
     <section className="panel camera-strip" aria-labelledby="camera-strip-title">
       <div className="camera-strip__head">
-        <h2 className="eyebrow" id="camera-strip-title">
+        <h3 className="panel__title" id="camera-strip-title">
           {COPY.cameras.title}
-        </h2>
+        </h3>
         <p className="muted">{COPY.cameras.line}</p>
       </div>
       <ul className="camera-strip__tiles">{CAMERA_KEYS.map(tile)}</ul>

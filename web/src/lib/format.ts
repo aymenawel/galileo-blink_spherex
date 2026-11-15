@@ -92,6 +92,24 @@ export function formatField(degrees: number): string {
   return `${degrees}° (${rounded} arcminutes)`;
 }
 
+const MOON_SHARE: Array<[number, string]> = [
+  [0.21, "a fifth of the Moon"],
+  [0.31, "a third of the Moon"],
+  [0.42, "two fifths of the Moon"],
+  [0.55, "half the Moon"],
+  [0.7, "two thirds of the Moon"],
+  [0.85, "four fifths of the Moon"],
+  [1.1, "about the whole Moon"],
+];
+
+/** A field of view for a menu: 0.15 → "9 arcmin · a third of the Moon" (the Moon is 30 arcminutes wide). */
+export function fieldWords(degrees: number): string {
+  const arcminutes = degrees * 60;
+  const share = arcminutes / 30;
+  const words = MOON_SHARE.find(([upTo]) => share <= upTo)?.[1] ?? `${share.toFixed(1)} Moons`;
+  return `${Number(arcminutes.toFixed(1))} arcmin · ${words}`;
+}
+
 /**
  * Brightness in millijanskys with digits that suit its size: 3500.3 → "3,500 mJy",
  * 13.4089 → "13.4 mJy", 0.0914 → "0.091 mJy".

@@ -1,71 +1,48 @@
 /* Design tokens: every colour, size and timing the interface uses is named here. */
 
 :root {
-  /* Surfaces, darkest first */
-  --bg: #0a0b0d;
-  --panel: #131518;
-  --raised: #1a1d21;
-  --sunken: #0d0f11;
-  --hairline: rgba(255, 255, 255, 0.07);
-  --hairline-strong: rgba(255, 255, 255, 0.14);
+  /* Ground and the two tone steps that separate surfaces from it (no lines, no shadows). */
+  --bg: #0d0e0f;
+  --surface: #17191a;
+  --raised: #222527;
+  --line: #2c2f31; /* tables and form fields only */
 
-  /* Text */
-  --text: #eceef1;
-  --muted: #8b929c;
-  --faint: #5b626c;
+  /* Ink */
+  --ink: #f2f3f0;
+  --muted: #a4a8a6;
+  --faint: #7a7f7d;
 
-  /* Meaning: ember is "measured" and "do this"; ice is "the catalogue says" */
-  --ember: #ffb24a;
-  --ember-soft: rgba(255, 178, 74, 0.14);
-  --ember-ink: #1a1206;
-  --ice: #6cc4ff;
-  --ice-soft: rgba(108, 196, 255, 0.14);
-  --ok: #7bd88f;
-  --ok-soft: rgba(123, 216, 143, 0.13);
-  --warn: #f2c14e;
-  --warn-soft: rgba(242, 193, 78, 0.13);
-  --bad: #ff7a6b;
-  --bad-soft: rgba(255, 122, 107, 0.13);
+  /* One accent: "this is the thing we are following", and the one thing to do. */
+  --accent: #a4f05c;
+  --accent-ink: #10160a;
+  --accent-soft: rgba(164, 240, 92, 0.14);
 
-  /* The six cameras, shortest wavelength to longest */
-  --cam-1: #f4e3b1;
-  --cam-2: #f6c177;
-  --cam-3: #f59e5b;
-  --cam-4: #ee7a4b;
-  --cam-5: #dc5546;
-  --cam-6: #b8323f;
+  /* Status, used only where something needs care. */
+  --warn: #f0d264;
+  --bad: #ff8a8a;
 
-  /* Type */
-  --font-display: "Instrument Serif", "Iowan Old Style", "Palatino Linotype", Georgia, serif;
-  --font-ui: "Instrument Sans", system-ui, -apple-system, "Segoe UI", sans-serif;
-  --font-mono: "DM Mono", ui-monospace, "SF Mono", Menlo, Consolas, monospace;
+  /* Change maps: brighter in green, fainter in magenta (drawn by the engine). */
+  --brighter: #a4f05c;
+  --fainter: #ff60aa;
 
-  /* Shape */
-  --r-panel: 22px;
-  --r-inner: 14px;
-  --r-small: 9px;
-  --r-pill: 999px;
+  /* Type: one family. Numbers line up with tabular figures. */
+  --font: "Hanken Grotesk Variable", system-ui, -apple-system, "Segoe UI", sans-serif;
+  --step-small: 0.875rem;
+  --step-body: 1.0625rem;
+  --step-lead: clamp(1.1875rem, 1.05rem + 0.6vw, 1.5rem);
+  --step-head: clamp(2rem, 1.3rem + 3vw, 3.75rem);
+  --step-display: clamp(2.75rem, 1.2rem + 6.2vw, 6.75rem);
 
   /* Space */
-  --gap: 16px;
-  --pad: 22px;
-  --rail: 76px;
-  --tabbar: 64px;
-  --page-max: 1480px;
+  --margin: clamp(20px, 3.2vw, 44px);
+  --page-max: 1560px;
+  --section-gap: clamp(96px, 12vw, 200px);
+  --bar: 68px;
 
   /* Motion */
   --fast: 140ms;
   --ease: cubic-bezier(0.2, 0.7, 0.2, 1);
 
-  /* Depth */
-  --shadow-panel: 0 1px 0 rgba(255, 255, 255, 0.03) inset, 0 24px 48px -32px rgba(0, 0, 0, 0.8);
-  --shadow-float: 0 8px 24px -8px rgba(0, 0, 0, 0.7);
-
   /* "No data": a diagonal hatch drawn behind every sky picture */
-  --hatch: repeating-linear-gradient(
-      45deg,
-      rgba(255, 255, 255, 0.17) 0 1.2px,
-      transparent 1.2px 7px
-    ),
-    #14171b;
+  --hatch: repeating-linear-gradient(45deg, rgba(255, 255, 255, 0.16) 0 1.2px, transparent 1.2px 7px), #141617;
 }

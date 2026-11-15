@@ -1,26 +1,22 @@
 /**
- * The hero of the Explore page: the chosen camera's picture, with markers drawn on it and
- * the controls floating over it.
+ * The sky picture itself: the chosen camera's photo, with markers drawn on it, a compass and
+ * a scale bar. Its controls live around it, not on it, so nothing covers the sky.
  */
 import { useMemo, useRef, useState } from "react";
-import { Download } from "lucide-react";
-import { blinkGifUrl, fileUrl } from "../../api/client";
+import { fileUrl } from "../../api/client";
 import { bandOf, lookAt, looksOf } from "../../lib/cameras";
 import { COPY, VISIT_COPY, lookSummary } from "../../lib/copy";
 import { formatDate } from "../../lib/format";
 import { markersToDraw, visitMarkers } from "../../lib/markers";
-import { SPEED_MS, type Workspace } from "../explore/useWorkspace";
+import type { Workspace } from "../explore/useWorkspace";
 import { ChangeMap } from "./ChangeMap";
 import { Compass } from "./Compass";
 import { Crosshair } from "./Crosshair";
 import { FlagsOverlay } from "./FlagsOverlay";
 import { ImageStack } from "./ImageStack";
-import { ModePills } from "./ModePills";
-import { OverlayToggles } from "./OverlayToggles";
 import { ScaleBar } from "./ScaleBar";
 import { SkyOverlay } from "./SkyOverlay";
 import { SwipeCompare } from "./SwipeCompare";
-import { TransportBar } from "./TransportBar";
 
 interface ViewportProps {
   ws: Workspace;
@@ -68,11 +64,6 @@ export function Viewport({ ws }: ViewportProps) {
           ),
     [view, overlays.catwise],
   );
-  const hasCatwise = useMemo(
-    () => (view.markers ?? []).some((marker) => marker.catalog === "CatWISE2020" && !marker.subject),
-    [view.markers],
-  );
-  const chip = readout(ws);
   const flagsMask = mode === "blink" && overlays.flags ? lookAt(view, camera, season)?.flags_png : null;
 
   const overlay = (markerSeason: number | null, clipPath?: string) => (
@@ -118,51 +109,17 @@ export function Viewport({ ws }: ViewportProps) {
         <ScaleBar n={view.n} pixelArcsec={view.pixel_arcsec} />
       </div>
 
-      <div className="viewport__top">
-        <ModePills mode={mode} visit={ws.visit} onSelect={ws.selectMode} />
-        <div className="look-chip" aria-live="off">
-          <span className="look-chip__when mono">
-            {chip.when}
-            {chip.date && <small>{chip.date}</small>}
-          </span>
-          <span className="look-chip__what mono">{chip.what}</span>
-        </div>
-      </div>
-
-      <div className="viewport__bottom">
-        {ws.stepping ? (
-          <TransportBar
-            playing={ws.playing}
-            speed={ws.speed}
-            enabled={ws.cameraSeasons.length > 1}
-            onStep={ws.step}
-            onTogglePlaying={ws.togglePlaying}
-            onSpeed={ws.selectSpeed}
-          />
-        ) : (
-          <span className="viewport__hint">
-            {ws.visit && mode !== "compare" ? VISIT_COPY.modes[mode].hint : COPY.viewport.modes[mode].hint}
-          </span>
-        )}
-        {ws.stepping && ws.cameraSeasons.length > 1 && (
-          <a
-            className="toggle toggle--link"
-            href={blinkGifUrl(view, Number(camera), mode === "change" ? "change" : "photo", SPEED_MS[ws.speed])}
-            download
-            title={COPY.viewport.saveGifHint}
-          >
-            <Download size={15} aria-hidden="true" />
-            {COPY.viewport.saveGif}
-          </a>
-        )}
-        <OverlayToggles
-          overlays={overlays}
-          flagsAvailable={mode === "blink"}
-          catwiseAvailable={hasCatwise}
-          starsAvailable={(view.stars?.length ?? 0) > 0}
-          onToggle={ws.toggleOverlay}
-        />
-      </div>
     </div>
+  );
+}
+
+/** What is on screen, in words: the date, and which camera took it. Sits beside the mode tabs. */
+export function LookReadout({ ws }: ViewportProps) {
+  const chip = readout(ws);
+  return (
+    <p className="look" aria-live="off">
+      <span className="look__when">{chip.when}</span>
+      <span className="look__what">{[chip.date, chip.what].filter(Boolean).join(" · ")}</span>
+    </p>
   );
 }

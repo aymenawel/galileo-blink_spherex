@@ -36,7 +36,7 @@ export function MotionPanel({ view, camera }: MotionPanelProps) {
   const motion = headlineMotion(view);
   if (!motion) {
     return (
-      <Panel eyebrow={COPY.motion.eyebrow} title={COPY.motion.title} className="motion">
+      <Panel title={COPY.motion.title} className="motion">
         <Unmeasured view={view} />
       </Panel>
     );
@@ -46,31 +46,30 @@ export function MotionPanel({ view, camera }: MotionPanelProps) {
     season === undefined ? null : (view.seasons.find((s) => s.index === season)?.label ?? null);
   const span = view.motion ?? motion;
   const verdict = motion.agrees ? (
-    <span className="chip chip--ok">
-      <Check size={14} aria-hidden="true" />
+    <span className="verdict verdict--ok">
+      <Check size={16} aria-hidden="true" />
       {COPY.motion.agrees}
     </span>
   ) : (
-    <span className="chip chip--warn">
-      <TriangleAlert size={14} aria-hidden="true" />
+    <span className="verdict verdict--warn">
+      <TriangleAlert size={16} aria-hidden="true" />
       {COPY.motion.differs}
     </span>
   );
 
   return (
-    <Panel eyebrow={COPY.motion.eyebrow} title={COPY.motion.title} className="motion" aside={verdict}>
+    <Panel title={COPY.motion.title} className="motion" aside={verdict}>
       <dl className="motion__readouts">
         <Readout
           label={isStatic(motion) ? COPY.motion.shift : COPY.motion.moved}
           value={arcsec(motion.measured)}
           suffix={`± ${arcsec(motion.error)}`}
-          tone="ember"
+          tone="measured"
           size="large"
         />
         <Readout
           label={COPY.motion.predicted}
           value={arcsec(motion.predicted, motion.predicted < 1 ? 2 : 1)}
-          tone="ice"
           size="large"
         />
       </dl>

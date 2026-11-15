@@ -22,9 +22,9 @@ function Mover({ track, moments }: { track: VisitTrack; moments: number }) {
   return (
     <li className={strong ? "mover mover--strong" : "mover"}>
       <header className="mover__head">
-        <h3 className="mover__name">{track.name ?? words.unnamedMover}</h3>
-        <span className={strong ? "chip chip--ok" : "chip chip--warn"}>
-          {strong ? <Check size={13} aria-hidden="true" /> : <CircleHelp size={13} aria-hidden="true" />}
+        <h4 className="mover__name">{track.name ?? words.unnamedMover}</h4>
+        <span className={strong ? "verdict verdict--ok" : "verdict verdict--warn"}>
+          {strong ? <Check size={16} aria-hidden="true" /> : <CircleHelp size={16} aria-hidden="true" />}
           {strong ? words.strong : words.possible}
         </span>
       </header>
@@ -34,7 +34,7 @@ function Mover({ track, moments }: { track: VisitTrack; moments: number }) {
           label={words.speed}
           value={arcsec(track.speed_arcsec_per_hour, track.speed_arcsec_per_hour < 10 ? 1 : 0)}
           suffix={words.perHour}
-          tone={strong ? "ember" : "plain"}
+          tone={strong ? "measured" : "plain"}
         />
         <Readout label={words.heading} value={compassWord(track.direction_deg)} />
         <Readout label={words.seen} value={words.ofMoments(track.n_moments, moments)} />
@@ -62,7 +62,7 @@ export function MoversPanel({ view }: MoversPanelProps) {
   const hasUnidentified = tracks.some((track) => track.confidence === "strong" && !track.name);
 
   return (
-    <Panel eyebrow={words.eyebrow} title={words.title} className="movers">
+    <Panel title={words.title} className="movers">
       {!searched && <p className="note">{words.notSearched(moments)}</p>}
       {searched && tracks.length === 0 && <p className="muted">{words.none}</p>}
       {tracks.length > 0 && (
@@ -75,7 +75,7 @@ export function MoversPanel({ view }: MoversPanelProps) {
       {hasPossible && <p className="muted movers__note">{words.possibleNote}</p>}
       {hasUnidentified && <p className="muted movers__note">{words.unidentifiedNote}</p>}
 
-      <h3 className="eyebrow movers__known-title">{words.knownTitle}</h3>
+      <h4 className="movers__known-title">{words.knownTitle}</h4>
       {catalogueDown ? (
         <p className="note">{words.catalogueDown}</p>
       ) : known.length === 0 ? (

@@ -1,17 +1,7 @@
-/** SPHEREx's six cameras: their order, their colours, and finding their pictures in a view. */
+/** SPHEREx's six cameras: their order, their wavelengths, and finding their pictures in a view. */
 import type { Band, CameraKey, CameraView, Look, View } from "../api/types";
 
 export const CAMERA_KEYS: readonly CameraKey[] = ["1", "2", "3", "4", "5", "6"];
-
-/** An infrared ramp, shortest wavelength (camera 1) to longest (camera 6). */
-export const CAMERA_COLOURS: Record<CameraKey, string> = {
-  "1": "#F4E3B1",
-  "2": "#F6C177",
-  "3": "#F59E5B",
-  "4": "#EE7A4B",
-  "5": "#DC5546",
-  "6": "#B8323F",
-};
 
 /** The wavelengths each camera covers, in microns, used until the server's own list arrives. */
 export const CAMERA_BANDS: Record<CameraKey, Band> = {
@@ -67,16 +57,16 @@ export function defaultCamera(view: View): CameraKey {
 
 /** Colours that tell seasons apart in a plot. They repeat after ten seasons. */
 const SEASON_COLOURS = [
+  "#A4F05C",
+  "#FF60AA",
   "#6CC4FF",
-  "#FFB24A",
-  "#7BD88F",
-  "#F28FB1",
+  "#F0D264",
   "#C9B3FF",
-  "#F4E3B1",
   "#4FD1C5",
-  "#FF7A6B",
+  "#F2A0BE",
   "#A9B4C2",
-  "#E3D45C",
+  "#E8E26A",
+  "#7BD8C0",
 ];
 
 export function seasonColour(season: number): string {

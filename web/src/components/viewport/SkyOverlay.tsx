@@ -157,7 +157,7 @@ export function SkyOverlay({
         >
           <strong>{active.marker.name}</strong>
           {catalogueLine(active) && <span>{catalogueLine(active)}</span>}
-          <span className="mono">{speedLine(active)}</span>
+          <span className="marker-label__speed">{speedLine(active)}</span>
         </div>
       )}
     </div>

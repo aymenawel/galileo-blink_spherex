@@ -1,0 +1,357 @@
+/* The ground rules: reset, type, links, and the few controls every page shares. */
+
+*,
+*::before,
+*::after {
+  box-sizing: border-box;
+}
+
+html {
+  overflow-x: clip;
+  scroll-behavior: smooth;
+  scroll-padding-top: calc(var(--bar) + 16px);
+  -webkit-text-size-adjust: 100%;
+}
+
+body {
+  margin: 0;
+  background: var(--bg);
+  color: var(--ink);
+  font-family: var(--font);
+  font-size: var(--step-body);
+  line-height: 1.5;
+  letter-spacing: -0.005em;
+  font-variant-numeric: tabular-nums;
+  -webkit-font-smoothing: antialiased;
+  text-rendering: optimizeLegibility;
+}
+
+h1,
+h2,
+h3,
+h4,
+p,
+ul,
+ol,
+dl,
+dd,
+figure {
+  margin: 0;
+}
+
+ul,
+ol {
+  padding: 0;
+  list-style: none;
+}
+
+h1,
+h2,
+h3,
+h4 {
+  font-weight: 500;
+  letter-spacing: -0.03em;
+  line-height: 1.05;
+  text-wrap: balance;
+}
+
+img,
+svg {
+  display: block;
+}
+
+a {
+  color: inherit;
+  text-decoration-thickness: 1px;
+  text-underline-offset: 0.2em;
+}
+
+button,
+input,
+select {
+  font: inherit;
+  letter-spacing: inherit;
+  color: inherit;
+}
+
+button {
+  cursor: pointer;
+}
+
+button:disabled {
+  cursor: not-allowed;
+}
+
+:focus-visible {
+  outline: 2px solid var(--accent);
+  outline-offset: 3px;
+}
+
+::selection {
+  background: var(--accent);
+  color: var(--accent-ink);
+}
+
+.muted {
+  color: var(--muted);
+}
+
+.visually-hidden {
+  position: absolute;
+  width: 1px;
+  height: 1px;
+  overflow: hidden;
+  clip-path: inset(50%);
+  white-space: nowrap;
+}
+
+.skip-link {
+  position: absolute;
+  left: var(--margin);
+  top: -80px;
+  z-index: 50;
+  padding: 10px 18px;
+  border-radius: 999px;
+  background: var(--accent);
+  color: var(--accent-ink);
+  text-decoration: none;
+}
+
+.skip-link:focus {
+  top: 12px;
+}
+
+/* ------------------------------------------------------------------ buttons: one shape, fully round */
+.button {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 8px;
+  min-height: 44px;
+  padding: 0 22px;
+  border: 0;
+  border-radius: 999px;
+  font-weight: 500;
+  font-size: 1rem;
+  text-decoration: none;
+  white-space: nowrap;
+  transition:
+    background var(--fast) var(--ease),
+    color var(--fast) var(--ease),
+    transform var(--fast) var(--ease);
+}
+
+.button:active:not(:disabled) {
+  transform: scale(0.97);
+}
+
+.button--primary {
+  background: var(--accent);
+  color: var(--accent-ink);
+}
+
+.button--primary:hover:not(:disabled) {
+  background: #b9f780;
+}
+
+.button--primary:disabled {
+  background: var(--raised);
+  color: var(--muted);
+}
+
+.button--quiet {
+  background: var(--surface);
+  color: var(--ink);
+}
+
+.button--quiet:hover:not(:disabled),
+.button--quiet[aria-pressed="true"] {
+  background: var(--raised);
+}
+
+.button--quiet:disabled {
+  color: var(--faint);
+}
+
+/* On a field of accent colour, the button is ink. */
+.button--ink {
+  background: var(--accent-ink);
+  color: var(--ink);
+}
+
+.button--ink:hover {
+  background: #1f2a12;
+}
+
+/* ------------------------------------------------------------------ a choice of a few: segmented */
+.segmented {
+  display: inline-flex;
+  padding: 4px;
+  border-radius: 999px;
+  background: var(--surface);
+}
+
+.segmented__item {
+  min-height: 36px;
+  padding: 0 16px;
+  border: 0;
+  border-radius: 999px;
+  background: none;
+  color: var(--muted);
+  font-size: 0.9375rem;
+  font-weight: 500;
+  white-space: nowrap;
+  transition:
+    background var(--fast) var(--ease),
+    color var(--fast) var(--ease);
+}
+
+.segmented__item:hover {
+  color: var(--ink);
+}
+
+.segmented__item[aria-pressed="true"] {
+  background: var(--ink);
+  color: var(--bg);
+}
+
+/* ------------------------------------------------------------------ select */
+.select {
+  min-height: 44px;
+  max-width: 100%;
+  padding: 0 40px 0 18px;
+  border: 0;
+  border-radius: 999px;
+  background: var(--surface)
+    url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='12' height='8' fill='none' stroke='%23A4A8A6' stroke-width='1.8' stroke-linecap='round' stroke-linejoin='round'%3E%3Cpath d='m1 1.5 5 5 5-5'/%3E%3C/svg%3E")
+    right 16px center no-repeat;
+  font-size: 0.9375rem;
+  appearance: none;
+  cursor: pointer;
+  transition: background-color var(--fast) var(--ease);
+}
+
+.select:hover:not(:disabled) {
+  background-color: var(--raised);
+}
+
+.select option {
+  background: var(--surface);
+  color: var(--ink);
+}
+
+/* ------------------------------------------------------------------ a note that needs reading */
+.note {
+  display: flex;
+  gap: 10px;
+  align-items: flex-start;
+  padding: 16px 20px;
+  background: var(--surface);
+  border-radius: 20px;
+  font-size: 1rem;
+}
+
+.note svg {
+  flex: none;
+  margin-top: 4px;
+  color: var(--accent);
+}
+
+/* ------------------------------------------------------------------ a verdict: a mark and a few words */
+.verdict {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  font-weight: 500;
+  white-space: nowrap;
+}
+
+.verdict--ok {
+  color: var(--accent);
+}
+
+.verdict--warn {
+  color: var(--warn);
+}
+
+/* ------------------------------------------------------------------ sky pictures */
+.sky {
+  position: relative;
+  aspect-ratio: 1;
+  overflow: hidden;
+  background: var(--hatch);
+}
+
+.sky img {
+  position: absolute;
+  inset: 0;
+  width: 100%;
+  height: 100%;
+  user-select: none;
+  -webkit-user-drag: none;
+}
+
+.sky img.is-hidden {
+  visibility: hidden;
+}
+
+.sky__empty {
+  position: absolute;
+  inset: 0;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 12%;
+  text-align: center;
+  font-size: var(--step-small);
+  color: var(--muted);
+}
+
+/* The view through an eyepiece: every preview of the sky on this site is round. */
+.eyepiece {
+  border-radius: 50%;
+  overflow: hidden;
+  aspect-ratio: 1;
+  background: var(--surface);
+}
+
+.blink-preview {
+  width: 100%;
+  height: 100%;
+}
+
+.blink-preview__date {
+  position: absolute;
+  left: 50%;
+  bottom: 9%;
+  z-index: 4;
+  transform: translateX(-50%);
+  padding: 6px 14px;
+  border-radius: 999px;
+  background: rgba(13, 14, 15, 0.82);
+  font-size: var(--step-small);
+  white-space: nowrap;
+}
+
+.spin {
+  animation: spin 900ms linear infinite;
+}
+
+@keyframes spin {
+  to {
+    transform: rotate(360deg);
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  html {
+    scroll-behavior: auto;
+  }
+
+  *,
+  *::before,
+  *::after {
+    animation-duration: 1ms !important;
+    transition-duration: 1ms !important;
+  }
+}

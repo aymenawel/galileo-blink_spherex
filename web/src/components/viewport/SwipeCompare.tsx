@@ -50,8 +50,8 @@ export function SwipeCompare({ view, camera, a, b, place, divider, onDivider }: 
       <div className="swipe__a" style={{ clipPath: `inset(0 ${(1 - divider) * 100}% 0 0)` }}>
         <img src={fileUrl(view, lookA.png)} alt={lookAlt(place, camera, band, labelOf(a))} draggable={false} />
       </div>
-      <span className="swipe__tag swipe__tag--a mono">A · {labelOf(a)}</span>
-      <span className="swipe__tag swipe__tag--b mono">B · {labelOf(b)}</span>
+      <span className="swipe__tag swipe__tag--a">A · {labelOf(a)}</span>
+      <span className="swipe__tag swipe__tag--b">B · {labelOf(b)}</span>
       <div
         className="swipe__divider"
         style={{ left: `${divider * 100}%` }}

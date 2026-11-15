@@ -2,8 +2,7 @@
 import { Info } from "lucide-react";
 import { useMemo } from "react";
 import { useView } from "../api/useView";
-import { TargetList } from "../components/TargetList";
-import { ExploreTopBar } from "../components/explore/ExploreTopBar";
+import { TargetIndex } from "../components/SkyIndex";
 import { ExploreWorkspace } from "../components/explore/ExploreWorkspace";
 import { BuildFailed, BuildProgress } from "../components/panels/BuildProgress";
 import type { SearchArrival } from "../components/shell/SearchBox";
@@ -25,10 +24,8 @@ export function ExplorePage() {
 
   return (
     <div className="page explore">
-      <ExploreTopBar request={address.request} name={address.name} />
-
       {note && address.request && (
-        <p className="note note--ice explore__note">
+        <p className="note explore__note">
           <Info size={16} aria-hidden="true" />
           {note}
         </p>
@@ -36,11 +33,11 @@ export function ExplorePage() {
 
       {!address.request && (
         <section className="explore__empty" aria-labelledby="explore-empty-title">
-          <h1 className="display explore__empty-title" id="explore-empty-title">
+          <h1 className="section__title" id="explore-empty-title">
             {COPY.explore.emptyTitle}
           </h1>
-          <p className="muted">{COPY.explore.emptyBody}</p>
-          <TargetList />
+          <p className="section__lede">{COPY.explore.emptyBody}</p>
+          <TargetIndex />
         </section>
       )}
 

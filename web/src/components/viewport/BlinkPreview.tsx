@@ -39,7 +39,7 @@ export function BlinkPreview({ view, preferCamera, beat = 900, showDate = false 
       <ImageStack view={view} camera={camera} season={season} place={view.kind === "visit" ? (view.label ?? "") : subjectName(view)} />
       <SkyOverlay n={view.n} markers={subject} season={season} />
       {showDate && (
-        <span className="blink-preview__date mono">
+        <span className="blink-preview__date">
           {view.seasons.find((s) => s.index === season)?.label} · {COPY.cameras.camera(camera)}
         </span>
       )}

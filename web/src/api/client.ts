@@ -20,7 +20,7 @@ export type ViewRequest =
   | { kind: "place"; ra: number; dec: number; size: number }
   | { kind: "asteroid"; id: string }
   | { kind: "asteroidName"; name: string }
-  | { kind: "visit"; ra: number; dec: number; size: number };
+  | { kind: "visit"; ra: number; dec: number; size: number; camera?: number };
 
 /** A failed request, with a sentence fit to show and whose side the failure is on. */
 export class ApiError extends Error {
@@ -110,7 +110,7 @@ function openAddress(request: ViewRequest): string {
     case "asteroidName":
       return `/api/asteroid?name=${encodeURIComponent(request.name)}`;
     case "visit":
-      return `/api/visit?ra=${request.ra}&dec=${request.dec}&size=${request.size}`;
+      return `/api/visit?ra=${request.ra}&dec=${request.dec}&size=${request.size}${request.camera ? `&camera=${request.camera}` : ""}`;
   }
 }
 

@@ -2,10 +2,9 @@
 import { useAbout } from "../api/useResource";
 import type { CameraKey } from "../api/types";
 import { CAMERA_TABLE, FLAGS_TABLE, HOW_IT_WORKS_INTRO, LIMITS, SECTIONS, type Section } from "../content/howItWorks";
-import { CAMERA_BANDS, CAMERA_COLOURS, CAMERA_KEYS } from "../lib/cameras";
+import { CAMERA_BANDS, CAMERA_KEYS } from "../lib/cameras";
 import { COPY } from "../lib/copy";
 import { microns } from "../lib/format";
-import { riseOrder } from "../lib/stagger";
 
 function CameraTable() {
   const about = useAbout();
@@ -22,11 +21,8 @@ function CameraTable() {
       <tbody>
         {CAMERA_KEYS.map((key) => (
           <tr key={key}>
-            <th scope="row">
-              <span className="camera-dot" style={{ background: CAMERA_COLOURS[key] }} aria-hidden="true" />
-              {COPY.cameras.camera(key)}
-            </th>
-            <td className="mono">{microns(bandOf(key))}</td>
+            <th scope="row">{COPY.cameras.camera(key)}</th>
+            <td>{microns(bandOf(key))}</td>
           </tr>
         ))}
       </tbody>
@@ -51,7 +47,7 @@ function FlagsTable() {
         <tbody>
           {about.data.flags.map((flag) => (
             <tr key={flag.name}>
-              <th scope="row" className="mono">
+              <th scope="row">
                 {flag.name}
               </th>
               <td>{flag.meaning}</td>
@@ -66,14 +62,11 @@ function FlagsTable() {
   );
 }
 
-function DocSection({ section, number }: { section: Section; number: number }) {
+function DocSection({ section }: { section: Section }) {
   return (
     <section className="doc-section" id={section.id} aria-labelledby={`${section.id}-title`}>
-      <p className="doc-section__number mono" aria-hidden="true">
-        {String(number).padStart(2, "0")}
-      </p>
       <div className="doc-section__body">
-        <h2 className="doc-section__title display" id={`${section.id}-title`}>
+        <h2 className="doc-section__title" id={`${section.id}-title`}>
           {section.title}
         </h2>
         {section.paragraphs.map((paragraph) => (
@@ -101,29 +94,25 @@ export function HowItWorksPage() {
   return (
     <div className="page doc">
       <header className="doc__head">
-        <p className="eyebrow rise" style={riseOrder(0)}>
-          {HOW_IT_WORKS_INTRO.eyebrow}
-        </p>
-        <h1 className="doc__title display rise" style={riseOrder(1)}>
+        <h1 className="doc__title">
           {title.before}
-          <em>{title.emphasis}</em>
+          {title.emphasis}
           {title.after}
         </h1>
-        <p className="doc__lede rise" style={riseOrder(2)}>
+        <p className="doc__lede">
           {HOW_IT_WORKS_INTRO.lede}
         </p>
       </header>
 
-      {SECTIONS.map((section, i) => (
-        <DocSection key={section.id} section={section} number={i + 1} />
+      {SECTIONS.map((section) => (
+        <DocSection key={section.id} section={section} />
       ))}
 
       <section className="limits" id={LIMITS.id} aria-labelledby="limits-title">
-        <p className="eyebrow">{String(SECTIONS.length + 1).padStart(2, "0")}</p>
-        <h2 className="limits__title display" id="limits-title">
+        <h2 className="limits__title" id="limits-title">
           {LIMITS.title}
         </h2>
-        <p className="muted limits__lede">{LIMITS.lede}</p>
+        <p className="limits__lede">{LIMITS.lede}</p>
         <ul className="limits__list">
           {LIMITS.items.map((limit) => (
             <li key={limit.title} className="limits__item">

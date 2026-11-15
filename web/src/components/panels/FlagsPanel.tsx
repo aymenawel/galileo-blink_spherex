@@ -18,23 +18,45 @@ interface FlagsPanelProps {
   onToggleOverlay: () => void;
 }
 
+/** The commonest flags are listed; the rest are one click away. */
+const FLAGS_SHOWN = 4;
+
 export function FlagsPanel({ view, camera, season, flags, overlayOn, overlayAvailable, onToggleOverlay }: FlagsPanelProps) {
   const look = season === null ? undefined : lookAt(view, camera, season);
   const seasonLabel = view.seasons.find((s) => s.index === season)?.label;
   const counts = Object.entries(look?.flag_counts ?? {}).sort(([, a], [, b]) => b - a);
   const infoOf = (name: string) => flags?.find((flag) => flag.name === name);
+  const item = ([name, count]: [string, number]) => {
+    const info = infoOf(name);
+    return (
+      <li key={name} className="flags__item">
+        <span className="flags__name">
+          {name}
+          {info?.treated_as_no_data && (
+            <span className="flags__blank" title={COPY.flags.noDataTitle}>
+              {COPY.flags.noData}
+            </span>
+          )}
+        </span>
+        <span className="flags__count">
+          {formatCount(count)} <small>{COPY.flags.pixels}</small>
+        </span>
+        <span className="flags__meaning">{info?.meaning ?? COPY.flags.unknown}</span>
+      </li>
+    );
+  };
 
   return (
     <Panel
-      eyebrow={look && seasonLabel ? `${COPY.cameras.camera(camera)} · ${seasonLabel}` : COPY.flags.eyebrow}
       title={COPY.flags.title}
+      context={look && seasonLabel ? `${COPY.cameras.camera(camera)} · ${seasonLabel}` : undefined}
       className="flags"
     >
       <p className="muted">{COPY.flags.line}</p>
 
       <button
         type="button"
-        className="pill pill--quiet flags__toggle"
+        className="button button--quiet flags__toggle"
         aria-pressed={overlayOn && overlayAvailable}
         disabled={!overlayAvailable || !look}
         onClick={onToggleOverlay}
@@ -50,27 +72,15 @@ export function FlagsPanel({ view, camera, season, flags, overlayOn, overlayAvai
       ) : counts.length === 0 ? (
         <p className="muted flags__state">{COPY.flags.none}</p>
       ) : (
-        <ul className="flags__list">
-          {counts.map(([name, count]) => {
-            const info = infoOf(name);
-            return (
-              <li key={name} className="flags__item">
-                <span className="flags__name mono">
-                  {name}
-                  {info?.treated_as_no_data && (
-                    <span className="flags__blank" title={COPY.flags.noDataTitle}>
-                      {COPY.flags.noData}
-                    </span>
-                  )}
-                </span>
-                <span className="flags__count mono">
-                  {formatCount(count)} <small>{COPY.flags.pixels}</small>
-                </span>
-                <span className="flags__meaning">{info?.meaning ?? COPY.flags.unknown}</span>
-              </li>
-            );
-          })}
-        </ul>
+        <>
+          <ul className="flags__list">{counts.slice(0, FLAGS_SHOWN).map(item)}</ul>
+          {counts.length > FLAGS_SHOWN && (
+            <details className="disclosure">
+              <summary>{COPY.flags.more(counts.length - FLAGS_SHOWN)}</summary>
+              <ul className="flags__list">{counts.slice(FLAGS_SHOWN).map(item)}</ul>
+            </details>
+          )}
+        </>
       )}
     </Panel>
   );

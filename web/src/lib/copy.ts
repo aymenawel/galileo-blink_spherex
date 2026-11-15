@@ -25,7 +25,9 @@ export const COPY = {
     label: "Main",
     explore: "Explore",
     targets: "Targets",
+    asteroids: "Asteroids",
     how: "How it works",
+    menu: "Menu",
     about: "About",
     skip: "Skip to content",
   },
@@ -36,6 +38,15 @@ export const COPY = {
     submit: "Look",
     busy: "Finding that place",
     empty: "Type a star's name or a pair of coordinates first.",
+    timeScale: "Time between pictures",
+    looks: "Every six months",
+    visit: "Within one visit",
+    looksHint: "For stars: one picture from each SPHEREx visit, months apart.",
+    visitHint: "For asteroids: the pictures of one visit, hours apart, searched for anything moving.",
+    field: "Field of view",
+    camera: "Camera",
+    cameraAuto: "Best camera for this place",
+    cameraOption: (key: string, band: string) => `Camera ${key} · ${band}`,
   },
 
   errors: {
@@ -55,19 +66,19 @@ export const COPY = {
   },
 
   home: {
-    headline: { before: "Watch the infrared sky ", emphasis: "move", after: "." },
-    lede: "NASA's SPHEREx telescope photographs the whole sky every six months in 102 infrared colours. Type any place and blink through the dates: whatever moved, shows.",
-    previewCaption: "Barnard's Star, the fastest-moving star in the sky, as SPHEREx saw it on each visit.",
+    headline: "Watch the infrared sky move.",
+    lede: "NASA's SPHEREx telescope photographs the whole sky every six months. Type any place and flip through the dates: whatever moved, shows.",
+    previewCaption: "Barnard's Star, the fastest-moving star in the sky",
     previewLoading: "The live preview appears here once its pictures arrive.",
     previewOpen: "Open this view",
     targetsEyebrow: "Start here",
     targetsTitle: "NASA's five test targets",
-    targetsLede: "The challenge names five objects to try a tool like this on. Each one is built and ready to open.",
+    targetsLede: "The challenge names five objects to try a tool like this on. Each one is ready to open.",
     targetsFailed: "The list of test targets could not be loaded right now. You can still search for any place above.",
     targetOpen: "Open",
     targetBuilding: "Built on first visit",
     stepsEyebrow: "In three steps",
-    stepsTitle: "How it works",
+    stepsTitle: "How it works, in three steps",
     steps: [
       {
         title: "Type a place",
@@ -107,8 +118,14 @@ export const COPY = {
     emptyTitle: "Pick a place to watch",
     emptyBody: "Search for any star or any coordinates above, or start with one of NASA's five test targets.",
     fieldLabel: "Field of view",
-    share: "Share",
+    share: "Copy link",
     shareDone: "Link copied",
+    detailsTitle: "The details",
+    detailsLede: "Every number behind the picture, how it was measured, and what this view cannot tell you.",
+    detailsLink: "See the numbers behind this",
+    cameraLabel: "Camera",
+    showLabel: "Show on the picture",
+    viewLabel: "This view",
     shareFailed: "Copy the address from the address bar to share this view",
     opening: "Opening this view",
   },
@@ -168,14 +185,14 @@ export const COPY = {
   },
 
   cameras: {
-    title: "Six cameras",
+    title: "The same date in all six cameras",
     line: "Six cameras, six slices of infrared. Cold objects appear only in the long-wavelength cameras.",
     camera: (key: string) => `Camera ${key}`,
     select: (key: string, band: string) => `Show camera ${key}, ${band}`,
   },
 
   subject: {
-    title: "What you're looking at",
+    title: "Where and when",
     position: "Position",
     field: "Field of view",
     dataThrough: "SPHEREx data through",
@@ -279,6 +296,7 @@ export const COPY = {
     noData: "left blank",
     noDataTitle: "Pixels with this flag are treated as having no data",
     unknown: "A flag this version of the site has no description for",
+    more: (count: number) => `${count} more ${count === 1 ? "flag" : "flags"}`,
   },
 
   honesty: {
@@ -509,7 +527,7 @@ export function combinedAlt(place: string, camera: string, band: readonly [numbe
 }
 
 export function changeAlt(place: string, camera: string, a: string, b: string): string {
-  return `Change map of ${place} in camera ${camera}: ${a} minus ${b}. Warm colours are brighter in ${a}, cool colours fainter.`;
+  return `Change map of ${place} in camera ${camera}: ${a} minus ${b}. Green is brighter in ${a}, pink is fainter.`;
 }
 
 // ---------------------------------------------------------------------------- asteroids (one visit)
@@ -542,7 +560,7 @@ export const VISIT_COPY = {
   subtractedChip: "moment minus the static sky",
   staticChip: "Static sky",
   keyboardHint: "Arrow keys step through the moments. Space plays and pauses.",
-  subtractedNote: "Warm dots are light that was there only at that moment: an asteroid, or a cosmic-ray hit.",
+  subtractedNote: "Green dots are light that was there only at that moment: an asteroid, or a cosmic-ray hit.",
   staticNote: "An asteroid is in a different place at every moment, so it vanishes from this picture.",
   panel: {
     eyebrow: "What you're looking at",
@@ -554,6 +572,12 @@ export const VISIT_COPY = {
     over: (hours: number) => (hours >= 48 ? `over ${(hours / 24).toFixed(1)} days` : `over ${Math.round(hours)} hours`),
     from: "First moment",
     until: "Last moment",
+  },
+  result: {
+    found: (count: number) => (count === 1 ? "moving object found" : "moving objects found"),
+    possibleOnly: (count: number) => (count === 1 ? "possible moving object" : "possible moving objects"),
+    none: "Nothing was found moving here.",
+    notSearched: "Too few moments to search.",
   },
   movers: {
     eyebrow: "The search",

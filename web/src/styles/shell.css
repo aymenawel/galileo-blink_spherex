@@ -1,0 +1,339 @@
+/* The frame of every page: the top bar, the search box, and the footer. */
+
+.shell {
+  min-height: 100vh;
+  display: flex;
+  flex-direction: column;
+}
+
+main {
+  flex: 1;
+  width: 100%;
+  max-width: var(--page-max);
+  margin: 0 auto;
+  padding: 0 var(--margin);
+  outline: none;
+}
+
+/* ------------------------------------------------------------------ top bar */
+.bar {
+  position: sticky;
+  top: 0;
+  z-index: 30;
+  display: flex;
+  align-items: center;
+  gap: 24px;
+  width: 100%;
+  max-width: var(--page-max);
+  min-height: var(--bar);
+  margin: 0 auto;
+  padding: 10px var(--margin);
+  background: var(--bg);
+}
+
+.brand {
+  display: inline-flex;
+  align-items: center;
+  gap: 10px;
+  margin-right: auto;
+  font-size: 1.125rem;
+  font-weight: 500;
+  letter-spacing: -0.02em;
+  text-decoration: none;
+  white-space: nowrap;
+}
+
+.mark__was {
+  fill: none;
+  stroke: var(--ink);
+  stroke-width: 2;
+}
+
+.mark__is {
+  fill: var(--accent);
+}
+
+.brand:hover .mark__is {
+  animation: blink 700ms steps(1) 2;
+}
+
+@keyframes blink {
+  50% {
+    opacity: 0;
+  }
+}
+
+.bar__links {
+  display: flex;
+  gap: 28px;
+}
+
+.bar__links a {
+  padding: 8px 0;
+  color: var(--muted);
+  font-size: 1rem;
+  text-decoration: none;
+  transition: color var(--fast) var(--ease);
+}
+
+.bar__links a:hover,
+.bar__links a[aria-current="page"] {
+  color: var(--ink);
+}
+
+.bar__menu {
+  display: none;
+  min-height: 40px;
+  padding: 0 18px;
+  border: 0;
+  border-radius: 999px;
+  background: var(--surface);
+  font-size: 0.9375rem;
+  font-weight: 500;
+}
+
+.bar--search .brand {
+  margin-right: 0;
+}
+
+.bar--search .search {
+  flex: 1;
+  max-width: 520px;
+  margin-right: auto;
+}
+
+/* ------------------------------------------------------------------ search */
+.search__field {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  padding: 6px 6px 6px 22px;
+  border-radius: 999px;
+  background: var(--surface);
+  transition: background var(--fast) var(--ease);
+}
+
+.search__field:focus-within {
+  background: var(--raised);
+  outline: 2px solid var(--accent);
+  outline-offset: 2px;
+}
+
+.search__icon {
+  flex: none;
+  color: var(--muted);
+}
+
+.search__input {
+  flex: 1;
+  min-width: 0;
+  padding: 0 4px;
+  border: 0;
+  background: none;
+  outline: none;
+  font-size: 1.125rem;
+}
+
+.search__input::placeholder {
+  color: var(--faint);
+}
+
+.search--large .search__field {
+  min-height: 64px;
+}
+
+.search--large .search__submit {
+  min-height: 52px;
+  padding: 0 28px;
+  font-size: 1.0625rem;
+}
+
+.search--compact .search__field {
+  min-height: 46px;
+  padding-left: 18px;
+}
+
+.search--compact .search__input {
+  font-size: 1rem;
+}
+
+.search--compact .search__submit {
+  min-height: 36px;
+  padding: 0 18px;
+  font-size: 0.9375rem;
+}
+
+.search__problem {
+  margin-top: 10px;
+  padding-left: 22px;
+  color: var(--warn);
+  font-size: 1rem;
+}
+
+/* The choices that go with a place. */
+.settings {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 10px;
+  margin-top: 14px;
+}
+
+.settings__hint {
+  flex-basis: 100%;
+  color: var(--muted);
+  font-size: var(--step-small);
+  padding-left: 4px;
+}
+
+/* ------------------------------------------------------------------ toast */
+.toast-region {
+  position: fixed;
+  left: 50%;
+  bottom: 28px;
+  z-index: 60;
+  transform: translateX(-50%);
+  pointer-events: none;
+}
+
+.toast {
+  padding: 12px 22px;
+  border-radius: 999px;
+  background: var(--ink);
+  color: var(--bg);
+  font-weight: 500;
+  white-space: nowrap;
+  box-shadow: 0 10px 30px rgba(0, 0, 0, 0.5);
+}
+
+/* ------------------------------------------------------------------ footer: the name returns, large */
+.footer {
+  width: 100%;
+  max-width: var(--page-max);
+  margin: var(--section-gap) auto 0;
+  padding: 0 var(--margin) 48px;
+}
+
+.footer__name {
+  display: flex;
+  align-items: center;
+  gap: 0.18em;
+  font-size: clamp(3rem, 11.5vw, 11.5rem);
+  font-weight: 500;
+  letter-spacing: -0.05em;
+  line-height: 0.9;
+  white-space: nowrap;
+}
+
+.footer__name .mark {
+  flex: none;
+  width: 0.78em;
+  height: 0.78em;
+}
+
+.footer__columns {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 32px var(--margin);
+  margin-top: 56px;
+  color: var(--muted);
+  font-size: 1rem;
+}
+
+.footer__title {
+  margin-bottom: 12px;
+  color: var(--ink);
+  font-size: 1rem;
+  letter-spacing: -0.01em;
+  line-height: 1.4;
+}
+
+.footer li + li {
+  margin-top: 6px;
+}
+
+.footer a:hover {
+  color: var(--ink);
+}
+
+.footer__disclaimer {
+  margin-top: 18px;
+}
+
+/* ------------------------------------------------------------------ narrow screens */
+@media (max-width: 860px) {
+  .bar {
+    flex-wrap: wrap;
+    gap: 10px 14px;
+  }
+
+  .bar__menu {
+    display: inline-block;
+  }
+
+  .bar__links {
+    display: none;
+    flex-basis: 100%;
+    flex-direction: column;
+    gap: 0;
+    padding-bottom: 10px;
+  }
+
+  .bar__links.is-open {
+    display: flex;
+  }
+
+  .bar__links a {
+    padding: 12px 0;
+    font-size: 1.25rem;
+    color: var(--ink);
+  }
+
+  .bar--search .brand {
+    margin-right: auto;
+  }
+
+  .bar--search .search {
+    order: 3;
+    flex-basis: 100%;
+    max-width: none;
+  }
+
+  .footer__columns {
+    grid-template-columns: 1fr;
+  }
+}
+
+@media (max-width: 520px) {
+  .search--large .search__field {
+    min-height: 56px;
+    padding-left: 18px;
+  }
+
+  .search--large .search__icon {
+    display: none;
+  }
+
+  .search--large .search__submit {
+    min-height: 44px;
+    padding: 0 20px;
+  }
+
+  .search__input {
+    font-size: 1rem;
+  }
+
+  .settings .segmented {
+    width: 100%;
+  }
+
+  .settings .segmented__item {
+    flex: 1;
+    padding: 0 8px;
+  }
+
+  .settings__field,
+  .settings__field .select {
+    width: 100%;
+  }
+}
