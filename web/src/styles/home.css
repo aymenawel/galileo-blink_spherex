@@ -1,76 +1,5 @@
 /* The front page, and the two text pages (How it works, About). */
 
-/* ------------------------------------------------------------------ hero: one line of headline, then words left and the eyepiece right */
-.hero {
-  display: grid;
-  grid-template-columns: minmax(0, 1.05fr) minmax(0, 0.95fr);
-  grid-template-areas:
-    "headline headline"
-    "text preview";
-  align-items: center;
-  gap: clamp(24px, 3vw, 40px) clamp(32px, 5vw, 88px);
-  min-height: calc(100svh - var(--bar));
-  padding: 8px 0 40px;
-}
-
-.hero__headline {
-  grid-area: headline;
-  font-size: clamp(2.4rem, 6.6vw, 7rem);
-  letter-spacing: -0.055em;
-  line-height: 0.95;
-}
-
-.hero__text {
-  grid-area: text;
-}
-
-.hero__lede {
-  max-width: 30em;
-  margin-bottom: 36px;
-  font-size: var(--step-lead);
-  line-height: 1.4;
-  color: var(--muted);
-}
-
-.hero .search {
-  max-width: 640px;
-}
-
-.hero__preview {
-  grid-area: preview;
-  justify-self: end;
-  width: min(100%, calc(100svh - var(--bar) - 290px), 760px);
-  min-width: 280px;
-}
-
-.hero__preview figcaption {
-  margin-top: 18px;
-  text-align: center;
-  color: var(--muted);
-  font-size: 1rem;
-}
-
-.hero__pause {
-  display: inline-flex;
-  align-items: center;
-  gap: 6px;
-  min-height: 32px;
-  margin-left: 14px;
-  padding: 0 4px;
-  border: 0;
-  background: none;
-  color: var(--muted);
-  font-size: inherit;
-}
-
-.hero__pause:hover {
-  color: var(--ink);
-}
-
-.hero__preview a {
-  color: var(--ink);
-}
-
 /* ------------------------------------------------------------------ sections */
 .section {
   margin-top: var(--section-gap);
@@ -426,22 +355,6 @@
 
 /* ------------------------------------------------------------------ narrower screens */
 @media (max-width: 960px) {
-  .hero {
-    grid-template-columns: 1fr;
-    grid-template-areas:
-      "headline"
-      "text"
-      "preview";
-    min-height: 0;
-    padding-top: 24px;
-  }
-
-  .hero__preview {
-    justify-self: center;
-    width: min(100%, 560px);
-    margin-top: 24px;
-  }
-
   .section__head,
   .doc__head,
   .field-section,

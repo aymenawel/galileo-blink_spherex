@@ -7,7 +7,7 @@ import "./styles/shell.css";
 import "./styles/home.css";
 import "./styles/viewer.css";
 import "./styles/details.css";
-import "./styles/skymap.css";
+import "./styles/skyhero.css";
 
 import { StrictMode } from "react";
 import { createRoot } from "react-dom/client";

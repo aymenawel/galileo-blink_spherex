@@ -70,24 +70,27 @@ export const COPY = {
   },
 
   home: {
-    headline: "Watch the infrared sky move.",
-    lede: "NASA's SPHEREx telescope photographs the whole sky every six months. Type any place and flip through the dates: whatever moved, shows.",
-    previewCaption: "Barnard's Star, the fastest-moving star in the sky",
-    previewOpen: "Open this view",
     previewsPause: "Pause the pictures",
     previewsPlay: "Play the pictures",
-    skyTitle: "The whole sky",
-    skyLede:
-      "Every direction SPHEREx has looked, in infrared light. The bright band is our own galaxy, the Milky Way, seen from inside. Click anywhere to open that place.",
-    skyAlt:
-      "The whole sky in infrared as an oval map: the Milky Way is a bright band across the middle, with its glowing centre in the middle of the oval.",
-    sky: {
-      label: "Map of the whole sky",
-      hint: "Point at the sky to read its position. Click to open that place.",
-      readout: (ra: string, dec: string) => `${ra}   ${dec}`,
-      target: (name: string) => `${name}: open its blink`,
+    skyHero: {
+      headlineA: "Watch the infrared",
+      headlineB: "sky move.",
+      ledeA: "NASA's SPHEREx telescope photographs the whole sky every six months.",
+      ledeB: "Type any place and flip through the dates: whatever moved, shows.",
+      mapAlt:
+        "The whole sky in infrared: the Milky Way is a bright band, with its glowing centre in the middle of the map.",
+      mapLabel: "Map of the whole sky. Point at it to read a position, click to open that place.",
+      hint: "Point anywhere on the sky to read its position. Click to open it.",
+      hintTouch: "Tap the sky to pick a place, then open it.",
+      openPlace: "Open this place",
+      coreLabel: "Centre of the Milky Way",
+      lensName: "Barnard's Star",
+      lensLine: "the fastest-moving star in the sky, magnified from its ring",
+      lensOpen: "Open this view",
+      lensLinkLabel: "Barnard's Star, blinking through SPHEREx's dates. Open this view.",
+      targetLinkLabel: (name: string) => `${name}: open its blink`,
+      credit: "SPHEREx all-sky map, 4.4 to 5.0 microns: NASA/JPL-Caltech, NASA/IPAC Infrared Science Archive.",
     },
-    skyCredit: "SPHEREx all-sky map, 4.4 to 5.0 microns: NASA/JPL-Caltech, NASA/IPAC Infrared Science Archive.",
     targetsTitle: "NASA's five test targets",
     targetsLede: "The challenge names five objects to try a tool like this on. Each one is ready to open.",
     targetsFailed: "The list of test targets could not be loaded right now. You can still search for any place above.",

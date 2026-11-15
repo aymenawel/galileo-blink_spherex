@@ -1,0 +1,744 @@
+/* The home page's first screen: the whole sky behind the words. Every rule starts with
+   .skyhero so nothing leaks into the rest of the site. Layers, back to front: the sky (0), the cone of the lens (1), words
+   and the lens itself (2). The words let pointer events through to the sky wherever they are
+   not something to press. */
+
+.skyhero {
+  /* The lens sits low on the right, under the band, and never covers the ring of WISE 0855
+     above it (the height term follows that ring down the map as the window changes shape). */
+  --skyhero-lens: clamp(220px, min(28vw, calc(0.53 * (100svh - var(--bar)) + 7.85vw - 82px)), 500px);
+  position: relative;
+  isolation: isolate;
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) auto;
+  grid-template-rows: auto minmax(20px, 1fr) auto auto;
+  grid-template-areas:
+    "title title"
+    ".     lens"
+    "intro lens"
+    "foot  foot";
+  column-gap: clamp(32px, 4vw, 72px);
+  min-height: calc(100svh - var(--bar));
+  padding: clamp(4px, 1.6vh, 28px) 0 14px;
+}
+
+/* ------------------------------------------------------------------ the sky, edge to edge */
+.skyhero .skyhero-sky {
+  position: absolute;
+  z-index: 0;
+  top: 0;
+  bottom: 0;
+  left: calc(50% - var(--skyhero-vw, 100vw) / 2);
+  width: var(--skyhero-vw, 100vw);
+  overflow: hidden;
+  user-select: none;
+  -webkit-tap-highlight-color: transparent;
+  /* The map dissolves into the bar above and the page below instead of being cut. */
+  -webkit-mask-image: linear-gradient(to bottom, transparent, #000 7%, #000 93%, transparent);
+  mask-image: linear-gradient(to bottom, transparent, #000 7%, #000 93%, transparent);
+}
+
+.skyhero .skyhero-sky--on {
+  cursor: crosshair;
+}
+
+.skyhero .skyhero-map {
+  position: absolute;
+  left: 0;
+  top: 47%;
+  width: 100%;
+  aspect-ratio: 2 / 1;
+  transform: translateY(-50%);
+  background: var(--bg);
+  isolation: isolate;
+}
+
+/* The picture's black is lifted to the page colour and its rim fades, so the Milky Way floats
+   on the page rather than sitting in a black oval. */
+.skyhero .skyhero-map__image {
+  width: 100%;
+  height: 100%;
+  mix-blend-mode: lighten;
+  filter: brightness(1.18) contrast(1.06);
+  -webkit-mask-image: radial-gradient(ellipse closest-side, #000 74%, transparent 100%);
+  mask-image: radial-gradient(ellipse closest-side, #000 74%, transparent 100%);
+  opacity: 0;
+}
+
+.skyhero .skyhero-map__image.is-loaded {
+  opacity: 1;
+}
+
+@media (prefers-reduced-motion: no-preference) {
+  .skyhero .skyhero-map__image {
+    transition: opacity 900ms var(--ease);
+  }
+}
+
+/* A quiet note at the bright core, for anyone who wonders what the glow is. */
+.skyhero .skyhero-core {
+  position: absolute;
+  width: 0;
+  height: 0;
+  pointer-events: none;
+}
+
+.skyhero .skyhero-core__label {
+  position: absolute;
+  top: clamp(26px, 3.2vw, 60px);
+  left: 0;
+  padding: 14px 0 0;
+  color: var(--faint);
+  font-size: 0.75rem;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  white-space: nowrap;
+  text-shadow: 0 0 6px var(--bg);
+}
+
+.skyhero .skyhero-core__label--hidden {
+  visibility: hidden;
+}
+
+.skyhero .skyhero-core__label::before {
+  content: "";
+  position: absolute;
+  top: 0;
+  left: 0;
+  width: 1px;
+  height: 9px;
+  background: var(--faint);
+}
+
+/* ------------------------------------------------------------------ the pointer and its position */
+.skyhero .skyhero-pointer {
+  position: absolute;
+  width: 26px;
+  height: 26px;
+  margin: -13px 0 0 -13px;
+  border: 1.5px solid var(--accent);
+  border-radius: 50%;
+  pointer-events: none;
+}
+
+.skyhero .skyhero-pointer::before,
+.skyhero .skyhero-pointer::after {
+  content: "";
+  position: absolute;
+  background: var(--accent);
+}
+
+.skyhero .skyhero-pointer::before {
+  left: 50%;
+  top: -9px;
+  width: 1.5px;
+  height: 6px;
+  margin-left: -0.75px;
+}
+
+.skyhero .skyhero-pointer::after {
+  top: 50%;
+  left: -9px;
+  width: 6px;
+  height: 1.5px;
+  margin-top: -0.75px;
+}
+
+.skyhero .skyhero-pointer__read {
+  position: absolute;
+  top: 50%;
+  left: 30px;
+  display: grid;
+  gap: 1px;
+  transform: translateY(-50%);
+  color: var(--ink);
+  font-size: 0.8125rem;
+  line-height: 1.25;
+  white-space: nowrap;
+  text-shadow: 0 0 6px var(--bg), 0 0 3px var(--bg);
+}
+
+.skyhero .skyhero-pointer__read--left {
+  left: auto;
+  right: 30px;
+  text-align: right;
+}
+
+/* ------------------------------------------------------------------ the five targets: rings that are links */
+.skyhero .skyhero-targets {
+  position: absolute;
+  inset: 0;
+  pointer-events: none;
+}
+
+.skyhero .skyhero-target {
+  position: absolute;
+  width: 44px;
+  height: 44px;
+  margin: -22px 0 0 -22px;
+  border-radius: 50%;
+  color: var(--ink);
+  text-decoration: none;
+  opacity: 0.8;
+  pointer-events: auto;
+}
+
+.skyhero .skyhero-target__ring {
+  position: absolute;
+  left: 50%;
+  top: 50%;
+  width: 14px;
+  height: 14px;
+  margin: -7px 0 0 -7px;
+  border: 1.5px solid currentColor;
+  border-radius: 50%;
+}
+
+.skyhero .skyhero-target__name {
+  position: absolute;
+  top: 50%;
+  left: calc(50% + 13px);
+  transform: translateY(-50%);
+  color: var(--muted);
+  font-size: var(--step-small);
+  line-height: 1;
+  white-space: nowrap;
+  text-shadow: 0 0 6px var(--bg), 0 0 3px var(--bg);
+}
+
+.skyhero .skyhero-target--under {
+  opacity: 0.45;
+}
+
+.skyhero .skyhero-target--under .skyhero-target__name {
+  opacity: 0;
+}
+
+.skyhero .skyhero-target--under:hover .skyhero-target__name,
+.skyhero .skyhero-target--under:focus-visible .skyhero-target__name {
+  opacity: 1;
+}
+
+.skyhero .skyhero-target--left .skyhero-target__name {
+  left: auto;
+  right: calc(50% + 13px);
+}
+
+.skyhero .skyhero-target--flip .skyhero-target__name {
+  left: calc(50% + 13px);
+  right: auto;
+}
+
+.skyhero .skyhero-target:not(.skyhero-target--left).skyhero-target--flip .skyhero-target__name {
+  left: auto;
+  right: calc(50% + 13px);
+}
+
+.skyhero .skyhero-target:hover,
+.skyhero .skyhero-target:focus-visible {
+  opacity: 1;
+  color: var(--accent);
+}
+
+.skyhero .skyhero-target:hover .skyhero-target__name,
+.skyhero .skyhero-target:focus-visible .skyhero-target__name {
+  color: var(--ink);
+}
+
+.skyhero .skyhero-target:focus-visible {
+  outline-offset: -4px;
+}
+
+/* The one that is magnified: accent, and a slow ripple while the pictures play. */
+.skyhero .skyhero-target--lensed {
+  color: var(--accent);
+  opacity: 1;
+}
+
+.skyhero .skyhero-target--lensed .skyhero-target__ring {
+  width: 22px;
+  height: 22px;
+  margin: -11px 0 0 -11px;
+}
+
+.skyhero .skyhero-target--lensed .skyhero-target__name {
+  left: auto;
+  right: calc(50% + 17px);
+  color: var(--ink);
+}
+
+.skyhero .skyhero-target--lensed::after {
+  content: "";
+  position: absolute;
+  left: 50%;
+  top: 50%;
+  width: 22px;
+  height: 22px;
+  margin: -11px 0 0 -11px;
+  border: 1px solid var(--accent);
+  border-radius: 50%;
+  opacity: 0;
+}
+
+@media (prefers-reduced-motion: no-preference) {
+  .skyhero.skyhero--moving .skyhero-target--lensed::after {
+    animation: skyhero-ripple 2.6s var(--ease) infinite;
+  }
+
+  .skyhero .skyhero-target {
+    transition:
+      opacity var(--fast) var(--ease),
+      color var(--fast) var(--ease);
+  }
+}
+
+@keyframes skyhero-ripple {
+  0% {
+    transform: scale(1);
+    opacity: 0.7;
+  }
+  100% {
+    transform: scale(2.6);
+    opacity: 0;
+  }
+}
+
+/* ------------------------------------------------------------------ the cone from the ring to the lens */
+.skyhero .skyhero-cone {
+  position: absolute;
+  z-index: 1;
+  inset: 0;
+  width: 100%;
+  height: 100%;
+  overflow: visible;
+  pointer-events: none;
+}
+
+.skyhero .skyhero-cone__fill {
+  fill: url(#skyhero-cone-fill);
+}
+
+.skyhero .skyhero-cone__stop-near {
+  stop-color: var(--accent);
+  stop-opacity: 0.13;
+}
+
+.skyhero .skyhero-cone__stop-far {
+  stop-color: var(--accent);
+  stop-opacity: 0.01;
+}
+
+.skyhero .skyhero-cone__edge {
+  stroke: var(--accent);
+  stroke-width: 1;
+  stroke-opacity: 0.7;
+}
+
+.skyhero .skyhero-cone__rim {
+  fill: none;
+  stroke: var(--accent);
+  stroke-width: 1;
+  stroke-opacity: 0.45;
+}
+
+.skyhero .skyhero-cone__tick {
+  stroke: var(--accent);
+  stroke-width: 1.5;
+}
+
+/* ------------------------------------------------------------------ words: over the sky, through to it */
+.skyhero .skyhero-title,
+.skyhero .skyhero-intro,
+.skyhero .skyhero-lens,
+.skyhero .skyhero-foot {
+  position: relative;
+  z-index: 2;
+  pointer-events: none;
+}
+
+.skyhero .skyhero-title {
+  grid-area: title;
+  align-self: start;
+  font-size: clamp(2.5rem, 0.4rem + 6.3vw, 9rem);
+  font-weight: 500;
+  letter-spacing: -0.06em;
+  line-height: 0.88;
+  text-wrap: wrap;
+  text-shadow: 0 0 30px var(--bg);
+}
+
+.skyhero .skyhero-title__line {
+  display: block;
+  width: fit-content;
+}
+
+/* A soft pool of page colour behind the words wherever the sky runs bright. No edge, no box. */
+.skyhero .skyhero-intro::before {
+  content: "";
+  position: absolute;
+  z-index: -1;
+  inset: -70px -110px -40px -90px;
+  background: radial-gradient(closest-side, color-mix(in srgb, var(--bg) 86%, transparent) 55%, transparent);
+  pointer-events: none;
+}
+
+.skyhero .skyhero-intro {
+  grid-area: intro;
+  align-self: end;
+  max-width: 640px;
+}
+
+.skyhero .skyhero-lede {
+  max-width: 36em;
+  margin-bottom: 22px;
+  color: var(--muted);
+  font-size: clamp(1rem, 0.9rem + 0.3vw, 1.1875rem);
+  line-height: 1.45;
+}
+
+.skyhero .skyhero-lede__b {
+  color: var(--ink);
+}
+
+.skyhero .skyhero-search {
+  pointer-events: auto;
+}
+
+/* ------------------------------------------------------------------ the lens: Barnard's Star, magnified */
+.skyhero .skyhero-lens {
+  grid-area: lens;
+  align-self: end;
+  justify-self: end;
+  display: flex;
+  align-items: flex-end;
+  gap: clamp(20px, 2vw, 36px);
+  margin-right: clamp(0px, 1.2vw, 20px);
+}
+
+.skyhero .skyhero-lens__glass {
+  order: 2;
+  flex: none;
+  width: var(--skyhero-lens);
+  pointer-events: auto;
+}
+
+.skyhero .skyhero-lens__link {
+  display: block;
+  border-radius: 50%;
+}
+
+.skyhero .skyhero-lens__link:focus-visible {
+  outline-offset: 22px;
+}
+
+.skyhero .skyhero-lens__caption {
+  display: grid;
+  justify-items: end;
+  gap: 2px;
+  width: 13.5em;
+  margin-bottom: 6px;
+  text-align: right;
+  font-size: var(--step-small);
+  line-height: 1.4;
+}
+
+.skyhero .skyhero-lens__name {
+  color: var(--ink);
+  font-size: 1.0625rem;
+  font-weight: 500;
+}
+
+.skyhero .skyhero-lens__line {
+  color: var(--muted);
+}
+
+.skyhero .skyhero-lens__actions {
+  display: flex;
+  flex-wrap: wrap;
+  justify-content: flex-end;
+  align-items: center;
+  gap: 0 16px;
+  margin-top: 6px;
+  pointer-events: auto;
+}
+
+.skyhero .skyhero-lens__actions a {
+  color: var(--ink);
+}
+
+.skyhero .skyhero-pause {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  min-height: 32px;
+  padding: 0 4px;
+  border: 0;
+  background: none;
+  color: var(--muted);
+  font-size: inherit;
+}
+
+.skyhero .skyhero-pause:hover {
+  color: var(--ink);
+}
+
+/* ------------------------------------------------------------------ the foot: how to use the map, and whose map it is */
+.skyhero .skyhero-foot {
+  grid-area: foot;
+  display: flex;
+  justify-content: space-between;
+  align-items: baseline;
+  gap: 8px 32px;
+  margin-top: 18px;
+  font-size: 0.8125rem;
+}
+
+.skyhero .skyhero-hint {
+  color: var(--muted);
+}
+
+.skyhero .skyhero-hint__touch {
+  display: none;
+}
+
+@media (hover: none) {
+  .skyhero .skyhero-hint__point {
+    display: none;
+  }
+
+  .skyhero .skyhero-hint__touch {
+    display: inline;
+  }
+}
+
+.skyhero .skyhero-credit {
+  color: var(--faint);
+  text-align: right;
+}
+
+/* ------------------------------------------------------------------ medium screens: the lens stays beside the words */
+@media (max-width: 1100px) {
+  .skyhero {
+    --skyhero-lens: clamp(200px, min(34vw, calc(100svh - var(--bar) - 350px)), 400px);
+  }
+
+  .skyhero .skyhero-lens {
+    flex-direction: column;
+    align-items: center;
+    gap: 22px;
+  }
+
+  .skyhero .skyhero-lens__caption {
+    order: 2;
+    width: auto;
+    max-width: var(--skyhero-lens);
+    justify-items: center;
+    text-align: center;
+  }
+
+  .skyhero .skyhero-lens__actions {
+    justify-content: center;
+  }
+
+  .skyhero .skyhero-foot {
+    flex-direction: column;
+    align-items: flex-start;
+  }
+
+  .skyhero .skyhero-credit {
+    text-align: left;
+  }
+}
+
+/* ------------------------------------------------------------------ a place picked by a tap, and the button that opens it */
+.skyhero .skyhero-pointer__open {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  min-height: 36px;
+  margin-top: 6px;
+  padding: 0 14px;
+  border: 0;
+  border-radius: 999px;
+  background: var(--accent);
+  color: var(--accent-ink);
+  font-size: var(--step-small);
+  font-weight: 500;
+  text-shadow: none;
+  pointer-events: auto;
+}
+
+.skyhero .skyhero-pointer__read--left .skyhero-pointer__open {
+  justify-self: end;
+}
+
+/* On the upright map the position is written above the spot (below it near the top), and
+   kept inside the screen: centred, or hanging from the spot toward the middle of the map. */
+.skyhero .skyhero-pointer__read--above,
+.skyhero .skyhero-pointer__read--below {
+  top: auto;
+  right: auto;
+  bottom: 34px;
+  left: 50%;
+  justify-items: center;
+  transform: translateX(-50%);
+  text-align: center;
+}
+
+.skyhero .skyhero-pointer__read--below {
+  top: 34px;
+  bottom: auto;
+}
+
+.skyhero .skyhero-pointer__read--start {
+  left: 0;
+  justify-items: start;
+  transform: none;
+  text-align: left;
+}
+
+.skyhero .skyhero-pointer__read--end {
+  right: 0;
+  left: auto;
+  justify-items: end;
+  transform: none;
+  text-align: right;
+}
+
+/* ------------------------------------------------------------------ phones: the words first, then the whole sky standing upright */
+@media (max-width: 760px) {
+  .skyhero {
+    --skyhero-lens: min(44vw, 200px);
+    /* The upright map is as wide as a phone, and no wider on a small tablet. */
+    --skyhero-map: min(var(--skyhero-vw, 100vw), 460px);
+    grid-template-columns: minmax(0, 1fr);
+    grid-template-rows: auto auto auto auto;
+    grid-template-areas:
+      "title"
+      "intro"
+      "sky"
+      "foot";
+    min-height: 0;
+    padding-top: 16px;
+  }
+
+  .skyhero .skyhero-title {
+    font-size: clamp(2.5rem, 11.5vw, 3.75rem);
+    line-height: 0.92;
+  }
+
+  /* The two halves of the headline run on as one sentence and wrap where they fit. */
+  .skyhero .skyhero-title__line {
+    display: inline;
+  }
+
+  .skyhero .skyhero-intro {
+    align-self: start;
+    max-width: none;
+    margin-top: 20px;
+  }
+
+  .skyhero .skyhero-intro::before {
+    display: none;
+  }
+
+  /* The map turned a quarter turn: twice as tall as the screen is wide, so the whole sky is on
+     a phone at a size worth looking at, with the Milky Way running down the middle. */
+  .skyhero .skyhero-sky {
+    grid-area: sky;
+    position: relative;
+    top: auto;
+    bottom: auto;
+    left: auto;
+    width: var(--skyhero-map);
+    margin: 8px calc(50% - var(--skyhero-map) / 2) 0;
+    -webkit-mask-image: linear-gradient(to bottom, transparent, #000 4%, #000 96%, transparent);
+    mask-image: linear-gradient(to bottom, transparent, #000 4%, #000 96%, transparent);
+  }
+
+  .skyhero .skyhero-map {
+    position: relative;
+    top: auto;
+    left: auto;
+    width: 100%;
+    aspect-ratio: 1 / 2;
+    transform: none;
+  }
+
+  .skyhero .skyhero-map__image {
+    position: absolute;
+    top: 50%;
+    left: 50%;
+    width: 200%;
+    max-width: none;
+    height: 50%;
+    transform: translate(-50%, -50%) rotate(90deg);
+  }
+
+  /* Beside the core rather than under it, on two lines, so it stays on the screen. */
+  .skyhero .skyhero-core__label {
+    top: -8px;
+    left: 26px;
+    width: 11em;
+    padding: 0 0 0 10px;
+    line-height: 1.35;
+    white-space: normal;
+  }
+
+  .skyhero .skyhero-core__label::before {
+    top: 6px;
+    width: 6px;
+    height: 1px;
+  }
+
+  /* The lens rests on the dark sky at the lower left of the map, joined to Barnard's ring above it. */
+  .skyhero .skyhero-lens {
+    grid-area: sky;
+    align-self: end;
+    justify-self: start;
+    flex-direction: column;
+    align-items: flex-start;
+    gap: 16px;
+    /* A little inside the map's left edge, a little above its foot. */
+    margin: 0 0 calc(var(--skyhero-map) * 0.09) calc(50% - var(--skyhero-map) * 0.395);
+  }
+
+  .skyhero .skyhero-lens__glass {
+    order: 0;
+  }
+
+  /* The lens is too small here for the date label to fit inside its round edge. */
+  .skyhero .skyhero-lens .blink-preview__date {
+    display: none;
+  }
+
+  .skyhero .skyhero-lens__caption {
+    order: 2;
+    justify-items: start;
+    width: auto;
+    max-width: 48vw;
+    margin: 0;
+    text-align: left;
+  }
+
+  .skyhero .skyhero-lens__line {
+    display: none;
+  }
+
+  .skyhero .skyhero-lens__actions {
+    flex-direction: column;
+    align-items: flex-start;
+    justify-content: flex-start;
+    gap: 2px;
+  }
+
+  .skyhero .skyhero-foot {
+    flex-direction: column;
+    align-items: flex-start;
+    margin-top: 12px;
+  }
+
+  .skyhero .skyhero-credit {
+    text-align: left;
+  }
+}

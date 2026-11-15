@@ -307,12 +307,26 @@ button:disabled {
   color: var(--muted);
 }
 
-/* The view through an eyepiece: every preview of the sky on this site is round. */
+/* The view through an eyepiece: every preview of the sky on this site is round. The picture's
+   black is lifted to the page's own ground colour and its rim fades out, so the stars float on
+   the page instead of sitting on a black disc: screens differ in how far apart they show black
+   and near-black, and a disc that vanishes on one screen stands out on another. */
 .eyepiece {
   border-radius: 50%;
   overflow: hidden;
   aspect-ratio: 1;
-  background: var(--surface);
+  background: var(--bg);
+  isolation: isolate;
+  -webkit-mask-image: radial-gradient(closest-side, #000 84%, transparent 100%);
+  mask-image: radial-gradient(closest-side, #000 84%, transparent 100%);
+}
+
+.eyepiece .sky {
+  background: var(--bg);
+}
+
+.eyepiece .sky img {
+  mix-blend-mode: lighten;
 }
 
 .blink-preview {
