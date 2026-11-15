@@ -99,6 +99,10 @@ def parse_most(text: str) -> tuple[str | None, list[Sighting]]:
     return name, sorted(sightings, key=lambda s: s.mjd)
 
 
+class NoSightings(UserError):
+    """The asteroid is known, but no SPHEREx photo holds it."""
+
+
 _MATCH_LINE = re.compile(r"^\s*(\d+)\s+(.+?),\s*Object Type=Asteroid", re.MULTILINE)
 
 
@@ -113,6 +117,17 @@ def numbered_match(answer: str, name: str) -> str | None:
     numbers = [int(number) for number, listed in _MATCH_LINE.findall(answer)
                if listed.strip().lower() == wanted]
     return str(min(numbers)) if numbers else None
+
+
+def _ask_by_number(number: str) -> tuple[str, list[Sighting]]:
+    """Ask again for an asteroid by the number the search itself listed. If it now refuses
+    that number, the fault is the search's, not the visitor's."""
+    try:
+        return asteroid_sightings(number, _retried=True)
+    except NoSightings:
+        raise
+    except UserError:
+        raise ServiceDown(MOST_SERVICE, "it refused a name it had just listed") from None
 
 
 def asteroid_sightings(name: str, _retried: bool = False) -> tuple[str, list[Sighting]]:
@@ -130,14 +145,14 @@ def asteroid_sightings(name: str, _retried: bool = False) -> tuple[str, list[Sig
         if e.detail == "HTTP 400":              # MOST's way of saying it cannot settle the name
             number = None if _retried else numbered_match(e.body, name)
             if number:                          # "Vesta" is ambiguous; "4" is not
-                return asteroid_sightings(number, _retried=True)
+                return _ask_by_number(number)
             raise unknown from None
         raise
     full_name, sightings = parse_most(r.text)
     if not sightings and not _retried:
         number = numbered_match(r.text, name)
         if number:                              # "Vesta" is ambiguous; "4" is not
-            return asteroid_sightings(number, _retried=True)
+            return _ask_by_number(number)
     if not sightings:
         head = r.text.lower()[:2000]
         if "<html" in head and "not found" not in head:
@@ -146,8 +161,8 @@ def asteroid_sightings(name: str, _retried: bool = False) -> tuple[str, list[Sig
             raise unknown
         if full_name is None:                   # not even the header of an answer
             raise ServiceDown(MOST_SERVICE, "it sent a page that is not an answer")
-        raise UserError(f"SPHEREx has not photographed “{name}” yet, or it was never "
-                        "inside a photo.")
+        raise NoSightings(f"SPHEREx has not photographed “{name}” yet, or it was never "
+                          "inside a photo.")
     return full_name or name, sightings
 
 

@@ -100,3 +100,17 @@ def test_a_refused_request_keeps_what_the_service_said(monkeypatch):
     with pytest.raises(ServiceDown) as caught:
         http.get("https://example.invalid/", service="a test service")
     assert caught.value.detail == "HTTP 400" and "Multiple matches" in caught.value.body
+
+
+def test_a_hiccup_on_the_second_ask_is_an_outage_not_an_unknown_asteroid(monkeypatch):
+    """If the search refuses the very number it just listed, that is its problem: the visitor
+    is asked to try again, and is never told that "4" is an unknown asteroid."""
+    from galileo_blink.engine.errors import ServiceDown
+
+    def fake_get(url, *, params, **kwargs):
+        body = AMBIGUOUS if params["obj_name"] == "Vesta" else "Object Name Error"
+        raise ServiceDown(asteroids.MOST_SERVICE, "HTTP 400", body=body)
+
+    monkeypatch.setattr(asteroids.http, "get", fake_get)
+    with pytest.raises(ServiceDown):
+        asteroids.asteroid_sightings("Vesta")
