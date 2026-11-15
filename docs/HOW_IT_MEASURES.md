@@ -29,10 +29,14 @@ reason. Numbers that belong to one step are named at the top of that step's modu
    than noise and wavelength can explain, in which case the fainter value (a cosmic ray only
    adds light).
 4. **Display.** One brightness scale per camera, shared by all its seasons: black at the sky's
-   median plus two sigma, an asinh stretch above. "No data" is transparent and drawn hatched.
+   median plus two sigma, an asinh stretch above. "No data" is transparent and drawn hatched. One exception, in
+   the pictures only: the core of a star so bright that the detector overflowed is blank in
+   the data, and is drawn white (a small blank island wholly surrounded by bright pixels).
+   Measurements still treat those pixels as unusable.
 5. **Change maps.** One date minus another, after scaling so the field's stars match, divided
    by a noise that grows under bright stars (their brightness differs between photos because
-   each photo is a different wavelength).
+   each photo is a different wavelength). Anything below 2.5 sigma is drawn black, rising
+   to full colour at 9 sigma, so noise stays dark and only real change shows.
 
 ## 3. Where catalogued objects should be
 
@@ -102,7 +106,32 @@ the object is today (NASA's WISE 0855 coordinate is its 2010 position, 2 arcminu
   all dates and has 12.9″ pixels, so it shows the shape of a spectrum, not precise brightness
   or change.
 
-## 6. Asteroids (one visit)
+## 6. Brightness change
+
+Two of the test targets are variable stars that do not move, so the question for them is
+whether their light changed (`engine/looks/variability.py`).
+
+- **Like with like.** Every photo sees the object at a different wavelength, so two photos of a
+  steady star rarely agree. Brightness is therefore compared only inside one camera. All of a
+  camera's clean photos (status "ok", signal-to-noise at least 5) are fitted together: the
+  spectrum inside the camera's band is taken as a straight line in log brightness against
+  wavelength, and only its level may differ from season to season. The first season with
+  photos counts as 1.
+- **The error.** The fit's own error is scaled by how far the photos scatter around it. The
+  same fit is then run on the view's reference stars, which do not vary; how far their ratios
+  stray from 1 (1.48 times the median absolute deviation, from at least 3 stars) is the view's
+  floor, and it is added to every error. With fewer than 3 usable stars a floor of 10 percent
+  is assumed and the result says so.
+- **The verdict.** A season counts as changed only when it differs from the first by more than
+  3 times its total error.
+- **When nothing can be said.** A camera needs two seasons with at least two clean photos each
+  at more than one wavelength. A star saturated in every photo (R Draconis, Barnard's Star)
+  gets no brightness result, and the page says why.
+- **RW Aurigae, measured.** Between September 2025 and September 2026 it fell to 0.51 ± 0.03 of
+  its first brightness in camera 6 (4.4 to 5.0 microns) and rose to about 1.8 times in camera 1
+  (0.75 to 1.1 microns). The tool reports the change; it does not explain it.
+
+## 7. Asteroids (one visit)
 
 Within one visit (up to 10 days, one camera) photos taken within 29 minutes form a *moment*.
 The median of the moments is the sky that stays put; each moment minus that sky leaves what was
@@ -113,7 +142,7 @@ A path is **strong** if seen in four or more moments and in 70% of those where i
 been seen, or if a catalogued asteroid (IMCCE SkyBoT) is predicted on it in two moments;
 otherwise it is **possible**. Movers are searched for only where three moments overlap.
 
-## 7. What it cannot do
+## 8. What it cannot do
 
 | Limit | Why |
 |---|---|

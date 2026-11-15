@@ -7,9 +7,10 @@
  * and the picture always match. Numbers in the words come from the view's own measurement.
  */
 import type { CameraKey, Motion, View } from "../api/types";
-import { analogy, compassWord } from "../lib/copy";
+import { bandOf } from "../lib/cameras";
+import { analogy, brightnessSentence, compassWord } from "../lib/copy";
 import type { Mode } from "../lib/exploreAddress";
-import { arcsecNumber, fieldWords } from "../lib/format";
+import { arcsecNumber, fieldWords, microns } from "../lib/format";
 
 /** What the page shows while a step is open. Anything left out stays as the visitor had it. */
 export interface FirstLookShow {
@@ -77,13 +78,13 @@ function measurementStep(view: View, name: string, why: string): FirstLookStep {
 const COUNT_WORDS: Record<number, string> = { 2: "Two", 3: "Three", 4: "Four", 5: "Five", 6: "Six" };
 
 const CHANGE_STEP_TEXT =
-  "Stars that stayed put cancel out. Anything that moved leaves a pair: magenta where it was, green where it is now.";
+  "Stars that stayed put cancel out. Anything that moved leaves a pair: pink where it was, green where it is now.";
 
 const TARGETS: Record<string, Steps> = {
   barnard: (view) => [
     {
       title: "Find the one that moves",
-      text: `Every dot here is a star. Watch the bright one in the middle: ${between(view)} it steps ${heading(motionOf(view)) ?? "north"}, up the picture, while its neighbours stay where they are. The hatched patch in its middle is where it is too bright for the detector.`,
+      text: `Every dot here is a star. Watch the bright one in the middle: ${between(view)} it steps ${heading(motionOf(view)) ?? "north"}, up the picture, while its neighbours stay where they are.`,
       show: { mode: "blink", blink: "play", markers: false },
     },
     {
@@ -137,29 +138,46 @@ const TARGETS: Record<string, Steps> = {
     measurementStep(view, "WISE 0855", "Only one camera can see it, so the error is larger than for a bright star."),
   ],
 
-  rwaur: (view) => [
-    {
-      title: "A star that stays put",
-      text: "RW Aurigae is a young star still gathering gas and dust from a disk around it. Watch the centre as the dates play: it stays inside its ring.",
-      show: { mode: "blink", blink: "play", markers: true },
-    },
-    {
-      title: "But it does not stay the same",
-      text: "Change shows the last date minus the first, here in camera 5. A steady star would cancel out. Magenta at the centre means it was fainter on the later date.",
-      show: { mode: "change", camera: "5", markers: true },
-    },
-    {
-      title: "Try another camera",
-      text: "Each camera sees a different slice of infrared, and a young star can brighten in one while fading in another. Pick cameras 1 to 6 under the picture and compare.",
-      show: { mode: "change", markers: true },
-    },
-    measurementStep(view, "RW Aurigae", "A shift that small is no motion at all: the star is 500 light-years away."),
-  ],
+  rwaur: (view) => {
+    const best = view.brightness_change?.best;
+    const camera = best ? (`${best.camera}` as CameraKey) : "5";
+    const fainter = !best || best.ratio < 1;
+    const steps: FirstLookStep[] = [
+      {
+        title: "A star that stays put",
+        text: "RW Aurigae is a young star still gathering gas and dust from a disk around it. Watch the centre as the dates play: it stays inside its ring.",
+        show: { mode: "blink", blink: "play", markers: true },
+      },
+      {
+        title: "But it does not stay the same",
+        text: `Change shows the last date minus the first, here in camera ${camera}. A steady star would cancel out. ${fainter ? "Pink" : "Green"} at the centre means it was ${fainter ? "fainter" : "brighter"} on the later date.`,
+        show: { mode: "change", camera, markers: true },
+      },
+    ];
+    if (best?.changed) {
+      steps.push({
+        title: "How much?",
+        text: `${brightnessSentence({
+          name: "it",
+          first: seasonLabel(view, best.first_season) ?? "the first date",
+          last: seasonLabel(view, best.last_season) ?? "the last date",
+          camera: best.camera,
+          band: microns(bandOf(view.cameras[camera], camera)),
+          ratio: best.ratio,
+          error: best.error,
+          changed: true,
+        })} Other cameras tell a different story: every one is plotted under "Did its brightness change?" further down.`,
+        show: { mode: "change", camera, markers: true },
+      });
+    }
+    steps.push(measurementStep(view, "RW Aurigae", "A shift that small is no motion at all: the star is 500 light-years away."));
+    return steps;
+  },
 
   rdra: (view) => [
     {
       title: "Too bright for the camera",
-      text: "R Draconis is a red giant that swells and shrinks over about eight months. It is so bright in infrared that its image overflows the detector: the hatched middle is where no reading was possible.",
+      text: "R Draconis is a red giant that swells and shrinks over about eight months. It is so bright in infrared that its image overflows the detector: the white disc is glare, far wider than the star itself.",
       show: { mode: "blink", blink: "first", markers: true },
     },
     {

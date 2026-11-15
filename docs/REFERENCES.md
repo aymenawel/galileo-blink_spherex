@@ -13,7 +13,7 @@ Every external resource Galileo Blink uses: data, services, software and fonts.
 | Resource | Used for | Link |
 |---|---|---|
 | SPHEREx Level-2 spectral images (DR1, doi:10.26131/IRSA678; QR3, doi:10.26131/IRSA662), NASA/JPL-Caltech | Every image shown | https://irsa.ipac.caltech.edu/Missions/spherex.html |
-| SPHEREx DR1 spectral all-sky cube (HiPS, doi:10.26131/IRSA679) | Quick-look spectra | https://irsa.ipac.caltech.edu/data/hips/SPHEREx/spherex_allsky_cube |
+| SPHEREx DR1 spectral all-sky cube (HiPS, doi:10.26131/IRSA679) | Quick-look spectra, and the all-sky picture on the home page (made by `scripts/make_sky_map.py` from the cube's 4.4 to 5.0 micron previews) | https://irsa.ipac.caltech.edu/data/hips/SPHEREx/spherex_allsky_cube |
 | NASA/IPAC Infrared Science Archive (IRSA): Simple Image Access, file server | Finding and reading photos | https://irsa.ipac.caltech.edu |
 | IRSA public cloud copy of SPHEREx (AWS Open Data, bucket `nasa-irsa-spherex`) | Fast partial reads of photos and cube tiles | https://irsa.ipac.caltech.edu/cloud_access/ |
 | IRSA catalogue service (Gator): CatWISE2020 | Brown dwarfs and other objects Gaia cannot see | https://irsa.ipac.caltech.edu/applications/Gator/ |

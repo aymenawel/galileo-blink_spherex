@@ -19,21 +19,27 @@ An independent student project. Not an official NASA product.
 
 | You want to... | Galileo Blink gives you |
 |---|---|
+| Start from the whole sky | An all-sky infrared map made from SPHEREx's own mosaic: click anywhere to open that place |
 | Look at any place | Type coordinates (decimal, sexagesimal, or NASA's own "Right Ascension 08h55m10.831s, declination -7d14m42.53s") or an object name |
 | Choose how to look | Pictures months apart (for stars) or hours apart (for asteroids), the width of the view in fractions of the Moon, and the camera of an asteroid search |
 | See what moved | A blink of every six-month season SPHEREx has seen, aligned north-up, in all six cameras at once |
 | Know where things *should* be | Markers from Gaia DR3 and CatWISE2020, carried to each date with proper motion and parallax |
+| Be shown what to look for | A short guided first look on every view: a few steps that set the picture and say in plain words what moved and why it matters |
 | Measure it | The motion of the central object versus its catalogue prediction, per camera, with error bars measured from the stars that do not move |
 | Compare dates | Swipe between two dates, subtract one from another, or add everything together |
+| See if it changed brightness | Each camera compared with itself from date to date, with the apparent change of ordinary stars in the same view as the error floor |
 | Find asteroids | One visit, moment by moment: the sky that stays put is subtracted and what is left moving is tracked, then named from the asteroid catalogue. Type an asteroid's name to watch it cross |
 | See its colours | A spectrum from the photos themselves, and a 102-colour quick look anywhere from NASA's all-sky cube |
 | Trust it | NASA's quality flags shown on the image; every limit stated in plain words |
+| Check it elsewhere | Links to the same place in NASA's SPHEREx viewer, WiseView, SIMBAD and the Legacy Surveys |
+| Understand the words | Fifteen terms explained in one sentence each, linked from every view |
 | Share it | Everything is in the URL |
 | Save it | Any camera's blink as an animated GIF |
 
 NASA's five test targets (Barnard's Star, Epsilon Indi B, WISE 0855, RW Aurigae, R Draconis)
-and five asteroid examples are prebuilt and open instantly. Any other place is built live, in
-well under a minute.
+and five asteroid examples are prebuilt and open instantly. Any other place is built live, usually
+in under a minute (about 40 seconds on the public site, half of it waiting for NASA's
+archive to list the photos).
 
 **What it is not.** Galileo Blink does not claim discoveries. A distant planet beyond Neptune
 would be too faint for a single SPHEREx photo and would jump 10 to 25 arcminutes between
@@ -106,6 +112,8 @@ galileo_blink/
     looks/              The six-month view.
       seasons.py          Groups photos into looks and seasons.
       astrometry.py       Registration on field stars; measured vs predicted motion.
+      variability.py      Did the brightness change? Each camera against itself, with a floor
+                          from the stars that do not vary.
       build.py            The whole job: one place -> pictures + view.json.
     visit/              The asteroid view (one visit, moment by moment).
       detect.py           Image subtraction, then linking leftovers into straight paths.
@@ -114,7 +122,7 @@ galileo_blink/
       cube.py             A 102-colour quick-look spectrum from the DR1 all-sky cube.
 data/                   Catalogue values for the five test targets; the asteroid examples.
 prebuilt/               Ready-made views, shipped with the site so they open instantly.
-scripts/                prebuild_targets.py
+scripts/                prebuild_targets.py; make_sky_map.py (the home page's all-sky picture)
 tests/                  Offline tests (synthetic photos with known truth) and live checks.
 ```
 
