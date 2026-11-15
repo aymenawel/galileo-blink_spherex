@@ -8,7 +8,7 @@
  * cannot be measured the text says so and why.
  */
 import type { ErrorKind, Motion, Subject, SubjectKind, View } from "../api/types";
-import { arcsec, arcsecNumber, formatCount, microns, plural, roundSignificant } from "./format";
+import { arcsec, arcsecNumber, formatCount, microns, plural, roundSignificant, shortPosition } from "./format";
 
 export const REPOSITORY_URL = "https://github.com/aymenawel/galileo-blink_spherex";
 
@@ -173,6 +173,8 @@ export const COPY = {
     stars: "Gaia stars",
     saveGif: "Save GIF",
     saveGifHint: "Download this camera's blink as an animated picture you can share.",
+    savePicture: "Save picture",
+    savePictureHint: "Download this picture with the measurement written on it.",
     catwise: "CatWISE",
     catwiseHint:
       "Objects the CatWISE catalogue lists as moving fast. Many are false alarms near bright stars, so they are hidden until you ask.",
@@ -450,6 +452,15 @@ export function subjectName(view: Pick<View, "target" | "subject" | "label">): s
   const isCatalogueNumber = /^(Gaia|CatWISE|AllWISE|2MASS|WISE[AJ ])/i.test(name) && /\d{6,}/.test(name);
   if (view.subject?.kind === "spot" || !name) return view.label ?? "this spot";
   return isCatalogueNumber ? (view.label ?? "this star") : name;
+}
+
+/** The heading of a six-month view: its name, or for a star with no spoken name, where it is. */
+export function viewTitle(view: Pick<View, "target" | "subject" | "label" | "ra" | "dec">, searchedName: string | null): string {
+  const named = view.target?.name ?? searchedName ?? view.label;
+  if (named) return named;
+  if ((view.subject?.kind ?? "spot") === "spot") return COPY.subject.unnamedPlace;
+  const own = subjectName(view);
+  return own === "this star" ? `Star at ${shortPosition(view.ra, view.dec)}` : own;
 }
 
 /** Whose prediction a measurement is compared with. */

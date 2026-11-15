@@ -34,7 +34,7 @@ An independent student project. Not an official NASA product.
 | Check it elsewhere | Links to the same place in NASA's SPHEREx viewer, WiseView, SIMBAD and the Legacy Surveys |
 | Understand the words | Fifteen terms explained in one sentence each, linked from every view |
 | Share it | Everything is in the URL |
-| Save it | Any camera's blink as an animated GIF |
+| Save it | Any camera's blink as an animated GIF, or one picture with the measurement written on it |
 
 NASA's five test targets (Barnard's Star, Epsilon Indi B, WISE 0855, RW Aurigae, R Draconis)
 and five asteroid examples are prebuilt and open instantly. Any other place is built live, usually
@@ -103,6 +103,7 @@ galileo_blink/
       stack.py            Adds photos together; subtracts one date from another.
       measure.py          Position and brightness of a star (profile fit; wing fit if saturated).
       render.py           PNGs for the browser; "no data" stays visibly no data.
+      card.py             One still picture with the result written under it, to save and share.
     sky/                Working with the sky.
       coords.py           What a person typed -> a place (and follows fast stars to today).
       catalogues.py       Gaia DR3 (NASA MAST) and CatWISE2020 (NASA/IPAC IRSA).

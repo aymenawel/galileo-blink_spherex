@@ -14,6 +14,7 @@ import {
   isStatic,
   motionSentence,
   subjectName,
+  viewTitle,
 } from "../../lib/copy";
 import { arcsec } from "../../lib/format";
 import { brightnessHeadline } from "../panels/BrightnessPanel";
@@ -34,7 +35,7 @@ export function ViewTitle({ view, searchedName }: SummaryProps & { searchedName:
   }
   const { target, subject } = view;
   const kind = subject?.kind ?? "spot";
-  const title = target?.name ?? searchedName ?? view.label ?? (kind === "spot" ? COPY.subject.unnamedPlace : subjectName(view));
+  const title = viewTitle(view, searchedName);
   return (
     <header className="side__head">
       <h1 className="side__title">{title}</h1>

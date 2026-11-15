@@ -272,6 +272,51 @@ def test_a_saved_gif_credits_the_data_and_the_site(client, monkeypatch):
     assert 10 + caption + 10 < render.GIF_SIZE - draw.textlength(stamps[0], font_size=13) - 10
 
 
+def _card_view(key, **extra):
+    view = dict(kind="looks", engine=C.ENGINE_VERSION, key=key, degraded=[], label="Test place", n=9,
+                upscale=4, seasons=[dict(index=0, label="Aug 2025"), dict(index=1, label="Feb 2026")],
+                cameras={"6": dict(band=[4.42, 5.0], looks=[dict(season=0, png="c6_s0.png")])},
+                motion=dict(measured=10.27, predicted=10.29, error=0.45, agrees=True,
+                            first_season=0, last_season=1))
+    view.update(extra)
+    write_json(view_dir(key) / "view.json", view)
+
+
+def test_a_view_can_be_saved_as_one_picture_with_its_result(client):
+    import io
+    from PIL import Image
+    key = wait(client, client.get("/api/view", params=dict(ra=180, dec=0)).json()["key"])["key"]
+    _card_view(key)
+    r = client.get(f"/api/view/{key}/card.png", params=dict(camera=6, season=0))
+    assert r.status_code == 200 and r.headers["content-type"] == "image/png"
+    assert 'filename="galileo-blink-test-place-camera6.png"' in r.headers["content-disposition"]
+    assert r.headers["content-disposition"].startswith("attachment")
+    assert r.headers["cache-control"] == "no-cache"
+    assert Image.open(io.BytesIO(r.content)).width == 1200
+    # without a season, the camera's last date; a change map falls back to the photo
+    assert client.get(f"/api/view/{key}/card.png", params=dict(camera=6, layer="change")).status_code == 200
+
+
+def test_a_saved_picture_is_refused_clearly_when_there_is_none(client):
+    key = wait(client, client.get("/api/view", params=dict(ra=180, dec=0)).json()["key"])["key"]
+    _card_view(key)
+    assert client.get("/api/view/nothing-here/card.png", params=dict(camera=6)).status_code == 404
+    for params in (dict(camera=2), dict(camera=6, season=5)):
+        r = client.get(f"/api/view/{key}/card.png", params=params)
+        assert r.status_code == 400 and r.json()["error_kind"] == "request"
+    for params in (dict(camera=7), dict(camera=6, layer="map"), dict(camera=6, season="x")):
+        assert client.get(f"/api/view/{key}/card.png", params=params).status_code == 422
+
+
+def test_a_saved_picture_gets_a_plain_filename_whatever_the_place_is_called(client):
+    key = wait(client, client.get("/api/view", params=dict(ra=180, dec=0)).json()["key"])["key"]
+    _card_view(key, label="Étoile β 北")
+    r = client.get(f"/api/view/{key}/card.png", params=dict(camera=6))
+    assert r.status_code == 200
+    assert r.headers["content-disposition"].isascii()
+    assert "galileo-blink-toile-camera6.png" in r.headers["content-disposition"]
+
+
 def test_built_scripts_are_cached_for_good_and_fonts_have_their_type(tmp_path, monkeypatch):
     from galileo_blink.server import app as server
     dist = tmp_path / "dist"

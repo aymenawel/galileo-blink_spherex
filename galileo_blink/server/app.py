@@ -19,7 +19,7 @@ from fastapi.staticfiles import StaticFiles
 from ..engine import constants as C
 from ..engine import flags as engine_flags
 from ..engine.errors import ServiceDown, UserError
-from ..engine.image import render
+from ..engine.image import card, render
 from ..engine.image.stack import change_map, combine
 from ..engine.looks.build import ViewRequest, target_request
 from ..engine.sky import asteroids, coords, targets
@@ -286,6 +286,31 @@ def create_app(builder: Builder | None = None) -> FastAPI:
         gif = render.blink_gif(pictures, captions, GIF_CREDIT, ms)
         return Response(gif, media_type="image/gif", headers={
             "Content-Disposition": f'attachment; filename="galileo-blink-{slug}-camera{camera}.gif"',
+            "Cache-Control": "no-cache"})
+
+    @app.get("/api/view/{key}/card.png")
+    def view_card(key: str, camera: int = Query(..., ge=1, le=6), season: int | None = None,
+                  layer: str = Query("photo", pattern="^(photo|change)$")):
+        """One still picture of the view with its result written under it, to save or share.
+        Without a season, the camera's last date."""
+        found = builder.find(key)
+        if found is None:
+            raise HTTPException(404)
+        folder, view = found
+        looks = [look for look in (view.get("cameras", {}).get(str(camera)) or {}).get("looks") or []
+                 if look.get("png") and (folder / look["png"]).is_file()]
+        look = looks[-1] if looks and season is None else next(
+            (look for look in looks if look.get("season") == season), None)
+        if look is None:
+            raise UserError("That camera has no picture for that date.")
+        drawn = "change" if layer == "change" and look.get("change") and (folder / look["change"]).is_file() else "photo"
+        picture = (folder / (look["change"] if drawn == "change" else look["png"])).read_bytes()
+        png = card.card_png(picture, view, camera, look["season"], drawn, GIF_CREDIT)
+        name = (view.get("target") or {}).get("name") or view.get("label") or "sky"
+        # a header can only carry plain letters, so anything else in the name becomes a dash
+        slug = "".join(c if c.isascii() and c.isalnum() else "-" for c in name.lower()).strip("-") or "sky"
+        return Response(png, media_type="image/png", headers={
+            "Content-Disposition": f'attachment; filename="galileo-blink-{slug}-camera{camera}.png"',
             "Cache-Control": "no-cache"})
 
     @app.get("/api/about")

@@ -134,6 +134,11 @@ export function blinkGifUrl(view: Pick<View, "key">, camera: number, layer: "pho
   return `/api/view/${encodeURIComponent(view.key)}/blink.gif?camera=${camera}&layer=${layer}&ms=${frameMs}`;
 }
 
+/** Address of one still picture of a view, with its measurement written under it, to save or share. */
+export function cardUrl(view: Pick<View, "key">, camera: number, season: number, layer: "photo" | "change"): string {
+  return `/api/view/${encodeURIComponent(view.key)}/card.png?camera=${camera}&season=${season}&layer=${layer}`;
+}
+
 /** Address of a change map (season `a` minus season `b`) made on request. */
 export function changeMapUrl(view: Pick<View, "key">, camera: number, a: number, b: number): string {
   return `/api/view/${encodeURIComponent(view.key)}/compare?camera=${camera}&a=${a}&b=${b}&op=subtract`;

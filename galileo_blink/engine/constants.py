@@ -213,7 +213,7 @@ ASTEROID_FAINT_VMAG = 18.5
 """About the faintest asteroid the search recovers; fainter known ones are listed, not expected."""
 
 # --------------------------------------------------------------------------- cache
-ENGINE_VERSION = "gb3"
+ENGINE_VERSION = "gb4"
 """Part of every cache key. Bump it whenever the engine's output changes, or old views are
 served forever."""
 CACHE_PHOTOS_MAX_BYTES = 600 * 1024 * 1024

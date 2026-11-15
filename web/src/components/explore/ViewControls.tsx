@@ -2,9 +2,9 @@
  * The few controls beside the picture: which camera, what to draw on the picture, and the
  * choices of the view itself (time scale, field of view), with saving and sharing.
  */
-import { Download, Link2 } from "lucide-react";
+import { Download, ImageDown, Link2 } from "lucide-react";
 import { useCallback, useMemo, useState } from "react";
-import { blinkGifUrl, type ViewRequest } from "../../api/client";
+import { blinkGifUrl, cardUrl, type ViewRequest } from "../../api/client";
 import { CAMERA_KEYS, bandOf, looksOf } from "../../lib/cameras";
 import { COPY } from "../../lib/copy";
 import { DEFAULT_FIELD, DEFAULT_VISIT_FIELD, FIELD_CHOICES, exploreAddress } from "../../lib/exploreAddress";
@@ -105,6 +105,17 @@ export function ViewActions({ ws, request, name }: ViewActionsProps) {
     );
   };
   const canSave = ws.stepping && ws.cameraSeasons.length > 1;
+  // The one picture on screen: the date shown in Blink, the change map in Change, otherwise
+  // the camera's last date.
+  const lastSeason = ws.cameraSeasons[ws.cameraSeasons.length - 1];
+  const picture =
+    ws.mode === "blink"
+      ? { season: ws.season, layer: "photo" as const }
+      : ws.mode === "change"
+        ? { season: ws.stepping ? ws.season : ws.a, layer: "change" as const }
+        : lastSeason === undefined
+          ? null
+          : { season: lastSeason, layer: "photo" as const };
 
   return (
     <div className="control">
@@ -135,6 +146,17 @@ export function ViewActions({ ws, request, name }: ViewActionsProps) {
           >
             <Download size={16} aria-hidden="true" />
             {COPY.viewport.saveGif}
+          </a>
+        )}
+        {picture && ws.cameraSeasons.length > 0 && (
+          <a
+            className="button button--quiet"
+            href={cardUrl(ws.view, Number(ws.camera), picture.season, picture.layer)}
+            download
+            title={COPY.viewport.savePictureHint}
+          >
+            <ImageDown size={16} aria-hidden="true" />
+            {COPY.viewport.savePicture}
           </a>
         )}
         <button type="button" className="button button--quiet" onClick={share}>

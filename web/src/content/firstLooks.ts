@@ -113,8 +113,8 @@ const TARGETS: Record<string, Steps> = {
     },
     {
       title: "Subtract one date from another",
-      text: `Change shows the last date minus the first. ${CHANGE_STEP_TEXT}`,
-      show: { mode: "change", markers: true },
+      text: `Change shows the last date minus the first, here in camera 5, where the pair is brightest. ${CHANGE_STEP_TEXT}`,
+      show: { mode: "change", camera: "5", markers: true },
     },
     measurementStep(view, "the pair", "They travel with the star Epsilon Indi, 12 light-years away."),
   ],

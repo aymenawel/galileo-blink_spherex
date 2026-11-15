@@ -135,8 +135,12 @@ def test_change_map_noise_is_drawn_dark():
     rng = np.random.default_rng(11)
     for noise in (rng.normal(0, 1, (89, 89)),                       # independent pixels
                   ndimage_smooth(rng.normal(0, 1, (89, 89)))):      # resampled: shared noise
-        rgb = _rgba(render.change_png(noise))[..., :3]
-        assert float((rgb.max(axis=-1) == 0).mean()) >= 0.97
+        brightest = _rgba(render.change_png(noise))[..., :3].max(axis=-1)
+        # nearly every pixel is black or a tint too faint to notice (under a tenth of full
+        # colour), and nothing in pure noise comes near full colour
+        assert float((brightest <= 25).mean()) >= 0.97
+        assert float((brightest == 0).mean()) >= 0.90
+        assert brightest.max() < 128
 
 
 def ndimage_smooth(a):

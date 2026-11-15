@@ -117,9 +117,10 @@ _BRIGHTER = np.array([164, 240, 92])
 _FAINTER = np.array([255, 96, 170])
 CHANGE_DARK_SIGMA = 2.5
 """Changes smaller than this are drawn black: pure noise exceeds it in about 1 pixel in 80."""
-CHANGE_RAMP_POWER = 2.0
-"""Above the dark level colour grows as a gentle curve, so 3-4 sigma is a faint tint and only
-real changes reach full colour (at CHANGE_LIMIT_SIGMA)."""
+CHANGE_RAMP_POWER = 1.0
+"""Above the dark level colour grows in step with significance, reaching full colour at
+CHANGE_LIMIT_SIGMA. A steeper curve was tried and hid real changes of 3 to 5 sigma, such as
+a bright star that halved in brightness (its noise is deliberately generous)."""
 CHANGE_SMOOTH_PX = 3
 """A change spread over a star's wings is faint in each pixel but clear over a few pixels
 together, so a change also counts at its significance averaged over 3 x 3 pixels."""

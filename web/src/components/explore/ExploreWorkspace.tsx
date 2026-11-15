@@ -10,7 +10,7 @@ import type { ViewRequest } from "../../api/client";
 import type { View } from "../../api/types";
 import { useAbout } from "../../api/useResource";
 import { firstLookFor } from "../../content/firstLooks";
-import { COPY, VISIT_COPY } from "../../lib/copy";
+import { COPY, VISIT_COPY, viewTitle } from "../../lib/copy";
 import { exploreAddress, type ExploreChoices } from "../../lib/exploreAddress";
 import { useReducedMotion } from "../../lib/useReducedMotion";
 import { Link, navigate } from "../../router";
@@ -97,9 +97,10 @@ export function ExploreWorkspace({ view: built, request, name, initial }: Explor
   useAddressSync(ws, request, name);
 
   // The browser tab names the place, so several open views can be told apart.
+  const tabTitle = ws.visit ? ws.place : viewTitle(view, name);
   useEffect(() => {
-    document.title = `${ws.place} · ${COPY.brand.name}`;
-  }, [ws.place]);
+    document.title = `${tabTitle} · ${COPY.brand.name}`;
+  }, [tabTitle]);
 
   const picksDates = !ws.visit && (ws.mode === "compare" || ws.mode === "change");
   const leftOut = view.seasons_left_out ?? 0;

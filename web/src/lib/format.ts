@@ -80,6 +80,13 @@ export function formatDec(degrees: number): string {
   return `${degrees < 0 ? "−" : "+"}${pad(d, 2)}° ${pad(m, 2)}′ ${s}″`;
 }
 
+/** A position short enough for a heading: "18h 42m +46° 17′". */
+export function shortPosition(ra: number, dec: number): string {
+  const [h, m] = formatRa(ra).split(" ");
+  const [d, arcmin] = formatDec(dec).split(" ");
+  return `${h} ${m} ${d} ${arcmin}`;
+}
+
 /** An angle in plain degrees: 269.4464 → "269.4464°". */
 export function formatDegrees(degrees: number, digits = 4): string {
   return `${degrees < 0 ? "−" : ""}${Math.abs(degrees).toFixed(digits)}°`;
