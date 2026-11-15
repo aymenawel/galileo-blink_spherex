@@ -20,6 +20,7 @@ SKYBOT = "https://ssp.imcce.fr/webservices/skybot/api/conesearch.php"
 SKYBOT_SERVICE = "The asteroid catalogue service (IMCCE SkyBoT)"
 MOST = C.IRSA + "/cgi-bin/MOST/nph-most"
 MOST_SERVICE = "NASA's moving-object search (IRSA MOST)"
+MOST_TIMEOUT_S = 45.0
 MISSION_START = "2025 04 01"
 _OBS_ID = re.compile(r"^\d{4}W\d+_\w+$")
 _CAMERA = re.compile(r"^D([1-6])$")
@@ -43,6 +44,13 @@ def skybot(ra: float, dec: float, radius_deg: float, mjd: float) -> list[KnownOb
               "EPOCH": f"{mjd + 2400000.5:.6f}", "-mime": "text", "-output": "object",
               "-loc": "500", "-from": "GalileoBlink"}
     r = http.get(SKYBOT, service=SKYBOT_SERVICE, params=params, timeout=45, retries=1)
+    if r.status_code == 204:
+        return []                               # SkyBoT's answer when nothing is in the cone
+    flag = re.match(r"# Flag:\s*(-?\d+)", r.text)
+    if not flag:
+        raise ServiceDown(SKYBOT_SERVICE, "it sent a page that is not an asteroid list")
+    if int(flag.group(1)) < 0:
+        raise ServiceDown(SKYBOT_SERVICE, "it reported an error")
     out = []
     for line in r.text.splitlines():
         if not line.strip() or line.startswith("#"):
@@ -100,16 +108,21 @@ def asteroid_sightings(name: str) -> tuple[str, list[Sighting]]:
     unknown = UserError(f"No asteroid called “{name}” is known to NASA's moving-object "
                         "search. Try a name or number such as Bamberga, Eugenia or 324.")
     try:
-        r = http.get(MOST, service=MOST_SERVICE, params=params, timeout=90,
-                     backoff=C.PHOTO_LIST_BACKOFF_S)
+        r = http.get(MOST, service=MOST_SERVICE, params=params, timeout=MOST_TIMEOUT_S,
+                     backoff=C.BUSY_BACKOFF_S)
     except ServiceDown as e:
         if e.detail == "HTTP 400":              # MOST's way of saying it does not know the name
             raise unknown from None
         raise
     full_name, sightings = parse_most(r.text)
     if not sightings:
-        if "not found" in r.text.lower() or "error" in r.text.lower()[:2000]:
+        head = r.text.lower()[:2000]
+        if "<html" in head and "not found" not in head:
+            raise ServiceDown(MOST_SERVICE, "it sent a page that is not an answer")
+        if "not found" in r.text.lower() or "error" in head:
             raise unknown
+        if full_name is None:                   # not even the header of an answer
+            raise ServiceDown(MOST_SERVICE, "it sent a page that is not an answer")
         raise UserError(f"SPHEREx has not photographed “{name}” yet, or it was never "
                         "inside a photo.")
     return full_name or name, sightings

@@ -58,7 +58,11 @@ class PhotoList:
 
 
 def parse_sia_csv(text: str) -> list[PhotoRef]:
-    """Rows of an SIA answer that are SPHEREx Level-2 science exposures."""
+    """Rows of an SIA answer that are SPHEREx Level-2 science exposures. An answer without
+    the table's header row (an error or maintenance page sent as a success) raises
+    ServiceDown: it is not "no photos". An empty collection still sends the header row."""
+    if "access_url" not in text[:2000]:
+        raise ServiceDown(SERVICE, "it sent a page that is not a photo list")
     out = []
     for row in csv.DictReader(io.StringIO(text)):
         url = (row.get("access_url") or "").strip()
@@ -70,7 +74,7 @@ def parse_sia_csv(text: str) -> list[PhotoRef]:
         cam = _CAMERA.search(row.get("energy_bandpassname") or "")
         try:
             mjd = float(row["t_min"])
-        except (KeyError, ValueError):
+        except (KeyError, ValueError, TypeError):  # TypeError: a row cut off before its date
             continue
         if not cam:
             continue
@@ -93,15 +97,18 @@ def query_archive(ra: float, dec: float) -> tuple[list[PhotoRef], bool]:
     """Every SPHEREx exposure containing (ra, dec), all six cameras, oldest first, and whether
     the list is complete (False if some collection never answered)."""
     photos: dict[str, PhotoRef] = {}
-    failures = 0
+    failures, timeouts = 0, 0
     with ThreadPoolExecutor(len(C.SPHEREX_COLLECTIONS)) as pool:
         jobs = [pool.submit(_ask, ra, dec, name) for name in C.SPHEREX_COLLECTIONS]
         for job in jobs:
             try:
                 for p in job.result():
                     photos[p.file] = p
-            except ServiceDown:
+            except ServiceDown as e:
                 failures += 1
+                timeouts += e.timed_out
+    if failures and not photos and timeouts:
+        raise ServiceDown(SERVICE, "it stopped answering")     # asking for more cannot help
     if failures and not photos:
         # collection names change with data releases: ask for everything and keep SPHEREx
         for p in _ask(ra, dec, None):
@@ -131,7 +138,7 @@ def list_photos(ra: float, dec: float, *, max_age_s: float = C.PHOTO_LIST_TTL_S)
         stale.stale = True
         return stale
     result = PhotoList(ra=ra, dec=dec, photos=photos, fetched_at=time.time(), stale=not complete)
-    if complete:                                # an incomplete list is used once, never kept
+    if complete and photos:                     # an incomplete or empty list is used once, never kept
         write_json(path, dict(ra=ra, dec=dec, fetched_at=result.fetched_at,
                               photos=[asdict(p) for p in photos]))
     return result

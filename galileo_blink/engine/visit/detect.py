@@ -12,7 +12,7 @@ from __future__ import annotations
 
 import math
 import warnings
-from dataclasses import dataclass, field
+from dataclasses import dataclass
 
 import numpy as np
 from scipy.ndimage import maximum_filter
@@ -41,7 +41,6 @@ class Track:
     moments_spanned: int          # moments between its first and last sighting, inclusive
     confidence: str = "possible"  # "strong" or "possible"
     name: str | None = None       # a catalogued asteroid, when one matches
-    extra: dict = field(default_factory=dict)
 
     @property
     def speed_arcsec_per_hour(self) -> float:

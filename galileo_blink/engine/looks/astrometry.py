@@ -27,9 +27,6 @@ REF_ISOLATION_ARCSEC = 20.0       # no comparably bright neighbour inside ~3 pix
 REF_MIN_STARS = 3
 CENTROID_ERROR_FACTOR = 5.3       # arcsec x S/N: one photo's position error for an 8" star image
 SATURATED_SNR = 1000.0            # a saturated star is certainly detected
-AGREE_FACTOR = 2.45
-"""Measured and predicted motion "agree" when their vector difference is within 2.45 x the
-per-axis error: the 95% radius of a two-dimensional Gaussian."""
 
 
 @dataclass
@@ -213,7 +210,7 @@ def camera_motion(target: Mover, looks: dict[int, LookPosition],
                   measured=math.hypot(pe + re, pn + rn), measured_east=pe + re,
                   measured_north=pn + rn, predicted=math.hypot(pe, pn), predicted_east=pe,
                   predicted_north=pn, error=error, residual=residual,
-                  agrees=residual <= AGREE_FACTOR * error, floor=floor, n_reference_stars=n_ref)
+                  agrees=residual <= C.AGREE_FACTOR * error, floor=floor, n_reference_stars=n_ref)
 
 
 def measure_motion(target: Mover, sightings: list[Sighting],
@@ -285,6 +282,6 @@ def combine_cameras(motions: dict[int, Motion]) -> dict | None:
                 predicted=round(math.hypot(pred_e, pred_n), 3),
                 predicted_east=round(pred_e, 3), predicted_north=round(pred_n, 3),
                 error=round(error, 3), residual=round(residual, 3),
-                agrees=bool(residual <= AGREE_FACTOR * error),
+                agrees=bool(residual <= C.AGREE_FACTOR * error),
                 years=round(float(np.sum(w * [m.years for m in ms]) / w.sum()), 3),
                 same_time_of_year=all(m.same_time_of_year for m in ms))

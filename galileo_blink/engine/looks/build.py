@@ -30,6 +30,7 @@ from ..image.stack import change_map, combine
 from ..sky import catalogues, targets
 from ..sky.motion import Mover, offset_arcsec, predict, separation_arcsec
 from . import astrometry as A
+from . import variability
 from .seasons import Season, choose, group_seasons
 
 Progress = Callable[[str, float], None]
@@ -114,6 +115,25 @@ def _marker(m: Mover, seasons: list[Season], grid: ViewGrid, is_subject: bool) -
     return dict(name=m.name, catalog=m.catalog, source=m.source, pm=round(m.pm_total, 3),
                 pmra=round(m.pmra, 4), pmdec=round(m.pmdec, 4), parallax_mas=m.parallax_mas,
                 gmag=m.gmag, subject=is_subject, track=track)
+
+
+def _brightness_row(camera: int, season: int, m) -> dict:
+    """One photo's brightness measurement, as listed in view.json."""
+    return dict(camera=camera, season=season, mjd=round(m.mjd, 4),
+                wavelength=round(m.wavelength, 4) if m.wavelength else None,
+                flux_mjy=None if m.flux is None else round(m.flux * PIXEL_TO_MJY, 4),
+                snr=None if m.snr is None else round(m.snr, 1), status=m.status)
+
+
+def brightness_change_for_view(brightness: list[dict], reference_rows: list[list[dict]],
+                               subject_kind: str) -> dict | None:
+    """The subject's brightness change between seasons (see looks.variability), measured
+    against the reference stars' own apparent changes. None if it failed: this extra must
+    never cost the view."""
+    try:
+        return variability.measure_change(brightness, reference_rows, subject_kind)
+    except Exception:                     # noqa: BLE001
+        return None
 
 
 def _render_camera(cam: int, frames: list[Frame], out: Path,
@@ -256,12 +276,14 @@ def build_view(req: ViewRequest, progress: Progress = lambda stage, fraction: No
     reg_errors: dict[tuple[int, int], list[float]] = {}
     ref_sightings: dict[int, dict[int, dict[int, list[A.Sighting]]]] = {}
     brightness, contaminated = [], 0
+    reference_brightness: dict[int, list[dict]] = {}      # star -> its photos, every camera
     for frame, reg, ref_meas, m in analysed:
         cam, season = frame.photo.camera, frame.season
         reg_errors.setdefault((cam, season), []).append(reg.error)
         for i, rm in ref_meas.items():
             ref_sightings.setdefault(cam, {}).setdefault(i, {}).setdefault(season, []).append(
                 A.corrected(rm, reg, season))
+            reference_brightness.setdefault(i, []).append(_brightness_row(cam, season, rm))
         if not m.has_position:
             continue
         s = A.corrected(m, reg, season)
@@ -271,10 +293,7 @@ def build_view(req: ViewRequest, progress: Progress = lambda stage, fraction: No
                 and off > C.MAX_TRACK_OFFSET_ARCSEC):
             contaminated += 1             # confident light that is NOT on the predicted path
             continue
-        brightness.append(dict(camera=cam, season=season, mjd=round(m.mjd, 4),
-                               wavelength=round(m.wavelength, 4) if m.wavelength else None,
-                               flux_mjy=None if m.flux is None else round(m.flux * PIXEL_TO_MJY, 4),
-                               snr=None if m.snr is None else round(m.snr, 1), status=m.status))
+        brightness.append(_brightness_row(cam, season, m))
     look_reg_error = {k: float(np.median(v)) / math.sqrt(len(v)) for k, v in reg_errors.items()}
     reference_looks = {cam: {i: {s: A.look_position(g, look_reg_error.get((cam, s), 0.0))
                                  for s, g in per.items()} for i, per in stars.items()}
@@ -286,6 +305,8 @@ def build_view(req: ViewRequest, progress: Progress = lambda stage, fraction: No
     else:
         motion, per_camera, reason, looks = A.measure_motion(subject, sightings, look_reg_error,
                                                              reference_looks)
+    brightness_change = brightness_change_for_view(
+        brightness, [reference_brightness[i] for i in sorted(reference_brightness)], subject_kind)
     measure_s = time.time() - t_measure
 
     # the predicted path, for drawing: offsets from where the subject is at the first season
@@ -344,6 +365,7 @@ def build_view(req: ViewRequest, progress: Progress = lambda stage, fraction: No
                for cam, ls in looks.items()},
         path=path,
         brightness=brightness, brightness_left_out=contaminated,
+        brightness_change=brightness_change,
         reference_stars=dict(available=len(references), median_used=int(np.median(n_ref)) if n_ref else 0),
         left_out=left_out, degraded=sorted(set(degraded)),
         versions=sorted({f.photo.ref.version for f in frames if f.photo.ref.version}),

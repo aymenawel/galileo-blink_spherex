@@ -7,6 +7,8 @@ from __future__ import annotations
 
 import io
 import math
+import threading
+import time
 from dataclasses import dataclass, field
 
 import numpy as np
@@ -22,6 +24,13 @@ from .remote_fits import NoOverlap, RawCutout, cutout_wcs, read_cutout
 
 CLOUD = "NASA's cloud copy of the SPHEREx archive"
 IRSA_FILES = "NASA's image archive (IRSA)"
+CLOUD_DOWN_S = 120.0
+"""When the cloud copy fails outright (not one missing file), photos go straight to IRSA for
+this long, so a build of 160 photos does not wait out the cloud's deadline 160 times."""
+_cloud_down_until = 0.0
+_irsa_slots = threading.BoundedSemaphore(C.IRSA_WORKERS)
+"""IRSA's own file servers refuse more than about five requests at once, however many photos
+are being fetched in parallel from the cloud copy."""
 
 
 class HttpSource:
@@ -111,6 +120,16 @@ def _load(path, ref: PhotoRef) -> Photo:
                      header=fits.Header.fromstring(str(z["header"])), x0=x0, y0=y0)
 
 
+def _is_outage(e: Exception) -> bool:
+    """The cloud copy failing as a whole (no answer, busy, refusing), not one file missing."""
+    return isinstance(e, ServiceDown) and e.detail not in ("HTTP 403", "HTTP 404")
+
+
+def _mark_cloud_down() -> None:
+    global _cloud_down_until
+    _cloud_down_until = time.time() + CLOUD_DOWN_S
+
+
 def fetch_photo(ref: PhotoRef, ra: float, dec: float, size_deg: float) -> Photo:
     """The cutout of `ref` around (ra, dec). Raises NoOverlap if the place is off the frame,
     ServiceDown if neither copy of the archive answered."""
@@ -125,14 +144,22 @@ def fetch_photo(ref: PhotoRef, ra: float, dec: float, size_deg: float) -> Photo:
         raw, source, last = None, "", None
         for name, prefix, service in (("cloud", C.CLOUD_DATA_PREFIX, CLOUD),
                                       ("irsa", C.IRSA_DATA_PREFIX, IRSA_FILES)):
+            if name == "cloud" and time.time() < _cloud_down_until:
+                continue
             try:
-                raw = read_cutout(HttpSource(prefix + ref.path, service), ra, dec, half)
+                if name == "irsa":
+                    with _irsa_slots:
+                        raw = read_cutout(HttpSource(prefix + ref.path, service), ra, dec, half)
+                else:
+                    raw = read_cutout(HttpSource(prefix + ref.path, service), ra, dec, half)
                 source = name
                 break
             except NoOverlap:
                 raise
             except Exception as e:              # noqa: BLE001 - try the other copy
                 last = e
+                if name == "cloud" and _is_outage(e):
+                    _mark_cloud_down()
         if raw is None:
             if isinstance(last, ServiceDown):
                 raise last

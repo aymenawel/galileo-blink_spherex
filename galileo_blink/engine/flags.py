@@ -25,7 +25,7 @@ FLAG_INFO: dict[int, tuple[str, str]] = {
     22: ("GHOST", "Reflection of a bright star in this photo"),
     23: ("GHOST_FPA", "Reflection of a bright star on another detector"),
     24: ("GHOST_EXT", "Reflection of a bright star outside the photo"),
-    25: ("STREAK", "A satellite or aircraft trail"),
+    25: ("STREAK", "A trail from a satellite or space debris"),
     26: ("BLOOM", "Charge spilling from a very bright star"),
     27: ("SNOWBALL", "A large cosmic-ray hit"),
     28: ("HALO", "The faint halo around a sudden change"),

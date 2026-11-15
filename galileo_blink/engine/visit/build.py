@@ -9,7 +9,6 @@ from __future__ import annotations
 
 import hashlib
 import io
-import math
 import time
 from concurrent.futures import ThreadPoolExecutor
 from dataclasses import dataclass

@@ -6,10 +6,12 @@ engine wrote.
 from __future__ import annotations
 
 import json
+import mimetypes
+import threading
 from pathlib import Path
 
 import numpy as np
-from fastapi import FastAPI, HTTPException, Query
+from fastapi import FastAPI, HTTPException, Query, Request
 from fastapi.middleware.gzip import GZipMiddleware
 from fastapi.responses import FileResponse, JSONResponse, Response
 from fastapi.staticfiles import StaticFiles
@@ -25,9 +27,60 @@ from ..engine.spectrum import cube
 from ..engine.visit.build import VisitRequest
 from .jobs import Builder, Busy
 
+# Some systems (Windows among them) do not know the web-font type and send it as raw bytes.
+mimetypes.add_type("font/woff2", ".woff2")
+
 WEB_DIST = Path(__file__).resolve().parents[2] / "web" / "dist"
 ASTEROID_EXAMPLES = Path(__file__).resolve().parents[2] / "data" / "asteroid_examples.json"
 SAFE_FILE = {".png": "image/png", ".json": "application/json"}
+# Lookups that wait on an outside service (names, asteroids, the all-sky cube) share this many
+# slots, so a burst of them can never use up the threads that serve the pages and pictures.
+SLOW_LOOKUPS_AT_ONCE = 8
+# The page loads only its own scripts, styles, fonts and pictures, and talks only to this server.
+CONTENT_SECURITY_POLICY = (
+    "default-src 'self'; img-src 'self' data: blob:; style-src 'self' 'unsafe-inline'; "
+    "font-src 'self' data:; connect-src 'self'; object-src 'none'; base-uri 'self'; "
+    "frame-ancestors 'none'; form-action 'self'")
+GIF_CREDIT = "SPHEREx data: NASA/JPL-Caltech · galileoblink.earth"
+SAFETY_HEADERS = {
+    "X-Content-Type-Options": "nosniff",
+    "X-Frame-Options": "DENY",
+    "Referrer-Policy": "strict-origin-when-cross-origin",
+    "Strict-Transport-Security": "max-age=31536000",
+}
+
+
+class BuiltFiles(StaticFiles):
+    """The interface's built scripts, styles and fonts. Their names carry a hash of their
+    content, so a browser may keep them for good: a new build has new names."""
+
+    async def get_response(self, path, scope):
+        response = await super().get_response(path, scope)
+        if response.status_code == 200:
+            response.headers["Cache-Control"] = "public, max-age=31536000, immutable"
+        return response
+
+
+class Limiter:
+    """Lets a fixed number of slow jobs run at once and turns the rest away at the door."""
+
+    def __init__(self, slots: int):
+        self._slots = threading.Semaphore(slots)
+
+    def run(self, work, *args):
+        if not self._slots.acquire(blocking=False):
+            raise Busy()
+        try:
+            return work(*args)
+        finally:
+            self._slots.release()
+
+
+def _visitor(request: Request) -> str:
+    """The address a request came from. Behind Google's front end the real one is the last
+    entry of X-Forwarded-For (earlier entries are whatever the sender chose to write)."""
+    forwarded = request.headers.get("x-forwarded-for", "").split(",")[-1].strip()
+    return forwarded or (request.client.host if request.client else "")
 
 
 def _example_request(e: dict) -> VisitRequest:
@@ -40,6 +93,21 @@ def create_app(builder: Builder | None = None) -> FastAPI:
     app.add_middleware(GZipMiddleware, minimum_size=1024)
     builder = builder or Builder()
     app.state.builder = builder
+    app.state.lookups = Limiter(SLOW_LOOKUPS_AT_ONCE)
+
+    @app.middleware("http")
+    async def _safety_headers(request: Request, call_next):
+        response = await call_next(request)
+        for name, value in SAFETY_HEADERS.items():
+            response.headers.setdefault(name, value)
+        if not request.url.path.startswith("/api/docs"):    # the API explorer loads from a CDN
+            response.headers.setdefault("Content-Security-Policy", CONTENT_SECURITY_POLICY)
+        return response
+
+    @app.exception_handler(Busy)
+    async def _busy(_, exc: Busy):
+        return JSONResponse({"error": "Galileo Blink is very busy right now. Please try again in "
+                                      "a moment.", "error_kind": "busy"}, status_code=503)
 
     @app.exception_handler(UserError)
     async def _user_error(_, exc: UserError):
@@ -76,16 +144,16 @@ def create_app(builder: Builder | None = None) -> FastAPI:
         return out
 
     @app.get("/api/asteroids/{example_id}")
-    def open_example(example_id: str):
+    def open_example(example_id: str, request: Request):
         for e in json.loads(ASTEROID_EXAMPLES.read_text(encoding="utf8")):
             if e["id"] == example_id:
-                return _ensure(_example_request(e))
+                return builder.ensure(_example_request(e), _visitor(request))
         raise HTTPException(404, "No such asteroid example.")
 
     @app.get("/api/resolve")
     def resolve(q: str = Query(..., max_length=200)):
         """Coordinates or a name -> a place in the sky."""
-        p = coords.resolve(q)
+        p = app.state.lookups.run(coords.resolve, q)
         return dict(ra=p.ra, dec=p.dec, label=p.label, kind=p.kind, target_id=p.target_id,
                     moved_arcmin=p.moved_arcmin, follows=p.follows)
 
@@ -104,38 +172,31 @@ def create_app(builder: Builder | None = None) -> FastAPI:
         return ViewRequest(ra=round(ra % 360.0, 5), dec=round(dec, 5), size_deg=round(size, 3))
 
     @app.get("/api/view")
-    def open_view(ra: float | None = None, dec: float | None = None,
+    def open_view(request: Request, ra: float | None = None, dec: float | None = None,
                   size: float = C.FIELD_DEFAULT_DEG, target: str | None = None):
         """Open (and if needed start building) the view of a place. Poll /api/view/{key}."""
-        return _ensure(_request(ra, dec, size, target))
-
-    def _ensure(req):
-        try:
-            return builder.ensure(req)
-        except Busy:
-            return JSONResponse({"error": "Many views are being built right now. Please try "
-                                          "again in a moment.", "error_kind": "busy"},
-                                status_code=503)
+        return builder.ensure(_request(ra, dec, size, target), _visitor(request))
 
     @app.get("/api/visit")
-    def open_visit(ra: float = Query(..., ge=0, le=360), dec: float = Query(..., ge=-90, le=90),
+    def open_visit(request: Request,
+                   ra: float = Query(..., ge=0, le=360), dec: float = Query(..., ge=-90, le=90),
                    size: float = Query(0.2, ge=C.FIELD_MIN_DEG, le=C.FIELD_MAX_DEG),
                    camera: int | None = Query(None, ge=1, le=6)):
         """Open the asteroid view of a place: one visit, moment by moment, searched for movers.
         Poll /api/view/{key} like any other view."""
-        return _ensure(VisitRequest(ra=round(ra % 360.0, 5), dec=round(dec, 5),
-                                    size_deg=round(size, 3), camera=camera))
+        return builder.ensure(VisitRequest(ra=round(ra % 360.0, 5), dec=round(dec, 5),
+                                           size_deg=round(size, 3), camera=camera), _visitor(request))
 
     @app.get("/api/asteroid")
-    def open_asteroid(name: str = Query(..., max_length=60)):
+    def open_asteroid(request: Request, name: str = Query(..., max_length=60)):
         """Find a named asteroid in SPHEREx's photos and open the visit where it is best seen."""
-        v = asteroids.find_asteroid(name)
-        status = _ensure(VisitRequest(ra=v.ra, dec=v.dec, size_deg=v.size_deg, camera=v.camera,
-                                      mjd_start=round(v.mjd_start, 4), mjd_end=round(v.mjd_end, 4),
-                                      label=v.name))
-        if isinstance(status, dict):
-            status["asteroid"] = dict(name=v.name, vmag=v.vmag, camera=v.camera,
-                                      n_moments=v.n_moments, ra=v.ra, dec=v.dec)
+        v = app.state.lookups.run(asteroids.find_asteroid, name)
+        status = builder.ensure(VisitRequest(ra=v.ra, dec=v.dec, size_deg=v.size_deg, camera=v.camera,
+                                             mjd_start=round(v.mjd_start, 4),
+                                             mjd_end=round(v.mjd_end, 4), label=v.name),
+                                _visitor(request))
+        status["asteroid"] = dict(name=v.name, vmag=v.vmag, camera=v.camera,
+                                  n_moments=v.n_moments, ra=v.ra, dec=v.dec)
         return status
 
     @app.get("/api/view/{key}")
@@ -193,8 +254,8 @@ def create_app(builder: Builder | None = None) -> FastAPI:
     def spectrum(ra: float = Query(..., ge=0, le=360), dec: float = Query(..., ge=-90, le=90)):
         """A quick 102-colour spectrum of any place, from NASA's all-sky SPHEREx cube."""
         try:
-            return cube.quick_spectrum(ra, dec)
-        except ServiceDown:
+            return app.state.lookups.run(cube.quick_spectrum, ra, dec)
+        except (ServiceDown, Busy):
             raise
         except Exception as e:                  # noqa: BLE001 - an unexpected tile layout
             raise ServiceDown(cube.SERVICE, type(e).__name__) from e
@@ -218,8 +279,9 @@ def create_app(builder: Builder | None = None) -> FastAPI:
         if not pictures:
             raise UserError("That camera has no pictures to animate.")
         name = (view.get("target") or {}).get("name") or view.get("label") or "sky"
-        slug = "".join(c if c.isalnum() else "-" for c in name.lower()).strip("-") or "sky"
-        gif = render.blink_gif(pictures, captions, "NASA SPHEREx · Galileo Blink", ms)
+        # a header can only carry plain letters, so anything else in the name becomes a dash
+        slug = "".join(c if c.isascii() and c.isalnum() else "-" for c in name.lower()).strip("-") or "sky"
+        gif = render.blink_gif(pictures, captions, GIF_CREDIT, ms)
         return Response(gif, media_type="image/gif", headers={
             "Content-Disposition": f'attachment; filename="galileo-blink-{slug}-camera{camera}.gif"',
             "Cache-Control": "no-cache"})
@@ -234,9 +296,9 @@ def create_app(builder: Builder | None = None) -> FastAPI:
             min_marked_motion=C.MIN_PM_MARK_ARCSEC_YR, engine=C.ENGINE_VERSION)
 
     if WEB_DIST.is_dir():
-        app.mount("/assets", StaticFiles(directory=WEB_DIST / "assets"), name="assets")
+        app.mount("/assets", BuiltFiles(directory=WEB_DIST / "assets"), name="assets")
 
-        @app.get("/{path:path}", include_in_schema=False)
+        @app.api_route("/{path:path}", methods=["GET", "HEAD"], include_in_schema=False)
         def spa(path: str):
             """The interface: a real file if one exists, otherwise the single-page app."""
             if path.startswith(("api/", "files/")):

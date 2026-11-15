@@ -8,9 +8,11 @@ from __future__ import annotations
 
 import json
 import math
+import re
 
 from .. import constants as C
 from ..archive import http
+from ..errors import ServiceDown
 from .motion import Mover, predict, separation_arcsec
 
 MAST = "https://mast.stsci.edu/api/v0/invoke"
@@ -20,17 +22,20 @@ GATOR_SERVICE = "NASA's IRSA catalogue service (CatWISE)"
 MAST_PAGE = 20000
 FRAGMENT_ARCSEC = 5.0
 FRAGMENT_PM = 1.0
+_ROWS_RETRIEVED = re.compile(r"^\\RowsRetrieved\s*=\s*(\d+)", re.MULTILINE)
 
 
-def gaia_cone(ra: float, dec: float, radius_deg: float) -> list[Mover]:
-    """Every Gaia DR3 source with a measured motion inside the cone."""
+def gaia_cone(ra: float, dec: float, radius_deg: float, *, timeout: float = C.CATALOGUE_TIMEOUT_S,
+              retries: int = 1) -> list[Mover]:
+    """Every Gaia DR3 source with a measured motion inside the cone. `timeout` and `retries`
+    apply to each page asked for."""
     out: list[Mover] = []
     page = 1
     while True:
         req = {"service": "Mast.Catalogs.GaiaDR3.Cone", "format": "json", "pagesize": MAST_PAGE,
                "page": page, "params": {"ra": ra, "dec": dec, "radius": radius_deg}}
-        r = http.request("POST", MAST, service=MAST_SERVICE, timeout=C.CATALOGUE_TIMEOUT_S,
-                         retries=1, data={"request": json.dumps(req)})
+        r = http.request("POST", MAST, service=MAST_SERVICE, timeout=timeout,
+                         retries=retries, data={"request": json.dumps(req)})
         body = r.json()
         for row in body.get("data") or []:
             if row.get("pmra") is None or row.get("pmdec") is None:
@@ -73,8 +78,16 @@ def catwise_cone(ra: float, dec: float, radius_deg: float) -> list[Mover]:
                   selcols="source_name,ra_pm,dec_pm,pmra,pmdec,sigpmra,sigpmdec",
                   constraints=f"pmra*pmra+pmdec*pmdec>={C.CATWISE_MIN_PM_ARCSEC_YR ** 2}")
     r = http.get(GATOR, service=GATOR_SERVICE, params=params, timeout=C.CATALOGUE_TIMEOUT_S)
+    # A real answer, even an empty one, states how many rows it holds; an error page sent as
+    # a success, or an answer cut off on the way, must not read as "no movers here".
+    count = _ROWS_RETRIEVED.search(r.text)
+    if not count:
+        raise ServiceDown(GATOR_SERVICE, "it sent a page that is not a catalogue table")
+    rows = parse_ipac_table(r.text)
+    if len(rows) < int(count.group(1)):
+        raise ServiceDown(GATOR_SERVICE, "its answer was cut off")
     merged: list[Mover] = []
-    for row in parse_ipac_table(r.text):
+    for row in rows:
         try:
             pmra, pmdec = float(row["pmra"]), float(row["pmdec"])
             sig = math.hypot(float(row["sigpmra"]), float(row["sigpmdec"]))

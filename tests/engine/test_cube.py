@@ -25,3 +25,8 @@ def test_a_saturated_source_gives_no_brightness_not_a_wrong_one():
     flux, background = cube.patch_photometry(patch)
     assert flux is None and background == 1.0
     assert cube.patch_photometry(np.full((7, 7), np.nan)) == (None, None)
+
+
+def test_the_quick_look_warns_about_saturated_stars():
+    assert cube.QUICK_LOOK_NOTE.endswith(" Unreliable for stars bright enough to saturate, whose "
+                                         "cores are missing from the mosaic.")

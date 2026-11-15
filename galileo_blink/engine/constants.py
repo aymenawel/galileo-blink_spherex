@@ -1,16 +1,14 @@
-"""Every number that changes what Galileo Blink shows or measures, in one place.
+"""The main tuning numbers of Galileo Blink, each with its reason.
 
 Each constant says what it is, where the value comes from, and what breaks if it changes.
-Nothing elsewhere in the engine may hide a tuning number in the middle of a function.
+Numbers that belong to one step are named at the top of that step's module; none is hidden in
+the middle of a function.
 """
 
 # --------------------------------------------------------------------------- the instrument
 PIXEL_ARCSEC = 6.15
 """SPHEREx's native pixel, in arcseconds. (The "0.615" in some documents is the oversampled
 point-spread-function grid, ten times finer.) Every speed, distance and scale bar uses this."""
-
-DETECTOR_PIXELS = 2040
-"""Width and height of one SPHEREx exposure, in pixels."""
 
 CAMERA_BANDS_MICRON = {
     1: (0.75, 1.09),
@@ -35,8 +33,6 @@ bright stars: 19 OUTLIER (it flags pixels that disagree between exposures, which
 mover is: masking it hid a 500-sigma asteroid), 26 BLOOM and 28 HALO (both seen on asteroids),
 27 SNOWBALL and 29 SATELLITE_HALO (untested, treated the same), 15 NONLINEAR (punches holes in
 every bright star). A test pins this list."""
-
-NEVER_MASK_BITS = (15, 19, 26, 27, 28, 29)
 
 FINAST_MAX = 0
 """Header keyword FINAST: 0 = good astrometry, 1 = marginal, >1 = NASA says "should not be
@@ -72,7 +68,8 @@ BUSY_BACKOFF_S = (0.5, 1.0, 2.0, 4.0, 6.0)
 """Waits between retries when any other service answers "busy"."""
 
 DOWNLOAD_WORKERS = 20
-"""Photos fetched at once from the cloud copy (IRSA's own servers get IRSA_WORKERS)."""
+"""Photos fetched at once. Those that have to come from IRSA's own servers instead of the cloud
+copy are further limited to IRSA_WORKERS at a time (archive/store.py)."""
 IRSA_WORKERS = 4
 """IRSA's cutout and file servers refuse more than about five simultaneous requests."""
 
@@ -159,9 +156,9 @@ RW Aurigae, R Draconis) the all-camera result differed from the catalogue by 0.2
 than the scatter between photos and cameras explains. The cameras share the same pointing
 errors and the same star, whose colour differs from the reference stars', so they are not
 fully independent."""
-AGREE_SIGMA = 2.0
-"""Measured motion "agrees" with the catalogue if their vector difference is within this many
-error bars."""
+AGREE_FACTOR = 2.45
+"""Measured and predicted motion "agree" when their vector difference is within 2.45 x the
+per-axis error: the 95% radius of a two-dimensional Gaussian."""
 MIN_PAIR_DAYS = 300.0
 SAME_SEASON_DAYS = 45.0
 """Motion is compared between looks a whole number of years apart when possible (within
@@ -180,8 +177,6 @@ CATWISE_MIN_SIGNIFICANCE = 5.0
 CATALOGUE_TIMEOUT_S = 25.0
 MAX_MARKERS = 12
 """More markers than this cover the picture."""
-REFERENCE_STAR_MAX_PM = 0.05
-"""Gaia stars slower than this (arcsec/yr) serve as fixed reference points."""
 
 # --------------------------------------------------------------------------- one visit (asteroids)
 MOMENT_GAP_DAYS = 0.02
@@ -218,7 +213,7 @@ ASTEROID_FAINT_VMAG = 18.5
 """About the faintest asteroid the search recovers; fainter known ones are listed, not expected."""
 
 # --------------------------------------------------------------------------- cache
-ENGINE_VERSION = "gb2"
+ENGINE_VERSION = "gb3"
 """Part of every cache key. Bump it whenever the engine's output changes, or old views are
 served forever."""
 CACHE_PHOTOS_MAX_BYTES = 600 * 1024 * 1024

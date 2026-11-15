@@ -26,6 +26,10 @@ from ..archive import http
 from ..archive.cache import cache_dir, read_json, write_json
 
 SERVICE = "NASA's cloud copy of the SPHEREx all-sky cube"
+QUICK_LOOK_NOTE = ("A quick look from NASA's all-sky mosaic: every date averaged together, "
+                   "12.9-arcsecond pixels. Good for the shape of a spectrum, not for precise "
+                   "brightness. Unreliable for stars bright enough to saturate, whose cores are "
+                   "missing from the mosaic.")
 CUBE_PREFIX = C.CLOUD_DATA_PREFIX + "dr1/hips5_cube/hips_20261026/Norder5/"
 """A NEW CUBE RELEASE CHANGES THIS PATH (one line)."""
 TILE_ORDER = 5
@@ -128,8 +132,6 @@ def quick_spectrum(ra: float, dec: float) -> dict:
     result = dict(ra=ra, dec=dec, unit="mJy", aperture_arcsec=round(3 * math.degrees(math.sqrt(PIXEL_SR)) * 3600, 1),
                   points=points,
                   source="SPHEREx DR1 all-sky spectral cube (NASA/IPAC IRSA)",
-                  note="A quick look from NASA's all-sky mosaic: every date averaged together, "
-                       "12.9-arcsecond pixels. Good for the shape of a spectrum, not for precise "
-                       "brightness.")
+                  note=QUICK_LOOK_NOTE)
     write_json(path, result)
     return result

@@ -64,6 +64,30 @@ def make_photo(ra=180.0, dec=0.0, n=141, roll_deg=24.0, stars=(), noise=0.01, sk
                  header=fits.Header(header), x0=0, y0=0)
 
 
+def brightness_rows(camera=1, levels=None, per_season=6, band=(0.75, 1.1), slope=0.0,
+                    noise=0.02, flux=100.0, snr=500.0, status="ok", seed=0, wavelengths=None):
+    """One object's per-photo brightness in one camera, shaped like view.json's `brightness`.
+
+    `levels` maps season -> true brightness relative to the first (default: three steady
+    seasons). Every photo sees a different wavelength, drawn across `band` unless
+    `wavelengths` (season -> list) fixes them. ln(flux) = ln(flux x level) + slope x
+    (wavelength - middle of band) + Gaussian noise of `noise` (in ln units)."""
+    levels = levels if levels is not None else {0: 1.0, 1: 1.0, 2: 1.0}
+    rng = np.random.default_rng(seed)
+    middle = 0.5 * (band[0] + band[1])
+    rows = []
+    for season, level in levels.items():
+        lams = (wavelengths or {}).get(season)
+        if lams is None:
+            lams = rng.uniform(band[0], band[1], per_season)
+        for lam in lams:
+            f = flux * level * np.exp(slope * (lam - middle) + rng.normal(0.0, noise))
+            rows.append(dict(camera=camera, season=season, mjd=60900.0 + 180.0 * season,
+                             wavelength=round(float(lam), 4), flux_mjy=float(f), snr=snr,
+                             status=status))
+    return rows
+
+
 def offset_sky(ra, dec, east_arcsec, north_arcsec):
     """(ra, dec) moved by a small offset on the sky."""
     return (ra + east_arcsec / 3600.0 / np.cos(np.radians(dec)), dec + north_arcsec / 3600.0)

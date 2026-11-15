@@ -9,7 +9,7 @@ from galileo_blink.engine.archive import store
 from galileo_blink.engine.image import render, stack
 from galileo_blink.engine.image.grid import roll_angle_deg, to_view, view_grid
 
-from .synth import make_photo, offset_sky
+from .synth import make_photo, offset_sky, star_image
 
 
 def _peak(frame):
@@ -117,6 +117,109 @@ def test_empty_sky_renders_black_and_no_data_renders_transparent():
     alpha = np.array(im)[..., 1]
     assert alpha[-1, 0] == 0 and alpha[0, 0] == 255        # array row 0 is the bottom of the picture
     assert render.display_limits(np.full((4, 4), np.nan)) is None
+
+
+def _rgba(png: bytes) -> np.ndarray:
+    im = Image.open(io.BytesIO(png))
+    assert im.mode == "RGBA"
+    return np.array(im)
+
+
+def _at(pixels: np.ndarray, x: int, y: int, n: int) -> np.ndarray:
+    """The displayed RGBA at the middle of array pixel (x, y) [y up] of an n-pixel map."""
+    k = render.upscale_for(n)
+    return pixels[(n - 1 - y) * k + k // 2, x * k + k // 2]
+
+
+def test_change_map_noise_is_drawn_dark():
+    rng = np.random.default_rng(11)
+    for noise in (rng.normal(0, 1, (89, 89)),                       # independent pixels
+                  ndimage_smooth(rng.normal(0, 1, (89, 89)))):      # resampled: shared noise
+        rgb = _rgba(render.change_png(noise))[..., :3]
+        assert float((rgb.max(axis=-1) == 0).mean()) >= 0.97
+
+
+def ndimage_smooth(a):
+    from scipy.ndimage import uniform_filter
+    s = uniform_filter(a, 2)
+    return s / stack.robust_stats(s)[1]
+
+
+def test_a_strong_change_is_coloured_with_its_sign():
+    rng = np.random.default_rng(12)
+    m = rng.normal(0, 1, (61, 61))
+    m[20, 15] = 10.0                                       # 10 sigma brighter
+    m[40, 45] = -10.0                                      # 10 sigma fainter
+    m[5, 5] = np.nan
+    px = _rgba(render.change_png(m))
+    up, down = _at(px, 15, 20, 61), _at(px, 45, 40, 61)
+    assert up[1] > 150 and up[1] > up[0]                   # green: brighter
+    assert down[0] > 150 and down[0] > down[1]             # magenta: fainter
+    assert _at(px, 5, 5, 61)[3] == 0                       # no data stays transparent
+    assert _at(px, 30, 30, 61)[3] == 255
+
+
+def test_change_strength_is_zero_below_the_dark_level_and_full_at_the_limit():
+    m = np.zeros((41, 41))
+    m[10, 10], m[20, 20], m[30, 30] = 2.0, C.CHANGE_LIMIT_SIGMA + 1, -(C.CHANGE_LIMIT_SIGMA + 1)
+    t = render.change_strength(m)
+    assert t[10, 10] == 0.0
+    assert t[20, 20] == 1.0 and t[30, 30] == -1.0
+
+
+def _saturated_star_view(extra_masked=(), n=141):
+    """A star too bright for the detector: its core pixels flagged SUR_ERROR (as NASA does).
+    `extra_masked` are dead pixels at (east, north) arcsec from the centre."""
+    from galileo_blink.engine.image.grid import to_view, view_grid
+    star = offset_sky(180.0, 0.0, 61.5, 30.75)
+    bits = np.zeros((n, n), dtype=np.int32)
+    photo = make_photo(n=n, stars=[(*star, 400.0)], noise=0.01)
+    x, y = (int(round(float(v))) for v in photo.wcs.world_to_pixel_values(*star))
+    bits[y - 1:y + 2, x - 1:x + 2] = (1 << 2) | (1 << 26)     # SUR_ERROR + BLOOM: overflowed
+    for east, north in extra_masked:                           # NONFUNC: a dead pixel
+        mx, my = (int(round(float(v))) for v in
+                  photo.wcs.world_to_pixel_values(*offset_sky(180.0, 0.0, east, north)))
+        bits[my, mx] = 1 << 6
+    photo = make_photo(n=n, stars=[(*star, 400.0)], noise=0.01, flag_bits=bits)
+    photo.image += star_image(photo.image.shape, x, y, 400.0, fwhm_px=5.0)   # its broad halo
+    g = view_grid(180.0, 0.0, 0.15)
+    frame = to_view(photo, g)
+    return frame, g, star
+
+
+def test_a_saturated_core_is_drawn_white_but_a_dead_pixel_in_the_sky_stays_no_data():
+    frame, g, star = _saturated_star_view(extra_masked=[(-90.0, -60.0)])
+    assert np.isnan(frame).sum() > 2                       # the core really is no data
+    lo, hi = render.display_limits(frame)
+    s = render.stretch(frame, lo, hi)
+    cores = render.saturated_cores(s)
+    sx, sy = (int(round(v)) for v in g.sky_to_pixel(*star))
+    assert cores[sy, sx]
+    holes = ~np.isfinite(s) & ~cores
+    assert holes.any()                                     # the dead pixel is still a hole
+    px = np.array(Image.open(io.BytesIO(render.gray_png(s))))
+    k = render.upscale_for(g.n)
+    core = px[(g.n - 1 - sy) * k + k // 2, sx * k + k // 2]
+    assert core[1] == 255 and core[0] == 255               # opaque white
+    hy, hx = np.argwhere(holes)[0]
+    assert px[(g.n - 1 - hy) * k + k // 2, hx * k + k // 2][1] == 0
+    # measurements are untouched: the stretched image itself still has no data there
+    assert np.isnan(s[sy, sx])
+
+
+def test_a_blank_strip_at_the_edge_stays_no_data():
+    a = np.full((40, 40), 0.9)                             # even next to bright pixels
+    a[:, :3] = np.nan
+    a[20, 20] = np.nan                                     # an enclosed hole in bright light
+    cores = render.saturated_cores(a)
+    assert not cores[:, :3].any()
+    assert cores[20, 20]
+
+
+def test_a_large_blank_region_is_not_a_star_core():
+    a = np.full((60, 60), 0.9)
+    a[10:40, 10:40] = np.nan
+    assert not render.saturated_cores(a).any()
 
 
 def test_wide_views_are_enlarged_less():
