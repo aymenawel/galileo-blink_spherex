@@ -72,6 +72,12 @@ Every external resource Galileo Blink uses: data, services, software and fonts.
 | Hanken Grotesk | SIL Open Font License 1.1 | All text on the site; self-hosted from the Fontsource package |
 | Aileron Regular (bundled with Pillow) | CC0 | The captions drawn into saved GIFs |
 
+## AI tools
+
+| Tool | Used for | Link |
+|---|---|---|
+| Claude (Anthropic), through Claude Code | An AI coding assistant, the only AI tool used: it wrote most of the code, tests and documentation under the team's direction, designed the interface and ran the deployments. No images were generated. | https://www.anthropic.com/claude-code |
+
 ## Hosting and build
 
 | Service | Used for | Link |

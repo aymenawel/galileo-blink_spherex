@@ -223,6 +223,14 @@ Then delete `prebuilt/` and rerun `python scripts/prebuild_targets.py --ship`. D
 first matters: an asteroid view's folder name includes the engine version, so after a bump
 the old folders would otherwise be left behind next to the new ones.
 
+## Use of AI
+
+Galileo Blink was built with an AI coding assistant: Anthropic's Claude, used through Claude Code. It is the only AI tool the team used. Working under the team's direction, it wrote most of the code (the engine, the web server, the interface and the tests), drafted the documentation and the words on the site, designed the interface, including the two-circle mark, and ran the deployments. It was also used to audit the project before submission.
+
+The team chose the challenge and the idea, set the goals and the limits, decided what the site may and may not claim, and directed and reviewed the work.
+
+No image-generation tool was used. Every sky picture is made from NASA SPHEREx data by the project's own code, and nothing on the site uses or imitates NASA's logos or branding.
+
 ## Data and credits
 
 - **SPHEREx** Level-2 images and the DR1 all-sky spectral cube: NASA/JPL-Caltech, served by

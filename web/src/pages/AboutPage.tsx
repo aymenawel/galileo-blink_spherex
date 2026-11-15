@@ -1,6 +1,6 @@
 /** The challenge, the team, and credit to everyone whose data and software this site stands on. */
 import { ArrowUpRight } from "lucide-react";
-import { ABOUT_INTRO, ACKNOWLEDGEMENTS, CHALLENGE, DATA_SOURCES, LIBRARIES, SOURCE, TEAM } from "../content/about";
+import { ABOUT_INTRO, ACKNOWLEDGEMENTS, AI_USE, CHALLENGE, DATA_SOURCES, LIBRARIES, SOURCE, TEAM } from "../content/about";
 import { COPY, REPOSITORY_URL } from "../lib/copy";
 
 function NameList({ title, items }: { title: string; items: readonly string[] }) {
@@ -55,6 +55,15 @@ export function AboutPage() {
             ))}
           </ul>
           <p className="muted">{TEAM.place}</p>
+        </section>
+
+        <section className="about__section about__ai" aria-labelledby="ai-title">
+          <h2 className="doc-section__title" id="ai-title">
+            {AI_USE.title}
+          </h2>
+          {AI_USE.paragraphs.map((paragraph) => (
+            <p key={paragraph}>{paragraph}</p>
+          ))}
         </section>
 
         <section className="about__section about__data" aria-labelledby="data-title">
