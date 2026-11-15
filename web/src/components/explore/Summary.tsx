@@ -4,8 +4,19 @@
  */
 import { Check, TriangleAlert } from "lucide-react";
 import type { View } from "../../api/types";
-import { COPY, VISIT_COPY, compassWord, hourlySpeed, isStatic, motionSentence, subjectName } from "../../lib/copy";
+import {
+  COPY,
+  VISIT_COPY,
+  brightnessError,
+  brightnessWords,
+  compassWord,
+  hourlySpeed,
+  isStatic,
+  motionSentence,
+  subjectName,
+} from "../../lib/copy";
 import { arcsec } from "../../lib/format";
+import { brightnessHeadline } from "../panels/BrightnessPanel";
 
 interface SummaryProps {
   view: View;
@@ -27,7 +38,9 @@ export function ViewTitle({ view, searchedName }: SummaryProps & { searchedName:
   return (
     <header className="side__head">
       <h1 className="side__title">{title}</h1>
-      <p className="side__kind">{target ? target.blurb : COPY.subject.chosen[kind]}</p>
+      <p className="side__kind">
+        {target ? target.blurb : kind === "spot" && searchedName ? COPY.subject.namedSpot(searchedName) : COPY.subject.chosen[kind]}
+      </p>
     </header>
   );
 }
@@ -46,16 +59,37 @@ export function MotionResult({ view }: SummaryProps) {
   const labelOf = (season: number | undefined) =>
     season === undefined ? null : (view.seasons.find((s) => s.index === season)?.label ?? null);
   const span = view.motion ?? motion;
+  const still = isStatic(motion) && motion.agrees;
+  const brightness = still ? brightnessHeadline(view) : null;
+  // A star that stays put, as expected, has nothing to say about motion: if its brightness
+  // changed, that is the result.
+  if (brightness?.changed) {
+    return (
+      <section className="result" aria-label={COPY.brightness.title}>
+        <p className="result__label">{COPY.brightness.changed}</p>
+        <p className="result__figure result__figure--words">
+          {brightnessWords(brightness.ratio)}
+          <span className="result__error">{COPY.motion.giveOrTake(brightnessError(brightness.error))}</span>
+        </p>
+        <p className="verdict verdict--ok">
+          <Check size={18} aria-hidden="true" />
+          {COPY.motion.still}
+        </p>
+        <p className="result__sentence">{brightness.sentence}</p>
+      </section>
+    );
+  }
+  const cannotMeasureBrightness = still && view.brightness_change?.reason === "saturated";
   return (
     <section className="result" aria-label={COPY.motion.title}>
       <p className="result__label">{isStatic(motion) ? COPY.motion.shift : COPY.motion.moved}</p>
       <p className="result__figure">
         {arcsec(motion.measured)}
-        <span className="result__error">± {arcsec(motion.error)}</span>
+        <span className="result__error">{COPY.motion.giveOrTake(arcsec(motion.error))}</span>
       </p>
       <p className={motion.agrees ? "verdict verdict--ok" : "verdict verdict--warn"}>
         {motion.agrees ? <Check size={18} aria-hidden="true" /> : <TriangleAlert size={18} aria-hidden="true" />}
-        {motion.agrees ? COPY.motion.agrees : COPY.motion.differs}
+        {motion.agrees ? (isStatic(motion) ? COPY.motion.still : COPY.motion.agrees) : COPY.motion.differs}
       </p>
       <p className="result__sentence">
         {motionSentence({
@@ -66,6 +100,7 @@ export function MotionResult({ view }: SummaryProps) {
           subject: view.subject,
           floor: view.motion?.floor,
         })}
+        {cannotMeasureBrightness ? ` ${COPY.brightness.none.saturated}` : ""}
       </p>
     </section>
   );

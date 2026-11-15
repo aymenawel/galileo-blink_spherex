@@ -1,13 +1,14 @@
 /**
  * A small, self-running blink of a ready-made view: for the home page and the target cards.
  * It shows the subject's reticle and nothing else, and stays still if the visitor prefers
- * reduced motion.
+ * reduced motion or has paused the previews.
  */
 import { useMemo } from "react";
 import type { CameraKey, View } from "../../api/types";
 import { defaultCamera, looksOf, seasonsWithLooks } from "../../lib/cameras";
 import { COPY, subjectName } from "../../lib/copy";
 import { markersToDraw, visitMarkers } from "../../lib/markers";
+import { usePreviewsPaused } from "../../lib/previewMotion";
 import { useBlinkClock } from "../../lib/useBlinkClock";
 import { useReducedMotion } from "../../lib/useReducedMotion";
 import { ImageStack } from "./ImageStack";
@@ -27,7 +28,8 @@ export function BlinkPreview({ view, preferCamera, beat = 900, showDate = false 
   const reducedMotion = useReducedMotion();
   const camera = preferCamera && looksOf(view, preferCamera).length > 1 ? preferCamera : defaultCamera(view);
   const seasons = useMemo(() => seasonsWithLooks(view, camera), [view, camera]);
-  const step = useBlinkClock(seasons.length, beat, !reducedMotion);
+  const paused = usePreviewsPaused();
+  const step = useBlinkClock(seasons.length, beat, !reducedMotion && !paused);
   const season = seasons[step] ?? 0;
   const subject = useMemo(
     () => (view.kind === "visit" ? visitMarkers(view) : markersToDraw(view.markers)).filter((drawn) => drawn.marker.subject),

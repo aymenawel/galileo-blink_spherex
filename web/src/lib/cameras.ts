@@ -55,6 +55,20 @@ export function defaultCamera(view: View): CameraKey {
   return best;
 }
 
+/** One colour per camera for plots, running from blue (shortest wavelengths) to pink (longest). */
+const CAMERA_COLOURS: Record<CameraKey, string> = {
+  "1": "#6CC4FF",
+  "2": "#4FD1C5",
+  "3": "#A4F05C",
+  "4": "#E8E26A",
+  "5": "#F2A0BE",
+  "6": "#FF60AA",
+};
+
+export function cameraColour(camera: CameraKey): string {
+  return CAMERA_COLOURS[camera];
+}
+
 /** Colours that tell seasons apart in a plot. They repeat after ten seasons. */
 const SEASON_COLOURS = [
   "#A4F05C",

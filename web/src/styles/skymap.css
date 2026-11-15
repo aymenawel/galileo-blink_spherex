@@ -1,0 +1,139 @@
+/* The all-sky map on the front page: one picture, rings on it, and a line of text under it. */
+
+/* The whole oval fits in the window together with its heading, however short the window. */
+.skymap {
+  width: min(100%, max(320px, calc((100svh - var(--bar) - 170px) * 2)));
+  margin-inline: auto;
+}
+
+.skymap__credit {
+  margin-top: 6px;
+  text-align: center;
+  color: var(--faint);
+  font-size: var(--step-small);
+}
+
+.skymap__frame {
+  position: relative;
+  user-select: none;
+  -webkit-tap-highlight-color: transparent;
+}
+
+.skymap__frame--on-sky {
+  cursor: crosshair;
+}
+
+.skymap__image {
+  width: 100%;
+  height: auto;
+  aspect-ratio: 2 / 1;
+}
+
+/* ------------------------------------------------------------------ rings */
+.skymap__ring {
+  position: absolute;
+  width: 18px;
+  height: 18px;
+  margin: -9px 0 0 -9px;
+  border: 1.5px solid currentColor;
+  border-radius: 50%;
+  filter: drop-shadow(0 0 1.5px rgba(0, 0, 0, 0.95));
+  pointer-events: none;
+}
+
+.skymap__ring--pointer {
+  color: var(--accent);
+}
+
+/* ------------------------------------------------------------------ targets: each ring is a link */
+.skymap__targets {
+  position: absolute;
+  inset: 0;
+  pointer-events: none;
+}
+
+.skymap__target {
+  position: absolute;
+  /* a 44 px circle to aim at, centred on the target */
+  width: 44px;
+  height: 44px;
+  margin: -22px 0 0 -22px;
+  border-radius: 50%;
+  color: var(--ink);
+  text-decoration: none;
+  pointer-events: auto;
+  opacity: 0.75;
+}
+
+.skymap__target .skymap__ring {
+  left: 50%;
+  top: 50%;
+  width: 14px;
+  height: 14px;
+  margin: -7px 0 0 -7px;
+}
+
+.skymap__name {
+  position: absolute;
+  top: 50%;
+  left: calc(50% + 12px);
+  transform: translateY(-50%);
+  color: var(--muted);
+  font-size: var(--step-small);
+  line-height: 1;
+  white-space: nowrap;
+  text-shadow: 0 0 4px var(--bg), 0 0 2px var(--bg);
+}
+
+.skymap__target--name-left .skymap__name {
+  left: auto;
+  right: calc(50% + 12px);
+}
+
+.skymap__target:hover,
+.skymap__target:focus-visible {
+  opacity: 1;
+  color: var(--accent);
+}
+
+.skymap__target:hover .skymap__name,
+.skymap__target:focus-visible .skymap__name {
+  color: var(--ink);
+}
+
+.skymap__target:focus-visible {
+  outline-offset: -6px;
+}
+
+/* ------------------------------------------------------------------ the line under the map */
+.skymap__readout {
+  min-height: 1.5em;
+  margin-top: 18px;
+  text-align: center;
+  color: var(--muted);
+  font-size: 1rem;
+}
+
+@media (prefers-reduced-motion: no-preference) {
+  .skymap__target {
+    transition:
+      opacity var(--fast) var(--ease),
+      color var(--fast) var(--ease);
+  }
+}
+
+/* Phones: names only when a target is pointed at or focused, so the small map stays clear. */
+@media (max-width: 620px) {
+  .skymap__name {
+    opacity: 0;
+  }
+
+  .skymap__target:hover .skymap__name,
+  .skymap__target:focus-visible .skymap__name {
+    opacity: 1;
+  }
+
+  .skymap__readout {
+    font-size: var(--step-small);
+  }
+}

@@ -143,7 +143,7 @@ export interface CameraView {
   /** Every photo of this camera added together. */
   combined?: string | null;
   looks: Look[];
-  empty?: "no_photos" | "no_data";
+  empty?: "no_photos" | "no_data" | "not_in_visit";
 }
 
 export interface MarkerPosition {
@@ -283,6 +283,40 @@ export interface BrightnessPoint {
   status: BrightnessStatus;
 }
 
+/** One camera's brightness in one season, as a multiple of its brightness in that camera's first season. */
+export interface BrightnessChangePoint {
+  season: number;
+  /** 1 means unchanged, 2 twice as bright, 0.5 half as bright. */
+  ratio: number;
+  /** One-sigma error of `ratio`, in the same units. */
+  error: number;
+  n_photos?: number;
+  /** The change is larger than three times its error. */
+  changed?: boolean;
+}
+
+export interface CameraBrightnessChange {
+  first_season: number;
+  points: BrightnessChangePoint[];
+  /** How much stars that do not vary appear to change in this camera, as a fraction (0.06 = 6%). */
+  floor?: number;
+  /** False when too few steady stars were available and a default floor was used. */
+  floor_measured?: boolean;
+  n_reference_stars?: number;
+}
+
+export type BrightnessChangeReason = "saturated" | "too_faint" | "one_season" | "no_subject";
+
+/** Did the subject's brightness change between seasons? Compared within each camera, like with like. */
+export interface BrightnessChange {
+  cameras: Partial<Record<CameraKey, CameraBrightnessChange>>;
+  /** The clearest change, or the best-measured camera when nothing changed. */
+  best?: { camera: number; first_season: number; last_season: number; ratio: number; error: number; changed: boolean } | null;
+  changed?: boolean | null;
+  /** Why nothing could be measured, when `cameras` is empty. */
+  reason?: BrightnessChangeReason | string | null;
+}
+
 export type LeftOutReason =
   | "off_frame"
   | "not_received"
@@ -349,6 +383,7 @@ export interface View {
   brightness?: BrightnessPoint[];
   /** Photos whose light at the subject belonged to a neighbouring object. */
   brightness_left_out?: number;
+  brightness_change?: BrightnessChange | null;
   reference_stars?: { available?: number; median_used?: number };
   left_out?: LeftOutPhoto[];
   degraded?: Array<DegradedService | string>;

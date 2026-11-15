@@ -42,6 +42,7 @@ export function CameraPicker({ ws }: ControlsProps) {
           </button>
         ))}
       </div>
+      <p className="control__hint">{COPY.cameras.hint}</p>
     </div>
   );
 }

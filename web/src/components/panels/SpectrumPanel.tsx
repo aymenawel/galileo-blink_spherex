@@ -7,7 +7,7 @@ import { fetchQuickSpectrum } from "../../api/client";
 import type { Band, BrightnessPoint, CameraKey, QuickSpectrumPoint, View } from "../../api/types";
 import { CAMERA_BANDS } from "../../lib/cameras";
 import { COPY, brightnessLeftOutSentence, saturatedSentence } from "../../lib/copy";
-import { formatFlux, formatMjd, micron } from "../../lib/format";
+import { formatFlux, formatMjd, micron, microns } from "../../lib/format";
 import { Panel } from "./Panel";
 import { SpectrumPlot, type MeasuredPoint } from "./SpectrumPlot";
 
@@ -49,6 +49,15 @@ function alignQuick(quick: Quick, measured: MeasuredPoint[]): { points: QuickSpe
   };
 }
 
+/** The camera whose typical reading is highest, when at least two cameras have three readings each. */
+function brightestCamera(points: MeasuredPoint[]): number | null {
+  const byCamera = new Map<number, number[]>();
+  for (const p of points) byCamera.set(p.camera, [...(byCamera.get(p.camera) ?? []), p.flux_mjy]);
+  const levels = [...byCamera].filter(([, values]) => values.length >= 3).map(([camera, values]) => [camera, median(values)] as const);
+  if (levels.length < 2) return null;
+  return levels.reduce((best, level) => (level[1] > best[1] ? level : best))[0];
+}
+
 export function SpectrumPanel({ view, bands }: SpectrumPanelProps) {
   const [quick, setQuick] = useState<Quick>({ state: "idle" });
   useEffect(() => setQuick({ state: "idle" }), [view.key]);
@@ -59,6 +68,7 @@ export function SpectrumPanel({ view, bands }: SpectrumPanelProps) {
   const leftOut = view.brightness_left_out ?? 0;
   const aligned = alignQuick(quick, measured);
   const cameraBands = { ...CAMERA_BANDS, ...bands };
+  const brightest = brightestCamera(measured);
 
   const askQuick = () => {
     setQuick({ state: "loading" });
@@ -75,8 +85,12 @@ export function SpectrumPanel({ view, bands }: SpectrumPanelProps) {
     );
   };
 
+  // At an empty spot there is nothing to measure: scattered readings of the background are not a spectrum.
+  const isSpot = view.subject?.kind === "spot";
   const emptyReason =
-    measured.length > 0
+    isSpot && saturated === 0
+      ? COPY.spectrum.nothing
+      : measured.length > 0
       ? null
       : all.length === 0
         ? view.subject?.kind === "spot"
@@ -90,11 +104,12 @@ export function SpectrumPanel({ view, bands }: SpectrumPanelProps) {
     <Panel title={COPY.spectrum.title} context={COPY.spectrum.eyebrow} className="spectrum">
       {emptyReason && <p className="spectrum__empty">{emptyReason}</p>}
 
-      {(measured.length > 0 || aligned.points.length > 0) && (
-        <SpectrumPlot view={view} bands={cameraBands} points={measured} quick={aligned.points} unit={aligned.unit} />
+      {((measured.length > 0 && !emptyReason) || aligned.points.length > 0) && (
+        <SpectrumPlot view={view} bands={cameraBands} points={emptyReason ? [] : measured} quick={aligned.points} unit={aligned.unit} />
       )}
 
-      {measured.length > 0 && <p className="muted spectrum__caption">{COPY.spectrum.caption}</p>}
+      {brightest && !emptyReason && <p className="spectrum__reading">{COPY.spectrum.reading(brightest, microns(cameraBands[`${brightest}` as CameraKey]))}</p>}
+      {measured.length > 0 && !emptyReason && <p className="muted spectrum__caption">{COPY.spectrum.caption}</p>}
 
       <ul className="spectrum__facts">
         {measured.some((p) => p.status === "partial") && <li>{COPY.spectrum.hollow}.</li>}
@@ -117,7 +132,7 @@ export function SpectrumPanel({ view, bands }: SpectrumPanelProps) {
       {all.length > 0 && (
         <details className="disclosure">
           <summary>{COPY.spectrum.showNumbers}</summary>
-          <div className="numbers__scroll numbers__scroll--tall">
+          <div className="numbers__scroll numbers__scroll--tall" tabIndex={0} role="group" aria-label={COPY.spectrum.numbersLabel}>
             <table className="numbers__table">
               <thead>
                 <tr>

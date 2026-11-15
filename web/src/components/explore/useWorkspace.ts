@@ -48,8 +48,12 @@ export interface Workspace {
   /** Pause, and move to the chosen camera's next (+1) or previous (-1) date, wrapping around. */
   step: (direction: 1 | -1) => void;
   togglePlaying: () => void;
+  /** Start or stop the blink, whatever it was doing. */
+  setPlaying: (playing: boolean) => void;
   selectSpeed: (speed: Speed) => void;
   toggleOverlay: (name: OverlayName) => void;
+  /** Turn one overlay on or off, whatever it was. */
+  setOverlay: (name: OverlayName, on: boolean) => void;
 }
 
 function firstOf(seasons: number[], fallback: number): number {
@@ -141,6 +145,11 @@ export function useWorkspace(view: View, initial: ExploreChoices): Workspace {
     [],
   );
 
+  const setOverlay = useCallback(
+    (name: OverlayName, on: boolean) => setOverlays((current) => (current[name] === on ? current : { ...current, [name]: on })),
+    [],
+  );
+
   const shownSeason = stepping ? season : mode === "combined" ? null : a;
 
   return {
@@ -166,7 +175,9 @@ export function useWorkspace(view: View, initial: ExploreChoices): Workspace {
     swapDates,
     step,
     togglePlaying,
+    setPlaying,
     selectSpeed: setSpeed,
     toggleOverlay,
+    setOverlay,
   };
 }

@@ -65,7 +65,8 @@ export function readExploreAddress(query: URLSearchParams): ExploreAddress {
   const mode = query.get("mode");
   return {
     request: readRequest(query),
-    name: query.get("name"),
+    // A name is only ever a few words; a longer one in a link is not shown.
+    name: query.get("name")?.slice(0, 60) ?? null,
     camera: toCameraKey(query.get("cam")),
     season: seasonOrNull(query.get("season")),
     mode: MODES.find((m) => m === mode) ?? null,

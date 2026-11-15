@@ -68,15 +68,12 @@
 .readouts {
   display: grid;
   grid-template-columns: repeat(2, minmax(0, 1fr));
-  gap: 4px;
-  margin-top: 20px;
+  gap: 24px 40px;
+  margin-top: 24px;
 }
 
 .readout {
   min-width: 0;
-  padding: 16px 20px;
-  border-radius: 20px;
-  background: var(--surface);
 }
 
 .readout__label {
@@ -121,11 +118,47 @@
   margin-top: 12px;
 }
 
+.subject__elsewhere-title {
+  margin-top: 28px;
+  color: var(--muted);
+  font-size: var(--step-small);
+}
+
+.subject__elsewhere {
+  display: grid;
+  gap: 8px;
+  margin-top: 10px;
+}
+
+.subject__elsewhere a {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+}
+
+.spectrum__reading {
+  max-width: 46em;
+  margin-top: 16px;
+  font-size: var(--step-body);
+  line-height: 1.5;
+}
+
+.brightness__sentence,
+.brightness__none {
+  max-width: 46em;
+  font-size: var(--step-body);
+  line-height: 1.5;
+}
+
+.brightness__plot {
+  margin-top: 16px;
+}
+
 /* ------------------------------------------------------------------ motion */
 .motion__readouts {
   display: grid;
   grid-template-columns: repeat(2, minmax(0, 1fr));
-  gap: 4px;
+  gap: 24px 40px;
 }
 
 .motion__sentence {
@@ -458,9 +491,7 @@
   justify-content: space-between;
   flex-wrap: wrap;
   gap: 2px 16px;
-  padding: 12px 20px;
-  border-radius: 20px;
-  background: var(--surface);
+  padding: 6px 0;
   font-size: 1rem;
 }
 
@@ -533,9 +564,7 @@
   display: grid;
   grid-template-columns: minmax(0, 1fr) auto;
   gap: 2px 16px;
-  padding: 12px 20px;
-  border-radius: 20px;
-  background: var(--surface);
+  padding: 6px 0;
   font-size: 1rem;
 }
 
@@ -668,4 +697,17 @@
   .motion__readouts {
     grid-template-columns: minmax(0, 1fr);
   }
+}
+
+/* The brightness plot's key: one dot per camera. */
+.brightness__plot .plot__legend li {
+  display: inline-flex;
+  align-items: center;
+  gap: 7px;
+}
+
+.brightness__plot .plot__legend i {
+  width: 10px;
+  height: 10px;
+  border-radius: 50%;
 }

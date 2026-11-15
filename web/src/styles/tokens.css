@@ -15,11 +15,9 @@
   /* One accent: "this is the thing we are following", and the one thing to do. */
   --accent: #a4f05c;
   --accent-ink: #0d0e0f;
-  --accent-soft: color-mix(in srgb, var(--accent) 14%, transparent);
 
   /* Status, used only where something needs care. */
   --warn: #f0d264;
-  --bad: #ff8a8a;
 
   /* Change maps: brighter in green, fainter in magenta (drawn by the engine). */
   --brighter: #a4f05c;
@@ -31,7 +29,6 @@
   --step-body: 1.0625rem;
   --step-lead: clamp(1.1875rem, 1.05rem + 0.6vw, 1.5rem);
   --step-head: clamp(2rem, 1.3rem + 3vw, 3.75rem);
-  --step-display: clamp(2.75rem, 1.2rem + 6.2vw, 6.75rem);
 
   /* Space */
   --margin: clamp(20px, 3.2vw, 44px);

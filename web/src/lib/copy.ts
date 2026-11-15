@@ -15,6 +15,9 @@ export const REPOSITORY_URL = "https://github.com/aymenawel/galileo-blink_sphere
 /** Below this predicted motion (arcseconds) an object counts as standing still for SPHEREx. */
 export const STATIC_BELOW_ARCSEC = 0.3;
 
+/** Below this catalogue speed (arcseconds per year) a target is described as not moving. */
+const STATIC_BELOW_ARCSEC_PER_YEAR = 0.3;
+
 export const COPY = {
   brand: {
     name: "Galileo Blink",
@@ -37,6 +40,7 @@ export const COPY = {
     placeholder: 'Try "Barnard\'s Star" or 17h57m48s +04d41m36s',
     submit: "Look",
     busy: "Finding that place",
+    busySlow: "Still asking the star catalogues. This can take ten seconds.",
     empty: "Type a star's name or a pair of coordinates first.",
     timeScale: "Time between pictures",
     looks: "Every six months",
@@ -55,7 +59,7 @@ export const COPY = {
     side: {
       request: "Something about the place you asked for cannot be shown. Check the coordinates, or try another place.",
       service: "NASA's archive is busy. This is not about what you typed: try again in a minute.",
-      busy: "Many views are being built right now. Try again in a moment.",
+      busy: "Galileo Blink is very busy right now. Try again in a moment.",
       internal: "This one is on Galileo Blink, not on you and not on NASA. Trying again may work.",
       network: "Check your internet connection, then try again.",
     } satisfies Record<ErrorKind, string>,
@@ -69,15 +73,24 @@ export const COPY = {
     headline: "Watch the infrared sky move.",
     lede: "NASA's SPHEREx telescope photographs the whole sky every six months. Type any place and flip through the dates: whatever moved, shows.",
     previewCaption: "Barnard's Star, the fastest-moving star in the sky",
-    previewLoading: "The live preview appears here once its pictures arrive.",
     previewOpen: "Open this view",
-    targetsEyebrow: "Start here",
+    previewsPause: "Pause the pictures",
+    previewsPlay: "Play the pictures",
+    skyTitle: "The whole sky",
+    skyLede:
+      "Every direction SPHEREx has looked, in infrared light. The bright band is our own galaxy, the Milky Way, seen from inside. Click anywhere to open that place.",
+    skyAlt:
+      "The whole sky in infrared as an oval map: the Milky Way is a bright band across the middle, with its glowing centre in the middle of the oval.",
+    sky: {
+      label: "Map of the whole sky",
+      hint: "Point at the sky to read its position. Click to open that place.",
+      readout: (ra: string, dec: string) => `${ra}   ${dec}`,
+      target: (name: string) => `${name}: open its blink`,
+    },
+    skyCredit: "SPHEREx all-sky map, 4.4 to 5.0 microns: NASA/JPL-Caltech, NASA/IPAC Infrared Science Archive.",
     targetsTitle: "NASA's five test targets",
     targetsLede: "The challenge names five objects to try a tool like this on. Each one is ready to open.",
     targetsFailed: "The list of test targets could not be loaded right now. You can still search for any place above.",
-    targetOpen: "Open",
-    targetBuilding: "Built on first visit",
-    stepsEyebrow: "In three steps",
     stepsTitle: "How it works, in three steps",
     steps: [
       {
@@ -90,7 +103,7 @@ export const COPY = {
       },
       {
         title: "Blink through the dates",
-        body: "Step from season to season. Stars stay put. Anything that moved, brightened or faded jumps out, and the tool measures by how much.",
+        body: "Step from season to season. Stars stay put. Anything that moved, brightened or faded jumps out, and the tool measures how far it moved.",
       },
     ],
     stepsMore: "Read the full explanation",
@@ -123,11 +136,22 @@ export const COPY = {
     detailsTitle: "The details",
     detailsLede: "Every number behind the picture, how it was measured, and what this view cannot tell you.",
     detailsLink: "See the numbers behind this",
+    wordsLink: "What the words mean",
     cameraLabel: "Camera",
     showLabel: "Show on the picture",
     viewLabel: "This view",
     shareFailed: "Copy the address from the address bar to share this view",
     opening: "Opening this view",
+  },
+
+  firstLook: {
+    label: "A guided first look",
+    start: "Show me what to look for",
+    count: (step: number, of: number) => `Step ${step} of ${of}`,
+    back: "Previous step",
+    next: "Next",
+    done: "Done",
+    close: "Close the guide",
   },
 
   viewport: {
@@ -165,10 +189,18 @@ export const COPY = {
     seasonB: "Date B",
     swap: "Swap date A and date B",
     compareHandle: "Divider between date A (left) and date B (right)",
+    compareValue: (percent: number, a: string, b: string) => `${percent}% of the picture shows ${a}, the rest ${b}`,
     changeLoading: "Subtracting the two dates",
     changeFailed: "This change map could not be made. Pick two other dates.",
-    changeLegend: { label: "Colours of the change map", brighter: "Brighter in A", fainter: "Fainter in A", same: "No change" },
-    changeNote: "Stars leave faint residue because each photo is taken at a slightly different wavelength.",
+    changeLegend: {
+      label: "Colours of the change map",
+      brighter: (date: string) => `Brighter in ${date}`,
+      fainter: (date: string) => `Fainter in ${date}`,
+      same: "No change",
+    },
+    changeNote:
+      "A star that moved leaves green where it is now and pink where it was. Still stars leave faint traces, because each photo is taken at a slightly different wavelength.",
+    blinkNote: "Watch the centre as the dates change. Stars that stay put hold still; anything that moved jumps.",
     compareNote: "The markers on each side show where the catalogue places each object on that date.",
     combinedNote: "A moving object appears once for every date, as a short row of dots.",
     combinedChip: "All dates",
@@ -185,7 +217,8 @@ export const COPY = {
 
   cameras: {
     title: "The same date in all six cameras",
-    line: "Six cameras, six slices of infrared. Cold objects appear only in the long-wavelength cameras.",
+    line: "Six cameras, six slices of infrared. The coldest objects appear only in the long-wavelength cameras.",
+    hint: "Each camera sees its own slice of infrared light, measured in microns (µm). Higher numbers see colder things.",
     camera: (key: string) => `Camera ${key}`,
     select: (key: string, band: string) => `Show camera ${key}, ${band}`,
   },
@@ -205,7 +238,16 @@ export const COPY = {
       star: "The catalogued star at the centre.",
       spot: "No catalogued object sits exactly here — this view watches the spot itself.",
     } satisfies Record<SubjectKind, string>,
+    namedSpot: (name: string) =>
+      `${name} is not in the star catalogues this tool measures against (very bright stars and galaxies are missing from them), so no motion is measured. You can still blink the pictures and look for changes.`,
     unnamedPlace: "This place in the sky",
+    elsewhere: "The same place in other tools",
+    elsewhereLinks: {
+      spherex: "NASA's SPHEREx all-sky viewer",
+      wiseview: "WiseView (NASA's WISE telescope, 2010 to today)",
+      simbad: "SIMBAD: what is known about objects here",
+      legacy: "Legacy Surveys sky viewer (visible light)",
+    },
   },
 
   motion: {
@@ -215,11 +257,14 @@ export const COPY = {
     shift: "Measured shift",
     predicted: "Catalogue predicted",
     agrees: "Matches the catalogue",
+    still: "Does not move, as expected",
+    giveOrTake: (amount: string) => `give or take ${amount}`,
     differs: "Differs from the catalogue",
     agreesWhy: "The measured motion and the predicted motion agree in size and direction, within the measurement error.",
     differsWhy:
       "The difference is larger than the measurement error. A neighbouring star blended into the same pixel, or an out-of-date catalogue entry, can cause this.",
     showNumbers: "Show the numbers",
+    numbersLabel: "Table of the motion measured in each camera",
     noneTitle: "No motion could be measured here.",
     plotAlt: (count: number, camera: string) =>
       `Path across the sky, north up and east left: the catalogue's predicted path as a line, and ${plural(count, "measured position")} from camera ${camera} as dots with error bars.`,
@@ -257,8 +302,10 @@ export const COPY = {
     eyebrow: "Spectrum from the photos",
     title: "Its colours",
     caption:
-      "Each dot is one photo. SPHEREx's filter changes across its field, so every photo catches the object at a different infrared colour — together they draw its spectrum. Dots from different seasons at the same colour should overlap; if they don't, the object changed brightness.",
+      "Each dot is one photo. SPHEREx's filter changes across its field, so every photo catches the object at a different infrared colour — together they draw its spectrum. Dots from different seasons at the same colour should overlap; if they clearly don't, beyond their scatter, the object may have changed brightness.",
     axisWavelength: "Wavelength: shorter is bluer, longer shows colder things",
+    reading: (camera: number, band: string) =>
+      `Read it like this: the dots are highest in camera ${camera} (${band}), so that is where this object gives off most of its light. Hot stars are brightest in cameras 1 and 2, cool stars in cameras 2 to 4, and the coldest or dustiest objects in cameras 5 and 6.`,
     bandName: (camera: string) => `cam ${camera}`,
     wavelengthTick: (microns: number) => `${microns} µm`,
     axisBrightness: (unit: string) => `Brightness (${unit})`,
@@ -278,17 +325,48 @@ export const COPY = {
     quickScaled: (unit: string) =>
       `The whole-sky map is in ${unit}, not mJy, so its line is scaled to the level of the dots: compare its shape, not its height.`,
     showNumbers: "Show the numbers",
+    numbersLabel: "Table of every brightness measurement",
     table: { date: "Date", camera: "Camera", wavelength: "Wavelength", brightness: "Brightness", note: "Note" },
     statusNote: { ok: "", partial: "Partly on damaged pixels", saturated: "Saturated: too bright" },
   },
 
+  brightness: {
+    title: "Did its brightness change?",
+    eyebrow: "Each camera compared with itself",
+    changed: "Brightness changed",
+    steady: "Brightness steady",
+    resultLabel: "Brightness",
+    showNumbers: "Show the numbers",
+    numbersLabel: "Table of the brightness change in each camera",
+    method:
+      "Every photo catches the object at a slightly different infrared colour, so brightness is only ever compared inside one camera, where the colours are alike. The first date with photos counts as 1; later dates are measured against it.",
+    floor: (percent: number, stars: number) =>
+      `Stars that do not vary appear to change by about ${percent}% in this view (${plural(stars, "ordinary star")} checked). That is added to every error here.`,
+    floorDefault: "Too few ordinary stars were available to check the cameras' steadiness here, so a cautious 10% is added to every error.",
+    notProof:
+      "A change this tool calls real is larger than three times its error. It is a measurement, not an explanation: this view cannot say why the light changed.",
+    none: {
+      saturated: "Every photo of this object is saturated: it is too bright for SPHEREx, so a change in its brightness cannot be measured here.",
+      too_faint: "This object is too faint in single photos for its brightness to be compared between dates.",
+      one_season: "Brightness can be compared only between two or more dates, and this place has photos from one so far.",
+      no_subject: "There is no single object at the centre of this view to follow.",
+    } as Record<string, string>,
+    noneFallback: "The photos here did not give enough clean readings to compare brightness between dates.",
+    plotAlt: (cameras: number) =>
+      `Brightness on each date compared with the first date, one line for each of ${plural(cameras, "camera")}, with error bars.`,
+    axis: "Compared with the first date",
+    same: "same",
+    legend: (camera: string, band: string) => `Camera ${camera} · ${band}`,
+    table: { camera: "Camera", dates: "Dates compared", change: "Change", verdict: "Real change?", yes: "Yes", no: "Within error" },
+  },
+
   flags: {
     eyebrow: "Quality flags",
-    title: "NASA's quality flags in this look",
+    title: "NASA's quality flags on this date",
     line: "Blemishes like cosmic rays and satellite trails can look like new objects. NASA marks them; we show them.",
     show: "Show flagged pixels on the picture",
     hide: "Hide flagged pixels",
-    none: "No pixels are flagged in this look.",
+    none: "No pixels are flagged on this date.",
     noLook: "This camera took no photos this season, so there are no flags to list.",
     notInThisMode: "Flags belong to one date. Switch to Blink to see them for the date on screen.",
     pixels: "pixels",
@@ -302,9 +380,9 @@ export const COPY = {
     eyebrow: "Limits",
     title: "What this view can't tell you",
     pixel: (pixelArcsec: number) =>
-      `SPHEREx pixels are ${pixelArcsec}″ wide. Two stars closer together than that look like one, and anything that moves less than about half an arcsecond between looks cannot be seen moving.`,
+      `SPHEREx pixels are ${pixelArcsec}″ wide. Two stars closer together than that look like one, and a motion smaller than about 1 arcsecond between looks cannot be told apart from no motion.`,
     floor: (floor: number) =>
-      `Stars that don't move appear to shift ${arcsec(floor)} in this view. Any motion smaller than that is not real evidence.`,
+      `Stars that don't move appear to shift about ${arcsec(floor)} in this view, and each measurement has its own error (the "give or take" number). A shift counts only when it is larger than both.`,
     wavelength:
       "Each photo is a different wavelength. A star can look brighter on one date only because that photo caught it in a brighter colour.",
     seasons: (count: number) =>
@@ -322,10 +400,10 @@ export const COPY = {
     queued: "Waiting for a free builder",
     elapsed: "Elapsed",
     progress: "Progress",
-    typical: "A new place usually takes between ten seconds and a minute.",
+    typical: "A new place usually takes under a minute. Asking NASA's archive which photos exist is the slowest part.",
     failedTitle: "This view could not be built",
     facts: [
-      "SPHEREx photos arrive rotated; we are turning each one north-up.",
+      "SPHEREx photos arrive rotated; each one is turned north-up.",
       "Each SPHEREx photo is 65 MB. Only the small piece that covers your place is read.",
       "SPHEREx comes back to most places about every six months.",
       "One SPHEREx pixel is 6.15 arcseconds wide: about 1/300 of the full Moon.",
@@ -381,12 +459,12 @@ export function catalogueName(subject: Subject | null | undefined): string {
   const source = `${subject?.catalog ?? ""} ${subject?.source ?? ""}`;
   if (/gaia/i.test(source)) return "Gaia's catalogue";
   if (/catwise/i.test(source)) return "The CatWISE catalogue";
-  return "Its published motion";
+  return "Published measurements";
 }
 
 /** The chip on a target card: how fast it crosses the sky, or that it does not. */
 export function speedChip(arcsecPerYear: number): string {
-  return arcsecPerYear >= STATIC_BELOW_ARCSEC
+  return arcsecPerYear >= STATIC_BELOW_ARCSEC_PER_YEAR
     ? `${arcsec(arcsecPerYear)} per year`
     : "doesn't move — changes brightness";
 }
@@ -426,14 +504,14 @@ function between(first: string | null, last: string | null): string {
 
 /** The plain-language account of a motion measurement. */
 export function motionSentence({ name, firstSeason, lastSeason, motion, subject, floor }: MotionWords): string {
-  const measured = `${arcsec(motion.measured)} ± ${arcsec(motion.error)}`;
+  const measured = `${arcsec(motion.measured)}, give or take ${arcsec(motion.error)},`;
   if (isStatic(motion)) {
     if (!motion.agrees) {
-      return `This star is not expected to move measurably, yet the photos show a shift of ${measured}, more than the measurement error explains. A bright or blended star can pull a measurement this much; treat it with caution.`;
+      return `This star is not expected to move measurably, yet the photos show a shift of ${measured} more than the measurement error explains. A bright or blended star can pull a measurement this much; treat it with caution.`;
     }
     return floor !== undefined && motion.measured <= floor
       ? `This star is not expected to move measurably, and it didn't: ${measured} is within what stars that don't move show here.`
-      : `This star is not expected to move measurably. The photos show a shift of ${measured}, small enough to be measurement error: no real motion is seen.`;
+      : `This star is not expected to move measurably. The photos show a shift of ${measured} small enough to be measurement error: no real motion is seen.`;
   }
   const lead = between(firstSeason, lastSeason);
   const moved = `${name} moved ${arcsecNumber(motion.measured)} arcseconds across the sky — ${analogy(motion.measured)}.`;
@@ -461,7 +539,7 @@ export function parallaxNote(sameTimeOfYear: boolean | undefined): string {
 }
 
 export function floorNote(floor: number): string {
-  return `Stars that don't move appear to shift ${arcsec(floor)} here. That is the smallest motion this view can show.`;
+  return `Stars that don't move appear to shift ${arcsec(floor)} here. A motion must be well above this, and above its own error, to count.`;
 }
 
 export function referenceStarsNote(used: number, available: number | undefined): string {
@@ -536,15 +614,12 @@ export const VISIT_COPY = {
     eyebrow: "Faster movers",
     title: "Asteroids, hour by hour",
     lede: "Within a single SPHEREx visit an asteroid crosses the picture in hours. Galileo Blink subtracts the sky that stays put and finds what is left moving. These five are real asteroids in real SPHEREx photos, found by that search without being told where to look.",
-    open: "Watch it move",
-    building: "Build and open",
     failed: "The asteroid examples could not be loaded. The server may be starting up: try again in a moment.",
     searchLabel: "An asteroid's name or number",
     searchPlaceholder: 'Any asteroid: try "Pallas" or "324"',
     searchSubmit: "Find it",
     searchEmpty: "Type an asteroid's name or number first.",
-    magnitude: (vmag: number) => `magnitude ${vmag.toFixed(1)}`,
-    faintNote: "faint: a test of the search",
+    magnitude: (vmag: number) => `magnitude ${vmag.toFixed(1)} (a bigger number is fainter)`,
   },
   switch: {
     label: "What to look for",
@@ -581,7 +656,7 @@ export const VISIT_COPY = {
   movers: {
     eyebrow: "The search",
     title: "What moved?",
-    none: "Nothing was found moving here. That means no object brighter than about magnitude 18.5 crossed this view in three or more moments.",
+    none: "Nothing was found moving here. That suggests no object brighter than about magnitude 18.5 crossed this view in three or more moments.",
     notSearched: (moments: number) =>
       `This visit has only ${plural(moments, "moment")}. A path needs three, so the search could not run here.`,
     strong: "Found",
@@ -650,4 +725,37 @@ export function compassWord(degrees: number): string {
 /** "moves 33″ per hour". */
 export function hourlySpeed(arcsecPerHour: number): string {
   return `moves ${arcsec(arcsecPerHour, arcsecPerHour < 10 ? 1 : 0)} per hour`;
+}
+
+// ---------------------------------------------------------------------------- brightness in words
+
+/** A brightness ratio as people say it: 0.51 is "49% fainter", 1.79 is "79% brighter", 2.4 is "2.4 times brighter". */
+export function brightnessWords(ratio: number): string {
+  if (ratio >= 2) return `${roundSignificant(ratio, 2)} times brighter`;
+  const percent = Math.round(Math.abs(ratio - 1) * 100);
+  if (percent === 0) return "unchanged";
+  return `${percent}% ${ratio > 1 ? "brighter" : "fainter"}`;
+}
+
+/** The error of a brightness ratio, in percent of the first date's brightness. */
+export function brightnessError(error: number): string {
+  return `${Math.max(1, Math.round(error * 100))}%`;
+}
+
+/** One sentence on the clearest brightness measurement of a view. */
+export function brightnessSentence(words: {
+  name: string;
+  first: string;
+  last: string;
+  camera: number;
+  band: string;
+  ratio: number;
+  error: number;
+  changed: boolean;
+}): string {
+  const where = `in camera ${words.camera} (${words.band})`;
+  if (!words.changed) {
+    return `Between ${words.first} and ${words.last}, ${words.name} kept the same brightness ${where}, to within ${brightnessError(words.error)}.`;
+  }
+  return `Between ${words.first} and ${words.last}, ${words.name} became ${brightnessWords(words.ratio)} ${where}, give or take ${brightnessError(words.error)}.`;
 }

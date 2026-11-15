@@ -80,7 +80,7 @@ export function Viewport({ ws }: ViewportProps) {
   );
 
   return (
-    <div className="viewport">
+    <div className={`viewport viewport--${mode}`}>
       <div className="viewport__sky sky" ref={sky}>
         {mode === "blink" && <ImageStack view={view} camera={camera} season={season} place={place} />}
         {mode === "combined" && <ImageStack view={view} camera={camera} season={null} place={place} />}

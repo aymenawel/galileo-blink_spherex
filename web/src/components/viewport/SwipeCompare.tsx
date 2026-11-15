@@ -35,11 +35,20 @@ export function SwipeCompare({ view, camera, a, b, place, divider, onDivider }: 
   };
 
   const nudge = (event: KeyboardEvent<HTMLDivElement>) => {
-    const move = event.key === "ArrowLeft" ? -KEY_STEP : event.key === "ArrowRight" ? KEY_STEP : 0;
-    if (move === 0) return;
+    const to =
+      event.key === "ArrowLeft"
+        ? divider - KEY_STEP
+        : event.key === "ArrowRight"
+          ? divider + KEY_STEP
+          : event.key === "Home"
+            ? 0
+            : event.key === "End"
+              ? 1
+              : null;
+    if (to === null) return;
     event.preventDefault();
     event.stopPropagation();
-    onDivider(clamp(divider + move, 0, 1));
+    onDivider(clamp(to, 0, 1));
   };
 
   if (!lookA || !lookB) return <span className="sky__empty">{COPY.viewport.noLook}</span>;
@@ -62,6 +71,7 @@ export function SwipeCompare({ view, camera, a, b, place, divider, onDivider }: 
         aria-valuemin={0}
         aria-valuemax={100}
         aria-valuenow={Math.round(divider * 100)}
+        aria-valuetext={COPY.viewport.compareValue(Math.round(divider * 100), labelOf(a), labelOf(b))}
         onPointerDown={(event) => {
           event.currentTarget.setPointerCapture(event.pointerId);
           event.preventDefault();

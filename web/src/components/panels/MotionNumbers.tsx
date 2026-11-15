@@ -39,7 +39,7 @@ export function MotionNumbers({ view, headline }: MotionNumbersProps) {
 
   return (
     <div className="numbers">
-      <div className="numbers__scroll">
+      <div className="numbers__scroll" tabIndex={0} role="group" aria-label={COPY.motion.numbersLabel}>
         <table className="numbers__table">
           <thead>
             <tr>

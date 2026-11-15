@@ -41,7 +41,7 @@ export function FlagsPanel({ view, camera, season, flags, overlayOn, overlayAvai
         <span className="flags__count">
           {formatCount(count)} <small>{COPY.flags.pixels}</small>
         </span>
-        <span className="flags__meaning">{info?.meaning ?? COPY.flags.unknown}</span>
+        <span className="flags__meaning">{info?.meaning ?? (flags ? COPY.flags.unknown : "")}</span>
       </li>
     );
   };

@@ -13,6 +13,9 @@ import { DEFAULT_FIELD, DEFAULT_VISIT_FIELD, FIELD_CHOICES, exploreAddress } fro
 import { navigate } from "../../router";
 import { SearchSettings, type TimeScale } from "./SearchSettings";
 
+/** A name lookup that has taken this long gets a line saying it is still going. */
+const SLOW_AFTER_MS = 4000;
+
 interface SearchBoxProps {
   size: "large" | "compact";
   /** Text to start with, such as the name of the place on screen. */
@@ -57,6 +60,7 @@ function openPlace(place: ResolvedPlace, choices: Choices): void {
 export function SearchBox({ size, initialText = "" }: SearchBoxProps) {
   const [text, setText] = useState(initialText);
   const [busy, setBusy] = useState(false);
+  const [slow, setSlow] = useState(false);
   const [problem, setProblem] = useState<string | null>(null);
   const [choices, setChoices] = useState<Choices>({ scale: "looks", field: DEFAULT_FIELD, camera: null });
   const problemId = useId();
@@ -70,13 +74,19 @@ export function SearchBox({ size, initialText = "" }: SearchBoxProps) {
       return;
     }
     setBusy(true);
+    setSlow(false);
     setProblem(null);
+    const slowTimer = window.setTimeout(() => setSlow(true), SLOW_AFTER_MS);
     resolvePlace(query)
       .then(
         (place) => openPlace(place, choices),
         (cause: unknown) => setProblem(cause instanceof ApiError ? cause.message : COPY.errors.unexpected),
       )
-      .finally(() => setBusy(false));
+      .finally(() => {
+        window.clearTimeout(slowTimer);
+        setBusy(false);
+        setSlow(false);
+      });
   };
 
   // Asteroids cross a narrow view in hours, so switching the time scale also changes the usual width.
@@ -119,6 +129,11 @@ export function SearchBox({ size, initialText = "" }: SearchBoxProps) {
       {problem && (
         <p className="search__problem" id={problemId} role="alert">
           {problem}
+        </p>
+      )}
+      {slow && !problem && (
+        <p className="search__problem search__problem--waiting" role="status">
+          {COPY.search.busySlow}
         </p>
       )}
       {size === "large" && (

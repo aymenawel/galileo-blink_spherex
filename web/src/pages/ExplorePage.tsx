@@ -1,6 +1,6 @@
 /** The main tool: opens the view named by the address and shows it, its progress, or its failure. */
 import { Info } from "lucide-react";
-import { useMemo } from "react";
+import { useEffect, useMemo, useState } from "react";
 import { useView } from "../api/useView";
 import { TargetIndex } from "../components/SkyIndex";
 import { ExploreWorkspace } from "../components/explore/ExploreWorkspace";
@@ -16,11 +16,29 @@ function arrivalNote(state: unknown): string | null {
   return typeof note === "string" ? note : null;
 }
 
+/** Views that are ready open in a blink; the progress screen appears only if opening takes longer than this. */
+const OPENING_GRACE_MS = 400;
+
+/** True once `active` has stayed true for `ms`. */
+function useLingering(active: boolean, ms: number): boolean {
+  const [lingering, setLingering] = useState(false);
+  useEffect(() => {
+    if (!active) {
+      setLingering(false);
+      return;
+    }
+    const timer = window.setTimeout(() => setLingering(true), ms);
+    return () => window.clearTimeout(timer);
+  }, [active, ms]);
+  return active && lingering;
+}
+
 export function ExplorePage() {
   const route = useRoute();
   const address = useMemo(() => readExploreAddress(route.query), [route.query]);
   const { load, retry } = useView(address.request);
   const note = arrivalNote(route.state);
+  const slowToOpen = useLingering(load.phase === "opening", OPENING_GRACE_MS);
 
   return (
     <div className="page explore">
@@ -41,7 +59,7 @@ export function ExplorePage() {
         </section>
       )}
 
-      {load.phase === "opening" && <BuildProgress status={null} />}
+      {slowToOpen && <BuildProgress status={null} />}
       {load.phase === "building" && <BuildProgress status={load.status} />}
       {load.phase === "failed" && <BuildFailed message={load.message} kind={load.kind} onRetry={retry} />}
       {load.phase === "ready" && address.request && (

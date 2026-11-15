@@ -6,6 +6,9 @@ import type { ErrorKind, View, ViewStatus } from "./types";
 import { recallView, recallViewForRequest, rememberView } from "./viewCache";
 
 const POLL_MS = 700;
+/** A status check that fails (a network blip, a restart) is tried again this many times, this far apart. */
+const POLL_RETRIES = 5;
+const POLL_RETRY_MS = 2000;
 
 export type ViewLoad =
   | { phase: "idle" }
@@ -57,8 +60,29 @@ export function useView(request: ViewRequest | null): { load: ViewLoad; retry: (
       if (!controller.signal.aborted) setLoad(failure(cause));
     };
 
+    let stumbles = 0;
     const poll = (key: string, askedForFinishedView: boolean) => {
-      fetchViewStatus(key, controller.signal).then((status) => follow(status, askedForFinishedView), fail);
+      fetchViewStatus(key, controller.signal).then(
+        (status) => {
+          stumbles = 0;
+          follow(status, askedForFinishedView);
+        },
+        (cause: unknown) => {
+          if (controller.signal.aborted) return;
+          const status = cause instanceof ApiError ? cause.status : 0;
+          stumbles += 1;
+          if (stumbles > POLL_RETRIES) {
+            fail(cause);
+          } else if (status === 404) {
+            // The server restarted and forgot the build: ask for the view again.
+            timer = window.setTimeout(() => openView(request, controller.signal).then((s) => follow(s, false), fail), POLL_RETRY_MS);
+          } else if (status === 0 || status >= 500) {
+            timer = window.setTimeout(() => poll(key, askedForFinishedView), POLL_RETRY_MS);
+          } else {
+            fail(cause);
+          }
+        },
+      );
     };
 
     const follow = (status: ViewStatus, askedForFinishedView: boolean) => {

@@ -4,13 +4,17 @@
  * behind it is further down, under "The details". Keeps the address bar in step with what
  * is on screen.
  */
-import { useEffect, useMemo } from "react";
+import { Telescope } from "lucide-react";
+import { useEffect, useMemo, useRef, useState } from "react";
 import type { ViewRequest } from "../../api/client";
 import type { View } from "../../api/types";
 import { useAbout } from "../../api/useResource";
+import { firstLookFor } from "../../content/firstLooks";
 import { COPY, VISIT_COPY } from "../../lib/copy";
 import { exploreAddress, type ExploreChoices } from "../../lib/exploreAddress";
-import { navigate } from "../../router";
+import { useReducedMotion } from "../../lib/useReducedMotion";
+import { Link, navigate } from "../../router";
+import { BrightnessPanel } from "../panels/BrightnessPanel";
 import { FlagsPanel } from "../panels/FlagsPanel";
 import { HonestyPanel } from "../panels/HonestyPanel";
 import { MotionPanel } from "../panels/MotionPanel";
@@ -25,6 +29,7 @@ import { SeasonTimeline } from "../viewport/SeasonTimeline";
 import { ModePills } from "../viewport/ModePills";
 import { TransportBar } from "../viewport/TransportBar";
 import { LookReadout, Viewport } from "../viewport/Viewport";
+import { FirstLook, showStep } from "./FirstLook";
 import { MotionResult, ViewTitle, VisitResult } from "./Summary";
 import { CameraPicker, ShowPicker, ViewActions } from "./ViewControls";
 import { useWorkspace, type Workspace } from "./useWorkspace";
@@ -41,9 +46,9 @@ interface ExploreWorkspaceProps {
 const TYPING_TARGETS = "input, textarea, select, [contenteditable], [role=slider]";
 const PRESSABLE_TARGETS = "button, a, summary";
 
-/** One line about what the picture shows, for every way of looking except the plain blink. */
-function noteFor(mode: Workspace["mode"], visit: boolean): string | null {
-  if (mode === "blink") return null;
+/** One line about what the picture shows and what to look for, for every way of looking. */
+function noteFor(mode: Workspace["mode"], visit: boolean): string {
+  if (mode === "blink") return visit ? VISIT_COPY.modes.blink.hint : COPY.viewport.blinkNote;
   if (visit) return mode === "change" ? VISIT_COPY.subtractedNote : VISIT_COPY.staticNote;
   if (mode === "compare") return COPY.viewport.compareNote;
   if (mode === "change") return COPY.viewport.changeNote;
@@ -91,9 +96,30 @@ export function ExploreWorkspace({ view: built, request, name, initial }: Explor
   useBlinkKeys(ws);
   useAddressSync(ws, request, name);
 
+  // The browser tab names the place, so several open views can be told apart.
+  useEffect(() => {
+    document.title = `${ws.place} · ${COPY.brand.name}`;
+  }, [ws.place]);
+
   const picksDates = !ws.visit && (ws.mode === "compare" || ws.mode === "change");
   const leftOut = view.seasons_left_out ?? 0;
   const modeNote = noteFor(ws.mode, ws.visit);
+  const seasonLabel = (index: number) => view.seasons.find((s) => s.index === index)?.label ?? "";
+
+  // The guide: closed until asked for, and closed again when another place is opened.
+  const reducedMotion = useReducedMotion();
+  const guide = useMemo(() => firstLookFor(view), [view]);
+  const [guideStep, setGuideStep] = useState<number | null>(null);
+  useEffect(() => setGuideStep(null), [view.key]);
+  const viewer = useRef<HTMLDivElement>(null);
+  const openGuideStep = (index: number) => {
+    // On a narrow screen the guide sits right under the picture: bring both into view once.
+    if (guideStep === null && window.matchMedia("(max-width: 999px)").matches) {
+      window.requestAnimationFrame(() => viewer.current?.scrollIntoView({ block: "start" }));
+    }
+    setGuideStep(index);
+    showStep(ws, guide[index]?.show, reducedMotion);
+  };
 
   const flagsPanel = (
     <FlagsPanel
@@ -109,7 +135,7 @@ export function ExploreWorkspace({ view: built, request, name, initial }: Explor
 
   return (
     <>
-      <div className="viewer">
+      <div className={guideStep === null ? "viewer" : "viewer viewer--guided"} ref={viewer}>
         <div className="viewer__modes">
           <ModePills mode={ws.mode} visit={ws.visit} onSelect={ws.selectMode} />
         </div>
@@ -144,12 +170,12 @@ export function ExploreWorkspace({ view: built, request, name, initial }: Explor
           )}
           {ws.mode === "change" && !ws.visit && (
             <ul className="change-legend" aria-label={COPY.viewport.changeLegend.label}>
-              <li className="change-legend__warm">{COPY.viewport.changeLegend.brighter}</li>
-              <li className="change-legend__cool">{COPY.viewport.changeLegend.fainter}</li>
+              <li className="change-legend__warm">{COPY.viewport.changeLegend.brighter(seasonLabel(ws.a))}</li>
+              <li className="change-legend__cool">{COPY.viewport.changeLegend.fainter(seasonLabel(ws.a))}</li>
               <li className="change-legend__dark">{COPY.viewport.changeLegend.same}</li>
             </ul>
           )}
-          {modeNote && <p className="rail__note">{modeNote}</p>}
+          <p className="rail__note">{modeNote}</p>
           {ws.stepping && (
             <TransportBar
               playing={ws.playing}
@@ -164,12 +190,22 @@ export function ExploreWorkspace({ view: built, request, name, initial }: Explor
 
         <aside className="side">
           <ViewTitle view={view} searchedName={name} />
-          <div className="side__result">
-            {ws.visit ? <VisitResult view={view} /> : <MotionResult view={view} />}
-            <a className="side__more" href="#details">
-              {COPY.explore.detailsLink}
-            </a>
-          </div>
+          {guideStep === null ? (
+            <div className="side__result">
+              {ws.visit ? <VisitResult view={view} /> : <MotionResult view={view} />}
+              <div className="side__next">
+                <button type="button" className="button button--quiet" onClick={() => openGuideStep(0)}>
+                  <Telescope size={16} aria-hidden="true" />
+                  {COPY.firstLook.start}
+                </button>
+                <a className="side__more" href="#details">
+                  {COPY.explore.detailsLink}
+                </a>
+              </div>
+            </div>
+          ) : (
+            <FirstLook steps={guide} index={guideStep} onIndex={openGuideStep} onClose={() => setGuideStep(null)} />
+          )}
         </aside>
       </div>
 
@@ -189,7 +225,10 @@ export function ExploreWorkspace({ view: built, request, name, initial }: Explor
           <h2 className="details__title" id="details-title">
             {COPY.explore.detailsTitle}
           </h2>
-          <p className="details__lede">{COPY.explore.detailsLede}</p>
+          <p className="details__lede">
+            {COPY.explore.detailsLede}{" "}
+            <Link to="/how-it-works#words">{COPY.explore.wordsLink}</Link>
+          </p>
         </header>
         {ws.visit ? (
           <div className="details__grid">
@@ -203,6 +242,11 @@ export function ExploreWorkspace({ view: built, request, name, initial }: Explor
           <div className="details__grid">
             <MotionPanel view={view} camera={ws.camera} />
             <SubjectPanel view={view} />
+            {view.brightness_change && (
+              <div className="details__wide">
+                <BrightnessPanel view={view} />
+              </div>
+            )}
             <div className="details__wide">
               <SpectrumPanel view={view} bands={about.status === "ready" ? about.data.cameras : undefined} />
             </div>

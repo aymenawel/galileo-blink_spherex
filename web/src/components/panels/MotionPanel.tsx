@@ -48,7 +48,7 @@ export function MotionPanel({ view, camera }: MotionPanelProps) {
   const verdict = motion.agrees ? (
     <span className="verdict verdict--ok">
       <Check size={16} aria-hidden="true" />
-      {COPY.motion.agrees}
+      {isStatic(motion) ? COPY.motion.still : COPY.motion.agrees}
     </span>
   ) : (
     <span className="verdict verdict--warn">

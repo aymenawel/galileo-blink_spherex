@@ -29,6 +29,76 @@ export const SECTIONS: Section[] = [
     ],
   },
   {
+    id: "words",
+    title: "Words used on this site",
+    paragraphs: ["Fifteen terms appear across Galileo Blink. Each one in a sentence:"],
+    definitions: [
+      {
+        term: "Arcsecond (″)",
+        meaning: "1/3600 of a degree. The full Moon is about 1,800 arcseconds across. An arcminute (′) is 60 arcseconds.",
+      },
+      {
+        term: "Proper motion",
+        meaning:
+          "The steady drift of a star across the sky, year after year, because it and the Sun move through the galaxy at different speeds. Measured in arcseconds per year.",
+      },
+      {
+        term: "Parallax",
+        meaning:
+          "A small yearly loop a nearby star appears to trace, because Earth (and SPHEREx with it) circles the Sun. The closer the star, the bigger the loop. Comparing dates a year apart cancels it.",
+      },
+      {
+        term: "Give or take (±)",
+        meaning: "The measurement's error bar: the true value very likely lies within that distance of the number shown.",
+      },
+      {
+        term: "Catalogue",
+        meaning:
+          "A published list of stars with their positions and motions. Two are used here: Gaia, from a European space telescope, and CatWISE, from NASA's WISE telescope.",
+      },
+      {
+        term: "Infrared",
+        meaning: "Light redder than the eye can see. Cool things, from brown dwarfs to dust, glow mostly in infrared.",
+      },
+      {
+        term: "Micron (µm)",
+        meaning: "A thousandth of a millimetre. Used here for the wavelength, or colour, of infrared light.",
+      },
+      {
+        term: "Camera",
+        meaning: "SPHEREx has six, each seeing its own slice of infrared, from camera 1 (shortest wavelengths) to camera 6 (longest).",
+      },
+      {
+        term: "Date, or season",
+        meaning: "One SPHEREx visit to a place: a few days of photos, usually about six months after the last visit.",
+      },
+      {
+        term: "Spectrum",
+        meaning: "How bright an object is at each colour. Its shape tells how hot the object is and what it is made of.",
+      },
+      {
+        term: "Millijansky (mJy)",
+        meaning: "A unit for how much light reaches us at one colour. Bigger is brighter.",
+      },
+      {
+        term: "Magnitude",
+        meaning: "An older brightness scale that runs backwards: bigger numbers are fainter. The eye alone sees down to about 6.",
+      },
+      {
+        term: "Saturated",
+        meaning: "Too bright for the camera: the pixels overflow and cannot be measured.",
+      },
+      {
+        term: "Quality flag",
+        meaning: "NASA's mark on a pixel it knows is suspect, such as a cosmic-ray hit, a dead pixel or a satellite trail.",
+      },
+      {
+        term: "Brown dwarf",
+        meaning: "An object bigger than a planet but too small to shine like a star. It glows faintly in infrared as it cools.",
+      },
+    ],
+  },
+  {
     id: "seasons",
     title: "Looks and seasons",
     paragraphs: [
@@ -58,31 +128,15 @@ export const SECTIONS: Section[] = [
     title: "Six cameras, 102 colours",
     paragraphs: [
       "SPHEREx has six cameras, each sensitive to its own slice of the infrared. In front of each sits a filter whose colour changes smoothly from one edge to the other. So a photo is not one colour: where an object lands on the detector decides which colour it is seen in.",
-      "Over many photos an object is seen in up to 102 colours. That is why the brightness dots on the Explore page draw a spectrum. It is also why cold objects such as brown dwarfs, which glow only at long wavelengths, show up in cameras 5 and 6 and are invisible in camera 1.",
+      "Over many photos an object is seen in up to 102 colours. That is why the brightness dots on the Explore page draw a spectrum. It is also why the coldest brown dwarfs, such as WISE 0855, which glow only beyond about 3.8 microns, show up in cameras 5 and 6 and are invisible in cameras 1 to 4.",
     ],
   },
   {
     id: "markers",
     title: "Markers and predictions",
     paragraphs: [
-      "The reticles on a picture mark catalogued objects that are known to move: stars from ESA's Gaia catalogue and cold objects from the CatWISE catalogue that cross at least half an arcsecond of sky a year. For each one the tool computes where it should be on every date, and draws a faint line through those positions.",
+      "The reticles on a picture mark catalogued objects that are known to move: stars from ESA's Gaia catalogue that cross at least half an arcsecond of sky a year, and cold objects from the CatWISE catalogue that cross at least 2 arcseconds a year. For each one the tool computes where it should be on every date, and draws a faint line through those positions.",
       "The predicted path in the motion plot is two things added together: a steady drift, and a small yearly loop.",
-    ],
-    definitions: [
-      {
-        term: "Arcsecond (″)",
-        meaning: "1/3600 of a degree. The full Moon is about 1,800 arcseconds across.",
-      },
-      {
-        term: "Proper motion",
-        meaning:
-          "The steady drift of a star across the sky, year after year, because it and the Sun move through the galaxy at different speeds. Measured in arcseconds per year.",
-      },
-      {
-        term: "Parallax",
-        meaning:
-          "A small yearly loop a nearby star appears to trace, because Earth (and SPHEREx with it) circles the Sun. The closer the star, the bigger the loop.",
-      },
     ],
   },
   {
@@ -127,7 +181,7 @@ export const LIMITS = {
   items: [
     {
       title: "It cannot see small motions",
-      body: "SPHEREx pixels are 6.15″ across. Anything that moves less than about 0.5″ between looks cannot be seen to move, and two objects closer together than a pixel blend into one.",
+      body: "SPHEREx pixels are 6.15″ across. Motion smaller than about 1″ between looks (2″ to 3″ in one camera, or for faint or saturated objects) cannot be told apart from no motion, and two objects closer together than a pixel blend into one.",
     },
     {
       title: "It cannot measure very bright stars",
@@ -139,7 +193,7 @@ export const LIMITS = {
     },
     {
       title: "Its error bars include what averaging cannot remove",
-      body: "Stars that do not move still appear to shift 0.2″ to 0.4″ between looks, and the six cameras share the same pointing errors. For stars with well-known motions the result differed from the catalogue by up to 0.6″, so 0.3″ is added to every motion's error.",
+      body: "Stars that do not move still appear to shift 0.2″ to 0.4″ between looks, and the six cameras share the same pointing errors. For stars with well-known motions the all-camera result differed from the catalogue by 0.3″ to 0.7″ (1.3″ for R Draconis, which is saturated in every photo), so 0.3″ is added to every motion's error. That allowance was set using these same stars, so their results show consistency, not an independent test of the error bars.",
     },
     {
       title: "It cannot find every asteroid",
@@ -155,7 +209,7 @@ export const LIMITS = {
     },
     {
       title: "It cannot find a distant planet by itself",
-      body: "A planet far beyond Neptune would be too faint for a single SPHEREx photo. It would also not creep across a small view: because Earth circles the Sun, it would appear to jump 10 to 25 arcminutes between two looks six months apart, far outside the frame. This tool has not found such a planet and cannot find one alone. It lets people look, carefully.",
+      body: "A planet far beyond Neptune would be too faint for a single SPHEREx photo. It would also not creep across a small view: because Earth circles the Sun, it would appear to jump 10 to 25 arcminutes between two looks six months apart, outside the default 9-arcminute view. This tool has not found such a planet and cannot find one alone. It lets people look, carefully.",
     },
   ],
 };

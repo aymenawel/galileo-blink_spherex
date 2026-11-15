@@ -144,7 +144,7 @@ export function SpectrumPlot({ view, bands, points, quick, unit }: SpectrumPlotP
               cx={cx}
               cy={y(p.flux_mjy)}
               r={i === hovered ? 5.5 : 3.6}
-              fill={p.status === "partial" ? "var(--panel)" : colour}
+              fill={p.status === "partial" ? "var(--bg)" : colour}
               stroke={colour}
             />
           );
