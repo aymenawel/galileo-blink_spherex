@@ -9,6 +9,9 @@ import { COPY } from "../../lib/copy";
 import { formatSeconds } from "../../lib/format";
 
 const FACT_EVERY_MS = 4200;
+/** Progress the server reports while listing photos, and when the photos start to arrive. */
+const LISTING_FRACTION = 0.03;
+const FETCHING_FRACTION = 0.08;
 
 /** One line about what is happening behind the progress bar, changing every few seconds. */
 function useRotatingFact(): string {
@@ -28,7 +31,13 @@ interface BuildProgressProps {
 
 export function BuildProgress({ status }: BuildProgressProps) {
   const fact = useRotatingFact();
-  const fraction = Math.max(0, Math.min(1, status?.fraction ?? 0));
+  const reported = Math.max(0, Math.min(1, status?.fraction ?? 0));
+  // The first step (asking the archive which photos exist) can take twenty seconds with nothing
+  // to report, so the bar creeps toward the next step's mark instead of standing still.
+  const fraction =
+    reported > 0 && reported <= LISTING_FRACTION
+      ? reported + (FETCHING_FRACTION - reported) * 0.9 * (1 - Math.exp(-(status?.seconds ?? 0) / 12))
+      : reported;
   const percent = Math.round(fraction * 100);
   const stage = status?.stage ?? (status ? COPY.build.queued : COPY.explore.opening);
 
