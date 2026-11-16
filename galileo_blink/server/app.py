@@ -129,9 +129,11 @@ def create_app(builder: Builder | None = None) -> FastAPI:
         """NASA's five test targets, each with the key of its ready-made view."""
         out = []
         for t in targets.targets():
-            req = target_request(t.id)
+            # `key` is the close view (the small previews use it); it opens at `size_deg`
+            req = target_request(t.id, C.FIELD_DEFAULT_DEG)
             out.append(dict(id=t.id, name=t.name, kind=t.kind, blurb=t.blurb, key=req.key,
                             ra=req.ra, dec=req.dec, pm=round(t.mover.pm_total, 2),
+                            size_deg=t.size_deg, sizes=list(C.TARGET_SIZES_DEG),
                             ready=builder.load(req.key) is not None))
         return out
 
@@ -163,7 +165,12 @@ def create_app(builder: Builder | None = None) -> FastAPI:
         if target:
             if targets.by_id(target) is None:
                 raise UserError(f"There is no test target called “{target}”.")
-            return target_request(target)
+            if size is not None and not any(abs(size - s) < 1e-6 for s in C.TARGET_SIZES_DEG):
+                offered = ", ".join(f"{s:g}" for s in C.TARGET_SIZES_DEG)
+                raise UserError(f"A test target opens at one of these sizes, in degrees: {offered}.")
+            return target_request(target, size)
+        if size is None:
+            size = C.FIELD_DEFAULT_DEG
         if ra is None or dec is None:
             raise UserError("A view needs a right ascension and a declination, or a target.")
         if not (0 <= ra <= 360 and -90 <= dec <= 90):
@@ -175,7 +182,7 @@ def create_app(builder: Builder | None = None) -> FastAPI:
 
     @app.get("/api/view")
     def open_view(request: Request, ra: float | None = None, dec: float | None = None,
-                  size: float = C.FIELD_DEFAULT_DEG, target: str | None = None):
+                  size: float | None = None, target: str | None = None):
         """Open (and if needed start building) the view of a place. Poll /api/view/{key}."""
         return builder.ensure(_request(ra, dec, size, target), _visitor(request))
 

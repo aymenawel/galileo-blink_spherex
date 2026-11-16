@@ -5,7 +5,7 @@
 import { Download, ImageDown, Link2 } from "lucide-react";
 import { useCallback, useMemo, useState } from "react";
 import { blinkGifUrl, cardUrl, type ViewRequest } from "../../api/client";
-import { CAMERA_KEYS, bandOf, looksOf } from "../../lib/cameras";
+import { CAMERA_KEYS, bandOf, looksOf, starsToMark } from "../../lib/cameras";
 import { COPY } from "../../lib/copy";
 import { DEFAULT_FIELD, DEFAULT_VISIT_FIELD, FIELD_CHOICES, exploreAddress } from "../../lib/exploreAddress";
 import { microns } from "../../lib/format";
@@ -61,7 +61,7 @@ export function ShowPicker({ ws }: ControlsProps) {
         overlays={overlays}
         flagsAvailable={mode === "blink"}
         catwiseAvailable={hasCatwise}
-        starsAvailable={(view.stars?.length ?? 0) > 0}
+        starsAvailable={starsToMark(view, ws.camera).length > 0}
         onToggle={ws.toggleOverlay}
       />
     </div>
@@ -91,8 +91,15 @@ export function ViewActions({ ws, request, name }: ViewActionsProps) {
     void copyAddress().then((copied) => setToast(copied ? COPY.explore.shareDone : COPY.explore.shareFailed));
   };
 
-  // Ready-made views (test targets, asteroid examples) have no choices to change.
-  const sized = request.kind === "place" || request.kind === "visit" ? request : null;
+  // A test target is ready-made at every size offered, so it resizes like any other place.
+  // Asteroid examples have no choices to change.
+  const target = request.kind === "target" && ws.view.kind !== "visit" ? request : null;
+  const sized =
+    request.kind === "place" || request.kind === "visit"
+      ? request
+      : target
+        ? { kind: "place" as const, ra: ws.view.ra, dec: ws.view.dec, size: ws.view.size_deg }
+        : null;
   const sizes = sized && !FIELD_CHOICES.includes(sized.size) ? [...FIELD_CHOICES, sized.size].sort((a, b) => a - b) : FIELD_CHOICES;
   const open = (next: ViewRequest) => navigate(exploreAddress(next, name));
   // The same place can be watched over six months (stars) or within one visit (asteroids).
@@ -128,7 +135,7 @@ export function ViewActions({ ws, request, name }: ViewActionsProps) {
             camera={sized.kind === "visit" ? (sized.camera ?? null) : null}
             sizes={sizes}
             onScale={setScale}
-            onSize={(size) => open({ ...sized, size })}
+            onSize={(size) => open(target ? { kind: "target", id: target.id, size } : { ...sized, size })}
             onCamera={(camera) => {
               if (sized.kind !== "visit") return;
               open({ kind: "visit", ra: sized.ra, dec: sized.dec, size: sized.size, ...(camera ? { camera } : {}) });

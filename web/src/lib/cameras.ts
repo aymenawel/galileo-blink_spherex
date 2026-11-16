@@ -1,5 +1,5 @@
 /** SPHEREx's six cameras: their order, their wavelengths, and finding their pictures in a view. */
-import type { Band, CameraKey, CameraView, Look, View } from "../api/types";
+import type { Band, CameraKey, CameraView, Look, StarDot, View } from "../api/types";
 
 export const CAMERA_KEYS: readonly CameraKey[] = ["1", "2", "3", "4", "5", "6"];
 
@@ -85,4 +85,17 @@ const SEASON_COLOURS = [
 
 export function seasonColour(season: number): string {
   return SEASON_COLOURS[season % SEASON_COLOURS.length]!;
+}
+
+/**
+ * The faintest Gaia star (G magnitude) that still shows as a dot in each camera's picture.
+ * Measured on the test targets' pictures: about nine marked stars in ten are visible down to
+ * these values, and fewer than two in three half a magnitude fainter. Most stars fade toward
+ * longer wavelengths, so the limit is brighter in the long-wavelength cameras.
+ */
+export const STAR_MARK_LIMIT: Record<CameraKey, number> = { "1": 15.5, "2": 15.5, "3": 15, "4": 14.5, "5": 13.5, "6": 12.5 };
+
+/** The catalogued stars worth marking in a camera's picture: only those it can show. */
+export function starsToMark(view: { stars?: StarDot[] | null }, camera: CameraKey): StarDot[] {
+  return (view.stars ?? []).filter((star) => (star[2] ?? 99) <= STAR_MARK_LIMIT[camera]);
 }

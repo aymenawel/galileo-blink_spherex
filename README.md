@@ -65,6 +65,11 @@ Luhman & Esplin 2016) predicts for the same dates. Errors are one sigma.
 The five test targets are reproduced with `python scripts/prebuild_targets.py`; the three
 typed rows by typing the star's name on the site.
 
+The table is measured on each target's 9-arcminute view. Every target is also shipped at 6,
+15, 24 and 30 arcminutes, so it opens and resizes without waiting for a build. A wider view
+is registered on different reference stars, so its measurement differs a little (Barnard's
+Star: 10.05″ to 10.27″ across the five sizes), always by less than the stated error.
+
 The asteroid search, run blind on real visits, recovers and names the known asteroids
 Eugenia, Bamberga, Hygiea, Iris and the faint Steins (magnitude 17.5), each as the single
 strong track in its field.

@@ -71,8 +71,22 @@ def test_the_five_targets_are_listed_with_stable_keys(client):
     listed = client.get("/api/targets").json()
     assert [t["id"] for t in listed] == ["barnard", "epsindib", "wise0855", "rwaur", "rdra"]
     assert listed[0]["key"] == "target-barnard" and listed[0]["ready"] is False
-    key = client.get("/api/view", params=dict(target="barnard")).json()["key"]
+    key = client.get("/api/view", params=dict(target="barnard", size=0.15)).json()["key"]
     assert key == "target-barnard" and wait(client, key)["state"] == "ready"
+
+
+def test_a_target_opens_at_its_own_size_and_at_each_size_offered(client):
+    listed = {t["id"]: t for t in client.get("/api/targets").json()}
+    assert listed["barnard"]["sizes"] == list(C.TARGET_SIZES_DEG)
+    assert listed["barnard"]["size_deg"] in C.TARGET_SIZES_DEG
+    from galileo_blink.engine.looks.build import target_request
+    opened = client.get("/api/view", params=dict(target="barnard")).json()["key"]
+    assert opened == target_request("barnard").key              # no size: the target's own
+    assert target_request("barnard", 0.15).key == "target-barnard"
+    assert target_request("barnard", 0.4).key == "target-barnard-400"
+    assert client.get("/api/view", params=dict(target="barnard", size=0.4)).json()["key"] == "target-barnard-400"
+    odd = client.get("/api/view", params=dict(target="barnard", size=0.33))
+    assert odd.status_code == 400                                # only the ready-made sizes
 
 
 def test_nasas_own_coordinate_text_resolves(client):
@@ -156,7 +170,7 @@ def test_a_stale_local_copy_does_not_hide_the_shipped_view(client, tmp_path):
     stale = view_dir("target-barnard")
     stale.mkdir(parents=True)
     write_json(stale / "view.json", dict(kind="looks", engine="older", key="target-barnard", degraded=[]))
-    assert client.get("/api/view", params=dict(target="barnard")).json() == dict(key="target-barnard", state="ready")
+    assert client.get("/api/view", params=dict(target="barnard", size=0.15)).json() == dict(key="target-barnard", state="ready")
 
 
 def test_a_blink_can_be_saved_as_an_animated_gif(client):
@@ -428,15 +442,17 @@ def test_every_shipped_example_opens_from_the_real_prebuilt_folder(tmp_path, mon
     from galileo_blink.server import app as server
     from galileo_blink.server import jobs
     monkeypatch.setenv("GALILEO_BLINK_CACHE", str(tmp_path))     # nothing built locally
-    keys = [target_request(t.id).key for t in targets.targets()]
+    keys = [target_request(t.id, size).key for t in targets.targets() for size in C.TARGET_SIZES_DEG]
     keys += [server._example_request(e).key
              for e in json.loads(server.ASTEROID_EXAMPLES.read_text(encoding="utf8"))]
-    assert len(keys) == 10
+    assert len(set(keys)) == 30
     for key in keys:
         found = jobs.Builder.find(key)
         assert found is not None, f"{key} is not shipped for engine {C.ENGINE_VERSION}"
         folder, view = found
         assert folder.parent == jobs.PREBUILT_DIR and view["engine"] == C.ENGINE_VERSION
+        if key.startswith("target-"):
+            assert not view.get("degraded"), f"{key} was built while something was failing"
         cameras = view.get("cameras", {}).values()
         pictures = [look[k] for cam in cameras for look in cam.get("looks", [])
                     for k in ("png", "change", "flags_png") if look.get(k)]

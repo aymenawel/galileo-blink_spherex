@@ -12,11 +12,12 @@ import type {
 } from "./types";
 
 /**
- * What to open: one of NASA's test targets or any spot in the sky (the six-month view), or
+ * What to open: one of NASA's test targets (at its own field of view unless `size` names
+ * another of the ready-made ones) or any spot in the sky (the six-month view), or
  * an asteroid example, an asteroid by name, or any spot searched for movers (one visit).
  */
 export type ViewRequest =
-  | { kind: "target"; id: string }
+  | { kind: "target"; id: string; size?: number }
   | { kind: "place"; ra: number; dec: number; size: number }
   | { kind: "asteroid"; id: string }
   | { kind: "asteroidName"; name: string }
@@ -102,7 +103,7 @@ export function openView(request: ViewRequest, signal?: AbortSignal): Promise<Vi
 function openAddress(request: ViewRequest): string {
   switch (request.kind) {
     case "target":
-      return `/api/view?target=${encodeURIComponent(request.id)}`;
+      return `/api/view?target=${encodeURIComponent(request.id)}${request.size ? `&size=${request.size}` : ""}`;
     case "place":
       return `/api/view?ra=${request.ra}&dec=${request.dec}&size=${request.size}`;
     case "asteroid":

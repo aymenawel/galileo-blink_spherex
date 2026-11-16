@@ -27,6 +27,7 @@ class Target:
     kind: str
     blurb: str
     mover: Mover
+    size_deg: float = 0.15      # the field of view its view opens at
 
     def centre(self) -> tuple[float, float]:
         """Where its view is centred: its catalogue position in mid-2026, inside the span of
@@ -43,7 +44,8 @@ def targets() -> tuple[Target, ...]:
                       dec=t["dec"], epoch_mjd=t["epoch_mjd"], pmra=t["pmra"], pmdec=t["pmdec"],
                       parallax_mas=t.get("parallax_mas"))
         out.append(Target(id=t["id"], name=t["name"], aliases=tuple(t["aliases"]),
-                          kind=t["kind"], blurb=t["blurb"], mover=mover))
+                          kind=t["kind"], blurb=t["blurb"], mover=mover,
+                          size_deg=float(t.get("size_deg", 0.15))))
     return tuple(out)
 
 

@@ -23,8 +23,11 @@ export interface Target {
   name: string;
   kind: string;
   blurb: string;
-  /** Key of the ready-made view of this target. */
+  /** Key of the ready-made close view of this target (the small previews use it). */
   key: string;
+  /** The field of view it opens at, and every size it is ready at, in degrees. */
+  size_deg?: number;
+  sizes?: number[];
   ra: number;
   dec: number;
   /** Catalogue speed across the sky, arcseconds per year. */

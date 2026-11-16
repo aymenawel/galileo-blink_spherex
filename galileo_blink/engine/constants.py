@@ -83,6 +83,9 @@ OVERFETCH = 1.45
 north-up view needs their corners (below ~1.42 a rotated frame leaves an empty wedge)."""
 
 FIELD_MIN_DEG, FIELD_MAX_DEG, FIELD_DEFAULT_DEG = 0.05, 0.5, 0.15
+TARGET_SIZES_DEG = (0.1, 0.15, 0.25, 0.4, 0.5)
+"""The test targets are built ahead of time at each of these sizes, and offered at no other,
+so opening or resizing one never waits for a build."""
 
 DISPLAY_UPSCALE = 4
 """Display only: each SPHEREx pixel is drawn as up to 4x4 screen pixels (Lanczos)."""

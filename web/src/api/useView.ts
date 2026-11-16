@@ -21,8 +21,9 @@ export type ViewLoad =
 export function requestId(request: ViewRequest): string {
   switch (request.kind) {
     case "target":
+      return `target:${request.id}:${request.size ?? "own"}`;
     case "asteroid":
-      return `${request.kind}:${request.id}`;
+      return `asteroid:${request.id}`;
     case "asteroidName":
       return `asteroidName:${request.name.toLowerCase()}`;
     case "place":

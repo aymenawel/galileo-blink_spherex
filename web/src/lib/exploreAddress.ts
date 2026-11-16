@@ -10,7 +10,7 @@ export type Mode = "blink" | "compare" | "change" | "combined";
 
 export const MODES: readonly Mode[] = ["blink", "compare", "change", "combined"];
 
-/** Fields of view offered for places that are not test targets, in degrees. */
+/** Fields of view offered, in degrees. The test targets are ready-made at each of them. */
 export const FIELD_CHOICES: readonly number[] = [0.1, 0.15, 0.25, 0.4, 0.5];
 export const DEFAULT_FIELD = 0.15;
 /** Asteroids cross a narrow view in hours, so the asteroid search starts wider. */
@@ -45,7 +45,10 @@ function seasonOrNull(text: string | null): number | null {
 
 function readRequest(query: URLSearchParams): ViewRequest | null {
   const target = query.get("target");
-  if (target) return { kind: "target", id: target };
+  if (target) {
+    const size = numberOrNull(query.get("size"));
+    return size !== null && FIELD_CHOICES.includes(size) ? { kind: "target", id: target, size } : { kind: "target", id: target };
+  }
   const asteroid = query.get("asteroid");
   if (asteroid) return { kind: "asteroid", id: asteroid };
   const asteroidName = query.get("asteroid_name");
@@ -84,6 +87,7 @@ export function exploreAddress(
   const query = new URLSearchParams();
   if (request.kind === "target") {
     query.set("target", request.id);
+    if (request.size) query.set("size", String(request.size));
   } else if (request.kind === "asteroid") {
     query.set("asteroid", request.id);
   } else if (request.kind === "asteroidName") {

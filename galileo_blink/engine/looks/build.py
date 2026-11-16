@@ -57,20 +57,25 @@ class ViewRequest:
     def key(self) -> str:
         """Names the view on disk and in URLs. Everything that changes the result is in it."""
         if self.target_id:
-            return f"target-{self.target_id}"
+            # the close view keeps the plain name; the other ready-made sizes add theirs
+            if abs(self.size_deg - C.FIELD_DEFAULT_DEG) < 1e-6:
+                return f"target-{self.target_id}"
+            return f"target-{self.target_id}-{round(self.size_deg * 1000)}"
         ra, dec = float(self.ra) % 360.0, float(self.dec) + 0.0
         text = (f"looks|{ra:.5f}|{dec:.5f}|{self.size_deg:.3f}|{self.per_look}|"
                 f"{self.max_seasons}|{C.ENGINE_VERSION}")
         return hashlib.sha1(text.encode()).hexdigest()[:16]
 
 
-def target_request(target_id: str, per_look: int = 6, max_seasons: int = 10) -> ViewRequest:
+def target_request(target_id: str, size_deg: float | None = None, per_look: int = 6,
+                   max_seasons: int = 10) -> ViewRequest:
+    """The view of a test target, at its own size unless another is asked for."""
     t = targets.by_id(target_id)
     if t is None:
         raise KeyError(target_id)
     ra, dec = t.centre()
-    return ViewRequest(ra=ra, dec=dec, per_look=per_look, max_seasons=max_seasons,
-                       target_id=t.id, label=t.name)
+    return ViewRequest(ra=ra, dec=dec, size_deg=t.size_deg if size_deg is None else size_deg,
+                       per_look=per_look, max_seasons=max_seasons, target_id=t.id, label=t.name)
 
 
 def view_dir(key: str) -> Path:

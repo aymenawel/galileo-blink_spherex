@@ -4,7 +4,7 @@
  */
 import { useMemo, useRef, useState } from "react";
 import { fileUrl } from "../../api/client";
-import { bandOf, lookAt, looksOf } from "../../lib/cameras";
+import { bandOf, lookAt, looksOf, starsToMark } from "../../lib/cameras";
 import { COPY, VISIT_COPY, lookSummary } from "../../lib/copy";
 import { formatDate } from "../../lib/format";
 import { markersToDraw, visitMarkers } from "../../lib/markers";
@@ -64,6 +64,7 @@ export function Viewport({ ws }: ViewportProps) {
           ),
     [view, overlays.catwise],
   );
+  const stars = useMemo(() => starsToMark(view, camera), [view, camera]);
   const flagsMask = mode === "blink" && overlays.flags ? lookAt(view, camera, season)?.flags_png : null;
 
   const overlay = (markerSeason: number | null, clipPath?: string) => (
@@ -71,7 +72,7 @@ export function Viewport({ ws }: ViewportProps) {
       n={view.n}
       markers={markers}
       season={markerSeason}
-      stars={view.stars}
+      stars={stars}
       showMarkers={overlays.markers}
       showStars={overlays.stars}
       interactive

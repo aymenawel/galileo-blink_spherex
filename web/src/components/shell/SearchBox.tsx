@@ -43,8 +43,10 @@ function requestFor(place: ResolvedPlace, choices: Choices): ViewRequest {
   if (choices.scale === "visit") {
     return { kind: "visit", ra: place.ra, dec: place.dec, size: choices.field, ...(choices.camera ? { camera: choices.camera } : {}) };
   }
-  // NASA's test targets have a ready-made view, unless another field of view was asked for.
-  if (place.target_id && choices.field === DEFAULT_FIELD) return { kind: "target", id: place.target_id };
+  // NASA's test targets are ready-made at every size offered; left alone, each opens at its own.
+  if (place.target_id) {
+    return choices.field === DEFAULT_FIELD ? { kind: "target", id: place.target_id } : { kind: "target", id: place.target_id, size: choices.field };
+  }
   return { kind: "place", ra: place.ra, dec: place.dec, size: choices.field };
 }
 

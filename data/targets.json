@@ -1,6 +1,7 @@
 [
   {
     "id": "barnard",
+    "size_deg": 0.5,
     "name": "Barnard's Star",
     "aliases": ["barnard's star", "barnards star", "barnard star", "gj 699", "v2500 oph"],
     "kind": "The fastest-moving star in the sky",
@@ -15,6 +16,7 @@
   },
   {
     "id": "epsindib",
+    "size_deg": 0.4,
     "name": "Epsilon Indi B",
     "aliases": ["epsilon indi b", "eps ind b", "eps indi b", "epsilon indi ba"],
     "kind": "A pair of brown dwarfs orbiting a star",
@@ -29,6 +31,7 @@
   },
   {
     "id": "wise0855",
+    "size_deg": 0.25,
     "name": "WISE 0855",
     "aliases": ["wise 0855", "wise 0855-0714", "wise j085510.83-071442.5", "wise0855"],
     "kind": "The coldest known brown dwarf",
@@ -43,6 +46,7 @@
   },
   {
     "id": "rwaur",
+    "size_deg": 0.4,
     "name": "RW Aurigae",
     "aliases": ["rw aurigae", "rw aur"],
     "kind": "A young star that changes brightness",
@@ -57,6 +61,7 @@
   },
   {
     "id": "rdra",
+    "size_deg": 0.4,
     "name": "R Draconis",
     "aliases": ["r draconis", "r dra"],
     "kind": "A pulsating red giant",
