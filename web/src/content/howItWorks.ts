@@ -1,4 +1,7 @@
-/** The text of the "How it works" page. Plain language first; the limits are stated, not hidden. */
+/**
+ * The text of the "How it works" page: a short version in six steps, then every step in detail,
+ * the words used, and the limits. Plain language first; the limits are stated, not hidden.
+ */
 
 export interface Definition {
   term: string;
@@ -17,6 +20,93 @@ export const HOW_IT_WORKS_INTRO = {
   eyebrow: "How it works",
   title: { before: "From NASA's archive to a picture that ", emphasis: "blinks", after: "." },
   lede: "Nothing here is hidden behind a button. This page explains every step between typing a place and seeing it move, and it ends with what the tool cannot do.",
+};
+
+/** The short version: six steps anyone can follow, and the labels around them. */
+export const SHORT_VERSION = {
+  eyebrow: "How it works",
+  lede: "Six steps take a place in the sky from NASA's archive to a picture that blinks. The short version comes first. The details follow, for anyone who wants them.",
+  shortTitle: "The short version",
+  steps: [
+    {
+      title: "A telescope photographs the whole sky",
+      body: [
+        "SPHEREx is a NASA space telescope launched in March 2025. About every six months it photographs the whole sky in infrared light, from 0.75 to 5 microns.",
+        "It has six cameras that together see 102 colours. Every photo is public, kept at NASA's IRSA archive.",
+      ],
+    },
+    {
+      title: "You pick a place",
+      body: [
+        "Type the name of a star, or a position in the sky. Each SPHEREx photo is a 65 MB file; the tool reads only the small piece that covers your place.",
+        "One pixel is 6.15 arcseconds, about 1/300 of the full Moon. A new place is built in under a minute.",
+      ],
+    },
+    {
+      title: "The photos are turned north-up and stacked",
+      body: [
+        "Photos arrive rotated, because the telescope rolls as it orbits. Each one is turned north-up onto the same grid.",
+        "Then the photos from one camera and one date are stacked into a single, clearer picture.",
+      ],
+    },
+    {
+      title: "Blink",
+      body: [
+        "The pictures from each date are shown one after another, in the same spot.",
+        "Stars stay put. Anything that moved jumps.",
+      ],
+    },
+    {
+      title: "Check it against a catalogue",
+      body: [
+        "A ring marks where a star catalogue says a moving object should be on that date: Gaia, a European star-mapping space telescope, or CatWISE.",
+        "The tool measures the motion in the photos itself, then compares. For Barnard's Star, in one year:",
+      ],
+    },
+    {
+      title: "Subtract two dates",
+      body: [
+        "Change subtracts one date from another, so everything that stayed put disappears. What is left is what changed.",
+        "The tool also measures whether an object's brightness changed, camera by camera.",
+      ],
+    },
+  ],
+  measured: "10.3",
+  measuredUnit: "arcseconds",
+  measuredError: "give or take 0.5",
+  predicted: "Catalogue predicted 10.3",
+  greenNow: "Where it is now",
+  pinkThen: "Where it was",
+  coda: "The same idea finds asteroids inside a single visit: the sky that stays put is subtracted, and the leftover dots are joined into a straight path. The tool does not announce discoveries. It lets people look.",
+  skyAlt: "The whole sky as SPHEREx sees it in infrared, an oval with the Milky Way as a bright band across the middle.",
+  skyCaption: "The whole sky, with the Milky Way across the middle",
+  placeCaption: "Barnard's Star, and the small piece of sky the tool reads",
+  stackCaption: (camera: string, date: string, photos: number) => `Camera ${camera}, ${date}: ${photos} photos stacked`,
+  stackDrawing: "Drawing: three photos, each tilted a different way, turn north-up and settle into one picture.",
+  blinkCaption: "Barnard's Star, every date in turn",
+  ringCaption: "The ring: where the catalogue says it should be",
+  changeCaption: (camera: string, a: string, b: string) => `Camera ${camera}, ${a} minus ${b}`,
+  moreTitle: "For the curious",
+  moreLede: "Every step in detail, with the numbers. Open any row; nothing here is needed to use the tool.",
+  moreJump: "Jump to",
+  moreWords: "The words",
+  moreLimits: "The limits",
+  tryLine: "Pick a place and watch it blink.",
+  tryButton: "Try it on Barnard's Star",
+};
+
+/** One phrase per technical topic, shown while its row is closed. */
+export const TOPIC_SUMMARY: Record<string, string> = {
+  spherex: "The telescope, and where its photos live",
+  seasons: "One visit about every six months, shared by six cameras",
+  "north-up": "Every photo redrawn onto one grid",
+  stacking: "The middle value of each pixel, gaps left blank",
+  cameras: "Six slices of infrared, and their wavelengths",
+  markers: "Rings from Gaia and CatWISE, and predicted paths",
+  measuring: "Reference stars, error bars and parallax",
+  asteroids: "Subtract the still sky, join the dots",
+  spectra: "Dots from the photos, and NASA's all-sky map",
+  flags: "NASA's marks on suspect pixels, the full list",
 };
 
 export const SECTIONS: Section[] = [

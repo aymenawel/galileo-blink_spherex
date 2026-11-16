@@ -8,6 +8,7 @@ import "./styles/home.css";
 import "./styles/viewer.css";
 import "./styles/details.css";
 import "./styles/skyhero.css";
+import "./styles/howit.css";
 
 import { StrictMode } from "react";
 import { createRoot } from "react-dom/client";
@@ -21,3 +22,4 @@ createRoot(root).render(
     <App />
   </StrictMode>,
 );
+

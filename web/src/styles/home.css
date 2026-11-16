@@ -270,43 +270,6 @@
   color: var(--warn);
 }
 
-.limits {
-  margin-top: var(--section-gap);
-  padding: clamp(32px, 5vw, 72px);
-  border-radius: clamp(28px, 4vw, 56px);
-  background: var(--surface);
-}
-
-.limits__title {
-  font-size: var(--step-head);
-  letter-spacing: -0.045em;
-}
-
-.limits__lede {
-  max-width: 40em;
-  margin-top: 16px;
-  color: var(--muted);
-  font-size: var(--step-lead);
-}
-
-.limits__list {
-  display: grid;
-  grid-template-columns: repeat(2, minmax(0, 1fr));
-  gap: 40px clamp(32px, 5vw, 88px);
-  margin-top: clamp(40px, 5vw, 72px);
-}
-
-.limits__item h3 {
-  margin-bottom: 10px;
-  font-size: var(--step-lead);
-  letter-spacing: -0.02em;
-  line-height: 1.15;
-}
-
-.limits__item p {
-  color: var(--muted);
-}
-
 .about__tagline,
 .about__team-name {
   font-size: var(--step-lead);
@@ -380,8 +343,7 @@
   }
 
   .index--columns .index__rows,
-  .steps,
-  .limits__list {
+  .steps {
     grid-template-columns: 1fr;
   }
 }
