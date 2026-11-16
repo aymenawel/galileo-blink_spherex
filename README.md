@@ -66,9 +66,12 @@ The five test targets are reproduced with `python scripts/prebuild_targets.py`; 
 typed rows by typing the star's name on the site.
 
 The table is measured on each target's 9-arcminute view. Every target is also shipped at 6,
-15, 24 and 30 arcminutes, so it opens and resizes without waiting for a build. A wider view
-is registered on different reference stars, so its measurement differs a little (Barnard's
-Star: 10.05″ to 10.27″ across the five sizes), always by less than the stated error.
+15, 24 and 30 arcminutes, so it opens and resizes without waiting for a build, and the site
+opens each one wider than the table's view (Barnard's Star at 30 arcminutes, WISE 0855 at
+15, the others at 24) to show more of the sky around it. A wider view is registered on
+different reference stars, so its measurement differs a little (Barnard's Star: 10.05″ to
+10.27″ across the five sizes, 10.16″ at the size it opens at), always by less than the
+stated error. Choose 9 arcminutes in the view's size menu to see the table's numbers.
 
 The asteroid search, run blind on real visits, recovers and names the known asteroids
 Eugenia, Bamberga, Hygiea, Iris and the faint Steins (magnitude 17.5), each as the single

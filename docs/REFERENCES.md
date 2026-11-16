@@ -34,6 +34,8 @@ Every external resource Galileo Blink uses: data, services, software and fonts.
 | IMCCE SkyBoT cone search (Berthier et al. 2006, ASPC 351, 367) | Known asteroids in a field at a moment | https://ssp.imcce.fr/webservices/skybot/ |
 | CDS Sesame name resolver (SIMBAD; Wenger et al. 2000, A&AS 143, 9) | Object names | https://cds.unistra.fr/cgi-bin/Sesame |
 | CfA mirror of CDS Sesame | Object names (asked first; CDS itself is the second choice) | https://vizier.cfa.harvard.edu |
+| SIMBAD astronomical database, CDS Strasbourg (Wenger et al. 2000, A&AS 143, 9) | Link from every view to the same place in SIMBAD; no data taken | https://simbad.cds.unistra.fr |
+| Legacy Surveys Sky Viewer (DESI Legacy Imaging Surveys; Dey et al. 2019, AJ 157, 168) | Link from every view to the same place in visible light; no data taken | https://www.legacysurvey.org/viewer |
 
 ## Software
 
