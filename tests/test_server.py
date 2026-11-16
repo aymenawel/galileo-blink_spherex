@@ -246,8 +246,9 @@ def test_every_answer_carries_the_browser_safety_headers(client):
     for address in ("/api/health", "/api/view/nothing-here"):
         h = client.get(address).headers
         assert h["x-content-type-options"] == "nosniff"
-        assert h["x-frame-options"] == "DENY"
-        assert "frame-ancestors 'none'" in h["content-security-policy"]
+        # The challenge asks that a view can be embedded in other sites: framing is allowed.
+        assert "x-frame-options" not in h
+        assert "frame-ancestors" not in h["content-security-policy"]
         assert h["referrer-policy"] and h["strict-transport-security"]
 
 

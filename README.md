@@ -33,7 +33,7 @@ An independent student project. Not an official NASA product.
 | Trust it | NASA's quality flags shown on the image; every limit stated in plain words |
 | Check it elsewhere | Links to the same place in NASA's SPHEREx viewer, WiseView, SIMBAD and the Legacy Surveys |
 | Understand the words | Fifteen terms explained in one sentence each, linked from every view |
-| Share it | Everything is in the URL |
+| Share it | Everything is in the URL, coordinates included, and any view can be embedded in another page with an `<iframe>` |
 | Save it | Any camera's blink as an animated GIF, or one picture with the measurement written on it |
 
 NASA's five test targets (Barnard's Star, Epsilon Indi B, WISE 0855, RW Aurigae, R Draconis)

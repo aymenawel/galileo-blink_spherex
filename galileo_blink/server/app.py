@@ -37,14 +37,15 @@ SAFE_FILE = {".png": "image/png", ".json": "application/json"}
 # slots, so a burst of them can never use up the threads that serve the pages and pictures.
 SLOW_LOOKUPS_AT_ONCE = 8
 # The page loads only its own scripts, styles, fonts and pictures, and talks only to this server.
+# Other sites may show it in a frame: the challenge asks for views that can be embedded, and
+# the site has no accounts or actions that a framing page could trick a visitor into.
 CONTENT_SECURITY_POLICY = (
     "default-src 'self'; img-src 'self' data: blob:; style-src 'self' 'unsafe-inline'; "
     "font-src 'self' data:; connect-src 'self'; object-src 'none'; base-uri 'self'; "
-    "frame-ancestors 'none'; form-action 'self'")
+    "form-action 'self'")
 GIF_CREDIT = "SPHEREx data: NASA/JPL-Caltech · galileoblink.earth"
 SAFETY_HEADERS = {
     "X-Content-Type-Options": "nosniff",
-    "X-Frame-Options": "DENY",
     "Referrer-Policy": "strict-origin-when-cross-origin",
     "Strict-Transport-Security": "max-age=31536000",
 }
