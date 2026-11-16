@@ -45,10 +45,25 @@ main {
   white-space: nowrap;
 }
 
-.mark__was {
+.mark__star {
+  fill: var(--ink);
+}
+
+.mark__shade {
+  fill: color-mix(in srgb, var(--ink) 52%, var(--bg));
+}
+
+.mark__orbit,
+.mark__gap {
   fill: none;
-  stroke: var(--ink);
-  stroke-width: 2;
+  stroke: var(--accent);
+  stroke-width: 2.1;
+}
+
+/* The orbit passes in front of the star's lower half: a gap in the page colour parts them. */
+.mark__gap {
+  stroke: var(--bg);
+  stroke-width: 4.6;
 }
 
 .mark__is {
